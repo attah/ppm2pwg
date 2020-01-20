@@ -19,7 +19,7 @@ int main(int argc, char** argv)
   bool apple = false;
 
   char* URF = getenv("URF");
-  if(URF && !strcmp(URF,"false"))
+  if(URF && strcmp(URF,"false")!=0)
   {
     apple = true;
   }

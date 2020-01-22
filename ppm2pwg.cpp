@@ -1,5 +1,6 @@
 #include <bytestream.h>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <cerrno>
 #include <iostream>
@@ -23,6 +24,16 @@ int main(int argc, char** argv)
   {
     apple = true;
   }
+
+  char* Prepend = getenv("PREPEND_FILE");
+  if(Prepend)
+  {
+    std::ifstream PrependFile(Prepend);
+    if(!PrependFile)
+      return 1;
+    std::cout << PrependFile.rdbuf();
+  }
+
 
   if(!apple)
   {

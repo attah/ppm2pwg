@@ -11,13 +11,17 @@
 #define CODABLE_FILE "urf_pghdr_codable.h"
 #include <codable.h>
 
-void make_pwg_hdr(Bytestream& OutBts, size_t ResX, size_t ResY, size_t Colors);
-void make_urf_hdr(Bytestream& OutBts, size_t ResX, size_t ResY, size_t Colors);
+void make_pwg_hdr(Bytestream& OutBts, size_t HwResX, size_t HwResY,
+                  size_t ResX, size_t ResY, size_t Colors);
+void make_urf_hdr(Bytestream& OutBts, size_t HwResX, size_t HwResY,
+                  size_t ResX, size_t ResY, size_t Colors);
 
-int main(int argc, char** argv)
+int main(int, char**)
 {
 
   bool apple = false;
+  size_t HwResX = 300;
+  size_t HwResY = 300;
 
   char* URF = getenv("URF");
   if(URF && strcmp(URF,"false")!=0)
@@ -34,6 +38,16 @@ int main(int argc, char** argv)
     std::cout << PrependFile.rdbuf();
   }
 
+  char* HWRES_X = getenv("HWRES_X");
+  char* HWRES_Y = getenv("HWRES_Y");
+  if(HWRES_X)
+  {
+    HwResX = atoi(HWRES_X);
+  }
+  if(HWRES_Y)
+  {
+    HwResY = atoi(HWRES_Y);
+  }
 
   if(!apple)
   {
@@ -87,11 +101,11 @@ int main(int argc, char** argv)
 
     if(!apple)
     {
-      make_pwg_hdr(OutBts, ResX, ResY, Colors);
+      make_pwg_hdr(OutBts, HwResX, HwResY, ResX, ResY, Colors);
     }
     else
     {
-      make_urf_hdr(OutBts, ResX, ResY, Colors);
+      make_urf_hdr(OutBts, HwResX, HwResY, ResX, ResY, Colors);
     }
 
     std::cerr << "Exp " << Colors*ResX*ResY << std::endl;
@@ -176,13 +190,14 @@ int main(int argc, char** argv)
 }
 
 
-void make_pwg_hdr(Bytestream& OutBts, size_t ResX, size_t ResY, size_t Colors)
+void make_pwg_hdr(Bytestream& OutBts, size_t HwResX, size_t HwResY,
+                  size_t ResX, size_t ResY, size_t Colors)
 {
   PwgPgHdr OutHdr;
 
   OutHdr.Duplex = 1;
-  OutHdr.HWResolutionX = 300;
-  OutHdr.HWResolutionY = 300;
+  OutHdr.HWResolutionX = HwResX;
+  OutHdr.HWResolutionY = HwResY;
   OutHdr.NumCopies = 1;
   OutHdr.PageSizeX = ResX * 72.0 / OutHdr.HWResolutionX; // width in pt, WTF?!
   OutHdr.PageSizeY = ResY * 72.0 / OutHdr.HWResolutionY; // height in pt, WTF?!
@@ -206,8 +221,14 @@ void make_pwg_hdr(Bytestream& OutBts, size_t ResX, size_t ResY, size_t Colors)
   OutHdr.encode_into(OutBts);
 }
 
-void make_urf_hdr(Bytestream& OutBts, size_t ResX, size_t ResY, size_t Colors)
+void make_urf_hdr(Bytestream& OutBts, size_t HwResX, size_t HwResY,
+                  size_t ResX, size_t ResY, size_t Colors)
 {
+  if(HwResX != HwResY)
+  {
+    exit(2);
+  }
+
   UrfPgHdr OutHdr;
 
   OutHdr.BitsPerPixel = 8*Colors;
@@ -216,7 +237,7 @@ void make_urf_hdr(Bytestream& OutBts, size_t ResX, size_t ResY, size_t Colors)
   OutHdr.Quality = 4;
   OutHdr.Width = ResX;
   OutHdr.Height = ResY;
-  OutHdr.HWRes = 300;
+  OutHdr.HWRes = HwResX;
 
   std::cerr << OutHdr.describe() << std::endl;
 

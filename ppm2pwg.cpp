@@ -191,6 +191,7 @@ int PPM2PWG_MAIN(int, char**)
     std::cerr << "remaining: " << bmp_bts.remaining() << "\n";
     std::cin.peek(); // maybe trigger eof
   }
+  return 0;
 }
 
 

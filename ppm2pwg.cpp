@@ -16,7 +16,11 @@ void make_pwg_hdr(Bytestream& OutBts, size_t HwResX, size_t HwResY,
 void make_urf_hdr(Bytestream& OutBts, size_t HwResX, size_t HwResY,
                   size_t ResX, size_t ResY, size_t Colors);
 
-int main(int, char**)
+#ifndef PPM2PWG_MAIN
+  #define PPM2PWG_MAIN main
+#endif
+
+int PPM2PWG_MAIN(int, char**)
 {
 
   bool apple = false;

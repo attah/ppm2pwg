@@ -157,9 +157,8 @@ int PPM2PWG_MAIN(int, char**)
           // std::cerr << "Verbatim\n" << std::flush;
 
           size_t verbatim = 1;
-          while(bmp_line.remaining() && bmp_line.peekBytestream(Colors) != current)
+          while(bmp_line.nextBytestream(current, false))
           {
-            bmp_line += Colors;
             verbatim++;
             if(verbatim == 127)
             {

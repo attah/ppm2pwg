@@ -114,8 +114,6 @@ int PPM2PWG_MAIN(int, char**)
       uint8_t line_repeat = 0;
       Bytestream enc_line;
 
-      // std::cerr << "line: " << y << "\n" << std::flush;
-
       while(bmp_line.remaining())
       {
         Bytestream current;
@@ -124,9 +122,7 @@ int PPM2PWG_MAIN(int, char**)
 
         if(bmp_line/Colors >>= current)
         {
-          // std::cerr << "Repeats\n";
           int8_t repeat = 1;
-
           // Find number of repititions
           while(bmp_line >>= current)
           {
@@ -136,16 +132,12 @@ int PPM2PWG_MAIN(int, char**)
               break;
             }
           }
-
-          // std::cerr << y << ": "<< (int)repeat << " times\n" << std::flush;
-
           enc_line << repeat << current;
         }
         else
         {
-          // std::cerr << "Verbatim\n" << std::flush;
-
           size_t verbatim = 1;
+          // Find the number of byte sequences that are different
           while(bmp_line.nextBytestream(current, false))
           {
             verbatim++;
@@ -170,9 +162,7 @@ int PPM2PWG_MAIN(int, char**)
           break;
         }
       }
-
       OutBts << line_repeat << enc_line;
-
     }
 
     std::cout.write((char*)OutBts.raw(), OutBts.size());

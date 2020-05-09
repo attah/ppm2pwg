@@ -68,7 +68,7 @@ int PPM2PWG_MAIN(int, char**)
   {
     Bytestream OutBts;
 
-    std::cerr << "Round " << r++ << std::endl;
+    std::cerr << "Page " << ++r << std::endl;
 
     std::string p, xs, ys, r;
     std::cin >> p >> xs >> ys >> r;
@@ -86,8 +86,6 @@ int PPM2PWG_MAIN(int, char**)
       std::cerr << "Only P5/P6 ppms supported, for now " << p << std::endl;
       return 1;
     }
-
-    std::cerr << r << " " << std::cin.peek() << std::endl;
 
     while(std::cin.peek() == 10)
     {
@@ -109,8 +107,6 @@ int PPM2PWG_MAIN(int, char**)
       make_urf_hdr(OutBts, Colors, Quality,
                    HwResX, HwResY, ResX, ResY, Duplex, Tumble);
     }
-
-    std::cerr << "Exp " << Colors*ResX*ResY << std::endl;
 
     Bytestream bmp_bts(Colors*ResX*ResY);
 
@@ -175,7 +171,11 @@ int PPM2PWG_MAIN(int, char**)
     }
 
     std::cout.write((char*)OutBts.raw(), OutBts.size());
-    std::cerr << "remaining: " << bmp_bts.remaining() << "\n";
+    if(bmp_bts.remaining())
+    {
+      std::cerr << "remaining != 0: " << bmp_bts.remaining() << "\n";
+      return 1;
+    }
     std::cin.peek(); // maybe trigger eof
   }
   return 0;

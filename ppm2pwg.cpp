@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <cerrno>
+#include <cmath>
 #include <iostream>
 #include <string.h>
 
@@ -188,7 +189,7 @@ void make_pwg_hdr(Bytestream& Bts, size_t Colors, size_t HwResX, size_t HwResY,
   OutHdr.Width = ResX;
   OutHdr.Height = ResY;
   OutHdr.BitsPerColor = 8;
-  OutHdr.BitsPerPixel = 8*Colors;
+  OutHdr.BitsPerPixel = Colors * OutHdr.BitsPerColor;
   OutHdr.BytesPerLine = Colors * ResX;
   OutHdr.ColorOrder = 0;
   OutHdr.ColorSpace = Colors==3 ? 19 : 18; // CUPS srgb : sgray
@@ -196,7 +197,7 @@ void make_pwg_hdr(Bytestream& Bts, size_t Colors, size_t HwResX, size_t HwResY,
   OutHdr.TotalPageCount = 0;
   OutHdr.CrossFeedTransform = 1;
   OutHdr.FeedTransform = 1;
-  // OutHdr.AlternatePrimary = 16777215;
+  OutHdr.AlternatePrimary = pow(2, OutHdr.BitsPerPixel)-1;
   OutHdr.PageSizeName = "iso_a4_210x297mm";
 
   std::cerr << OutHdr.describe() << std::endl;

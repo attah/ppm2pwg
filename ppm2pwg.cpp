@@ -14,13 +14,14 @@
 
 void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
                   size_t HwResX, size_t HwResY, size_t ResX, size_t ResY,
-                  bool Duplex, bool Tumble);
+                  bool Duplex, bool Tumble, std::string PageSizeName);
 void make_urf_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
                   size_t HwResX, size_t HwResY,size_t ResX, size_t ResY,
                   bool Duplex, bool Tumble);
 
 bool getenv_bool(std::string VarName);
 int getenv_int(std::string VarName, int Default);
+std::string getenv_str(std::string VarName, std::string Default);
 
 #ifndef PPM2PWG_MAIN
   #define PPM2PWG_MAIN main
@@ -36,6 +37,8 @@ int PPM2PWG_MAIN(int, char**)
   size_t HwResX = getenv_int("HWRES_X", 300);
   size_t HwResY = getenv_int("HWRES_Y", 300);
   size_t Quality = getenv_int("QUALITY", 4);
+
+  std::string PageSizeName = getenv_str("PAGE_SIZE_NAME", "iso_a4_210x297mm");
 
   char* Prepend = getenv("PREPEND_FILE");
   if(Prepend)
@@ -99,7 +102,7 @@ int PPM2PWG_MAIN(int, char**)
     if(!Urf)
     {
       make_pwg_hdr(OutBts, Colors, Quality,
-                   HwResX, HwResY, ResX, ResY, Duplex, Tumble);
+                   HwResX, HwResY, ResX, ResY, Duplex, Tumble, PageSizeName);
     }
     else
     {
@@ -181,7 +184,7 @@ int PPM2PWG_MAIN(int, char**)
 
 void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
                   size_t HwResX, size_t HwResY, size_t ResX, size_t ResY,
-                  bool Duplex, bool Tumble)
+                  bool Duplex, bool Tumble, std::string PageSizeName)
 {
   PwgPgHdr OutHdr;
 
@@ -205,7 +208,7 @@ void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
   OutHdr.FeedTransform = 1;
   OutHdr.AlternatePrimary = pow(2, OutHdr.BitsPerPixel)-1;
   OutHdr.PrintQuality = Quality;
-  OutHdr.PageSizeName = "iso_a4_210x297mm";
+  OutHdr.PageSizeName = PageSizeName;
 
   std::cerr << OutHdr.describe() << std::endl;
 
@@ -246,4 +249,10 @@ int getenv_int(std::string VarName, int Default)
 {
   char* tmp = getenv(VarName.c_str());
   return tmp ? atoi(tmp) : Default;
+}
+
+std::string getenv_str(std::string VarName, std::string Default)
+{
+  char* tmp = getenv(VarName.c_str());
+  return tmp ? tmp : Default;
 }

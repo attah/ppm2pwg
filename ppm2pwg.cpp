@@ -12,9 +12,21 @@
 #include <codable.h>
 
 void make_pwg_hdr(Bytestream& OutBts, size_t HwResX, size_t HwResY,
-                  size_t ResX, size_t ResY, size_t Colors);
+                  size_t ResX, size_t ResY, size_t Colors, bool Duplex);
 void make_urf_hdr(Bytestream& OutBts, size_t HwResX, size_t HwResY,
-                  size_t ResX, size_t ResY, size_t Colors);
+                  size_t ResX, size_t ResY, size_t Colors, bool Duplex);
+
+bool getenv_bool(std::string VarName)
+{
+  char* tmp = getenv(VarName.c_str());
+  return (tmp && strcmp(tmp,"0")!=0 && strcmp(tmp,"false")!=0);
+}
+
+int getenv_int(std::string VarName, int Default)
+{
+  char* tmp = getenv(VarName.c_str());
+  return tmp ? atoi(tmp) : Default;
+}
 
 #ifndef PPM2PWG_MAIN
   #define PPM2PWG_MAIN main
@@ -23,15 +35,10 @@ void make_urf_hdr(Bytestream& OutBts, size_t HwResX, size_t HwResY,
 int PPM2PWG_MAIN(int, char**)
 {
 
-  bool apple = false;
-  size_t HwResX = 300;
-  size_t HwResY = 300;
-
-  char* URF = getenv("URF");
-  if(URF && strcmp(URF,"false")!=0)
-  {
-    apple = true;
-  }
+  bool Urf = getenv_bool("URF");
+  bool Duplex = getenv_bool("DUPLEX");
+  size_t HwResX = getenv_int("HWRES_X", 300);
+  size_t HwResY = getenv_int("HWRES_Y", 300);
 
   char* Prepend = getenv("PREPEND_FILE");
   if(Prepend)
@@ -42,18 +49,7 @@ int PPM2PWG_MAIN(int, char**)
     std::cout << PrependFile.rdbuf();
   }
 
-  char* HWRES_X = getenv("HWRES_X");
-  char* HWRES_Y = getenv("HWRES_Y");
-  if(HWRES_X)
-  {
-    HwResX = atoi(HWRES_X);
-  }
-  if(HWRES_Y)
-  {
-    HwResY = atoi(HWRES_Y);
-  }
-
-  if(!apple)
+  if(!Urf)
   {
     std::cout << "RaS2";
   }
@@ -103,13 +99,13 @@ int PPM2PWG_MAIN(int, char**)
     unsigned int ResX = stoi(xs);
     unsigned int ResY = stoi(ys);
 
-    if(!apple)
+    if(!Urf)
     {
-      make_pwg_hdr(OutBts, HwResX, HwResY, ResX, ResY, Colors);
+      make_pwg_hdr(OutBts, HwResX, HwResY, ResX, ResY, Colors, Duplex);
     }
     else
     {
-      make_urf_hdr(OutBts, HwResX, HwResY, ResX, ResY, Colors);
+      make_urf_hdr(OutBts, HwResX, HwResY, ResX, ResY, Colors, Duplex);
     }
 
     std::cerr << "Exp " << Colors*ResX*ResY << std::endl;
@@ -195,11 +191,11 @@ int PPM2PWG_MAIN(int, char**)
 
 
 void make_pwg_hdr(Bytestream& OutBts, size_t HwResX, size_t HwResY,
-                  size_t ResX, size_t ResY, size_t Colors)
+                  size_t ResX, size_t ResY, size_t Colors, bool Duplex)
 {
   PwgPgHdr OutHdr;
 
-  OutHdr.Duplex = 1;
+  OutHdr.Duplex = Duplex;
   OutHdr.HWResolutionX = HwResX;
   OutHdr.HWResolutionY = HwResY;
   OutHdr.NumCopies = 1;
@@ -226,7 +222,7 @@ void make_pwg_hdr(Bytestream& OutBts, size_t HwResX, size_t HwResY,
 }
 
 void make_urf_hdr(Bytestream& OutBts, size_t HwResX, size_t HwResY,
-                  size_t ResX, size_t ResY, size_t Colors)
+                  size_t ResX, size_t ResY, size_t Colors, bool Duplex)
 {
   if(HwResX != HwResY)
   {
@@ -237,7 +233,7 @@ void make_urf_hdr(Bytestream& OutBts, size_t HwResX, size_t HwResY,
 
   OutHdr.BitsPerPixel = 8*Colors;
   OutHdr.ColorSpace = Colors==3 ? 1 : 4;
-  OutHdr.Duplex = 1;
+  OutHdr.Duplex = Duplex ? 2 : 1; // 1: no duplex, 2: long side, 3: short side
   OutHdr.Quality = 4;
   OutHdr.Width = ResX;
   OutHdr.Height = ResY;

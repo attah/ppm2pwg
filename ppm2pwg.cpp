@@ -4,7 +4,6 @@
 #include <string>
 #include <cerrno>
 #include <cmath>
-#include <iostream>
 #include <string.h>
 
 #define CODABLE_FILE "pwg_pghdr_codable.h"
@@ -227,7 +226,14 @@ void make_urf_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
   UrfPgHdr OutHdr;
 
   OutHdr.BitsPerPixel = 8*Colors;
-  OutHdr.ColorSpace = Colors==3 ? 1 : 4;
+  // 0: grey8
+  // 1: srgb24
+  // 2: CIElab (srgb24)
+  // 3: Adobe rgb (srgb24)
+  // 4: grey32
+  // 5: rgb24
+  // 6: cmyk24
+  OutHdr.ColorSpace = Colors==3 ? 1 : 0;
   OutHdr.Duplex = Duplex ? Tumble ? 3 : 2 : 1; // 1: no duplex, 2: long side, 3: short side
   OutHdr.Quality = Quality;
   OutHdr.Width = ResX;

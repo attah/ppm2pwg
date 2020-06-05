@@ -232,7 +232,7 @@ void make_urf_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
   // 3: Adobe rgb (srgb24)
   // 4: grey32
   // 5: rgb24
-  // 6: cmyk24
+  // 6: cmyk32/64?
   OutHdr.ColorSpace = Colors==3 ? 1 : 0;
   OutHdr.Duplex = Duplex ? Tumble ? 3 : 2 : 1; // 1: no duplex, 2: long side, 3: short side
   OutHdr.Quality = Quality;

@@ -55,7 +55,8 @@ int PPM2PWG_MAIN(int, char**)
   else
   {
     Bytestream UrfFileHdr;
-    UrfFileHdr << "UNIRAST" << (uint8_t)0 << (uint32_t)1;
+    uint32_t pages = getenv_int("PAGES", 1);
+    UrfFileHdr << "UNIRAST" << (uint8_t)0 << pages;
     std::cout.write((char*)UrfFileHdr.raw(), UrfFileHdr.size());
   }
 

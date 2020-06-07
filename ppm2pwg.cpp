@@ -13,10 +13,11 @@
 
 void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
                   size_t HwResX, size_t HwResY, size_t ResX, size_t ResY,
-                  bool Duplex, bool Tumble, std::string PageSizeName);
+                  bool Duplex, bool Tumble, bool SRGB,
+                  std::string PageSizeName);
 void make_urf_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
                   size_t HwResX, size_t HwResY,size_t ResX, size_t ResY,
-                  bool Duplex, bool Tumble);
+                  bool Duplex, bool Tumble, bool SRGB);
 
 bool getenv_bool(std::string VarName);
 int getenv_int(std::string VarName, int Default);
@@ -32,6 +33,7 @@ int PPM2PWG_MAIN(int, char**)
   bool Urf = getenv_bool("URF");
   bool Duplex = getenv_bool("DUPLEX");
   bool Tumble = getenv_bool("TUMBLE");
+  bool SRGB = getenv_bool("SRGB");
 
   size_t HwResX = getenv_int("HWRES_X", 300);
   size_t HwResY = getenv_int("HWRES_Y", 300);
@@ -99,13 +101,13 @@ int PPM2PWG_MAIN(int, char**)
 
     if(!Urf)
     {
-      make_pwg_hdr(OutBts, Colors, Quality,
-                   HwResX, HwResY, ResX, ResY, Duplex, Tumble, PageSizeName);
+      make_pwg_hdr(OutBts, Colors, Quality, HwResX, HwResY, ResX, ResY,
+                   Duplex, Tumble, SRGB, PageSizeName);
     }
     else
     {
-      make_urf_hdr(OutBts, Colors, Quality,
-                   HwResX, HwResY, ResX, ResY, Duplex, Tumble);
+      make_urf_hdr(OutBts, Colors, Quality, HwResX, HwResY, ResX, ResY,
+                   Duplex, Tumble, SRGB);
     }
 
     Bytestream bmp_bts(Colors*ResX*ResY);
@@ -184,7 +186,7 @@ int PPM2PWG_MAIN(int, char**)
 
 void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
                   size_t HwResX, size_t HwResY, size_t ResX, size_t ResY,
-                  bool Duplex, bool Tumble, std::string PageSizeName)
+                  bool Duplex, bool Tumble, bool SRGB, std::string PageSizeName)
 {
   PwgPgHdr OutHdr;
 
@@ -201,7 +203,7 @@ void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
   OutHdr.BitsPerPixel = Colors * OutHdr.BitsPerColor;
   OutHdr.BytesPerLine = Colors * ResX;
   OutHdr.ColorOrder = 0;
-  OutHdr.ColorSpace = Colors==3 ? 19 : 18; // CUPS srgb : sgray
+  OutHdr.ColorSpace = Colors==3 ? (SRGB ? 19 : 1) : 18; // srgb/rgb/sgray
   OutHdr.NumColors = Colors;
   OutHdr.TotalPageCount = 0;
   OutHdr.CrossFeedTransform = 1;
@@ -217,7 +219,7 @@ void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
 
 void make_urf_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
                   size_t HwResX, size_t HwResY,size_t ResX, size_t ResY,
-                  bool Duplex, bool Tumble)
+                  bool Duplex, bool Tumble, bool SRGB)
 {
   if(HwResX != HwResY)
   {
@@ -234,7 +236,7 @@ void make_urf_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
   // 4: grey32
   // 5: rgb24
   // 6: cmyk32/64?
-  OutHdr.ColorSpace = Colors==3 ? 1 : 0;
+  OutHdr.ColorSpace = Colors==3 ? (SRGB ? 1 : 5) : 0;
   // 1: no duplex, 2: short side, 3: long side
   OutHdr.Duplex = Duplex ? (Tumble ? 2 : 3) : 1;
   OutHdr.Quality = Quality;

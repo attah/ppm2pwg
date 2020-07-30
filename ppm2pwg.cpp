@@ -32,6 +32,7 @@ int PPM2PWG_MAIN(int, char**)
   bool Urf = getenv_bool("URF");
   bool Duplex = getenv_bool("DUPLEX");
   bool Tumble = getenv_bool("TUMBLE");
+  bool ForcePortrait = getenv_bool("FORCE_PORTRAIT");
 
   size_t HwResX = getenv_int("HWRES_X", 300);
   size_t HwResY = getenv_int("HWRES_Y", 300);
@@ -97,6 +98,27 @@ int PPM2PWG_MAIN(int, char**)
     unsigned int ResX = stoi(xs);
     unsigned int ResY = stoi(ys);
 
+    Bytestream bmp_bts(Colors*ResX*ResY);
+
+    if(ForcePortrait && (ResY < ResX))
+    {
+      Bytestream tmp(Colors*ResX*ResY);
+      std::cin.read((char*)tmp.raw(), Colors*ResX*ResY);
+
+      for(size_t y=1; y<(ResY+1); y++)
+      {
+        for(size_t x=1; x<(ResX+1); x++)
+        {
+          tmp.getBytes(bmp_bts.raw()+((x*ResY)-y)*Colors, Colors);
+        }
+      }
+      std::swap(ResX, ResY);
+    }
+    else
+    {
+      std::cin.read((char*)bmp_bts.raw(), Colors*ResX*ResY);
+    }
+
     if(!Urf)
     {
       make_pwg_hdr(OutBts, Colors, Quality, HwResX, HwResY, ResX, ResY,
@@ -107,10 +129,6 @@ int PPM2PWG_MAIN(int, char**)
       make_urf_hdr(OutBts, Colors, Quality, HwResX, HwResY, ResX, ResY,
                    Duplex, Tumble);
     }
-
-    Bytestream bmp_bts(Colors*ResX*ResY);
-
-    std::cin.read((char*)bmp_bts.raw(), Colors*ResX*ResY);
 
     for(size_t y=0; y<ResY; y++)
     {

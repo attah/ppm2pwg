@@ -98,11 +98,11 @@ int PPM2PWG_MAIN(int, char**)
     unsigned int ResX = stoi(xs);
     unsigned int ResY = stoi(ys);
 
-    Bytestream bmp_bts(Colors*ResX*ResY);
+    Bytestream bmp_bts = Bytestream::preallocated(Colors*ResX*ResY);
 
     if(ForcePortrait && (ResY < ResX))
     {
-      Bytestream tmp(Colors*ResX*ResY);
+      Bytestream tmp = Bytestream::preallocated(Colors*ResX*ResY);
       std::cin.read((char*)tmp.raw(), Colors*ResX*ResY);
 
       for(size_t y=1; y<(ResY+1); y++)

@@ -73,6 +73,10 @@ void to_image(Bytestream& file, size_t width, size_t height, size_t colors,
   std::cout << (colors==3 ? "P6" : "P5")
             << '\n' << width << ' ' << height << '\n' << 255 << '\n';
 
+  Bytestream Grey8White {(uint8_t)0};
+  Bytestream RGBWhite {(uint8_t)0xff, (uint8_t)0xff, (uint8_t)0xff};
+  Bytestream White = (colors == 1 ? Grey8White : RGBWhite);
+
   while(height)
   {
     Bytestream line;
@@ -87,18 +91,10 @@ void to_image(Bytestream& file, size_t width, size_t height, size_t colors,
       if(urf && count==128)
       { // URF special case: 128 means fill line with white
         // (code assumes gray8 or RGB)
-        Bytestream white;
-        if(colors == 1)
-        {
-          white << (uint8_t)0;
-        }
-        else
-        {
-          white << (uint8_t)0xff << (uint8_t)0xff << (uint8_t)0xff;
-        }
+
         while(line.size() != (width*colors))
         {
-          line << white;
+          line << White;
         }
       }
       else if (count < 128)

@@ -22,7 +22,7 @@ int main(int argc, char** argv)
   std::ifstream::pos_type fileSize = ifs.tellg();
   ifs.seekg(0, std::ios::beg);
 
-  Bytestream file = Bytestream::preallocated(fileSize);
+  Bytestream file(fileSize);
   ifs.read((char*)(file.raw()), fileSize);
 
   std::cerr << "File is " << fileSize << " long" << std::endl;

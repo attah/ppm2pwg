@@ -161,14 +161,20 @@ int PPM2PWG_MAIN(int, char**)
         {
           size_t verbatim = 1;
           // Find the number of byte sequences that are different
-          while(bmp_line.nextBytestream(current, false))
+          while(!bmp_line.atEnd() && bmp_line.peekBytestream(Colors) != current)
           {
+            bmp_line/Colors >> current;
             verbatim++;
             if(verbatim == 127)
             {
               break;
             }
           }
+          // This and the next sequence are equal,
+          // assume it starts a repeating sequence.
+          // But we ended up here for a reason, so encode at least one.
+          if(verbatim > 1)
+            verbatim--;
           bmp_line.setPos(current_start);
           Bytestream tmp_bts;
           bmp_line/(verbatim*Colors) >> tmp_bts;

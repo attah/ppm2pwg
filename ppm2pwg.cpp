@@ -40,15 +40,6 @@ int PPM2PWG_MAIN(int, char**)
 
   std::string PageSizeName = getenv_str("PAGE_SIZE_NAME", "iso_a4_210x297mm");
 
-  char* Prepend = getenv("PREPEND_FILE");
-  if(Prepend)
-  {
-    std::ifstream PrependFile(Prepend);
-    if(!PrependFile)
-      return 1;
-    std::cout << PrependFile.rdbuf();
-  }
-
   if(!Urf)
   {
     std::cout << "RaS2";

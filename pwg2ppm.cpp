@@ -8,16 +8,17 @@
 #include <codable.h>
 
 void to_image(Bytestream& file, size_t width, size_t height, size_t colors,
-              bool urf);
+              bool urf, std::string outfile_prefix, int page);
 
 int main(int argc, char** argv)
 {
-  if(argc != 2)
+  if(argc != 3)
   {
-    std::cerr << "No file given" << std::endl;
+    std::cerr << "Usage: pwg2ppm <infile> <outfile prefix>" << std::endl;
     return 1;
   }
   std::ifstream ifs(argv[1], std::ios::in | std::ios::binary | std::ios::ate);
+  std::string outfile_prefix(argv[2]);
 
   std::ifstream::pos_type fileSize = ifs.tellg();
   ifs.seekg(0, std::ios::beg);
@@ -39,7 +40,8 @@ int main(int argc, char** argv)
       PwgPgHdr PwgHdr;
       PwgHdr.decode_from(file);
       std::cerr << PwgHdr.describe() << std::endl;
-      to_image(file, PwgHdr.Width, PwgHdr.Height, PwgHdr.NumColors, false);
+      to_image(file, PwgHdr.Width, PwgHdr.Height, PwgHdr.NumColors, false,
+               outfile_prefix, pages);
     }
     while (file.remaining());
   }
@@ -55,7 +57,8 @@ int main(int argc, char** argv)
       UrfPgHdr UrfHdr;
       UrfHdr.decode_from(file);
       std::cerr << UrfHdr.describe() << std::endl;
-      to_image(file, UrfHdr.Width, UrfHdr.Height, UrfHdr.BitsPerPixel/8, true);
+      to_image(file, UrfHdr.Width, UrfHdr.Height, UrfHdr.BitsPerPixel/8, true,
+               outfile_prefix, pages);
     }
     while (file.remaining());
   }
@@ -68,10 +71,13 @@ int main(int argc, char** argv)
 }
 
 void to_image(Bytestream& file, size_t width, size_t height, size_t colors,
-              bool urf)
+              bool urf, std::string outfile_prefix, int page)
 {
-  std::cout << (colors==3 ? "P6" : "P5")
-            << '\n' << width << ' ' << height << '\n' << 255 << '\n';
+  std::string outfile_name = outfile_prefix+std::to_string(page)
+                                           +(colors==3 ? ".ppm" : ".pgm");
+  std::ofstream outfile(outfile_name, std::ofstream::out);
+  outfile << (colors==3 ? "P6" : "P5")
+          << '\n' << width << ' ' << height << '\n' << 255 << '\n';
 
   Bytestream Grey8White {(uint8_t)0};
   Bytestream RGBWhite {(uint8_t)0xff, (uint8_t)0xff, (uint8_t)0xff};
@@ -116,12 +122,12 @@ void to_image(Bytestream& file, size_t width, size_t height, size_t colors,
       }
     }
 
-    std::cout.write((char*)line.raw(), line.size());
+    outfile.write((char*)line.raw(), line.size());
     height--;
 
     for(size_t i=0; i < line_repeat; i++)
     {
-      std::cout.write((char*)line.raw(), line.size());
+      outfile.write((char*)line.raw(), line.size());
     }
     height-=line_repeat;
   }

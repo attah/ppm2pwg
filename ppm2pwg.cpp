@@ -6,10 +6,8 @@
 #include <cmath>
 #include <string.h>
 
-#define CODABLE_FILE "pwg_pghdr_codable.h"
-#include <codable.h>
-#define CODABLE_FILE "urf_pghdr_codable.h"
-#include <codable.h>
+#include "PwgPgHdr.h"
+#include "UrfPgHdr.h"
 
 void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
                   size_t HwResX, size_t HwResY, size_t ResX, size_t ResY,

@@ -2,10 +2,8 @@
 #include <fstream>
 #include <iostream>
 
-#define CODABLE_FILE "pwg_pghdr_codable.h"
-#include <codable.h>
-#define CODABLE_FILE "urf_pghdr_codable.h"
-#include <codable.h>
+#include "PwgPgHdr.h"
+#include "UrfPgHdr.h"
 
 void to_image(Bytestream& file, size_t width, size_t height, size_t colors,
               bool urf, std::string outfile_prefix, int page);

@@ -213,14 +213,16 @@ void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
   OutHdr.BitsPerColor = 8;
   OutHdr.BitsPerPixel = Colors * OutHdr.BitsPerColor;
   OutHdr.BytesPerLine = Colors * ResX;
-  OutHdr.ColorOrder = 0;
-  OutHdr.ColorSpace = Colors==3 ? 19 : 18; // srgb/sgray
+  OutHdr.ColorSpace = Colors==3 ? PwgPgHdr::sRGB : PwgPgHdr::sGray;
   OutHdr.NumColors = Colors;
   OutHdr.TotalPageCount = 0;
   OutHdr.CrossFeedTransform = 1;
   OutHdr.FeedTransform = 1;
   OutHdr.AlternatePrimary = pow(2, OutHdr.BitsPerPixel)-1;
-  OutHdr.PrintQuality = Quality;
+  OutHdr.PrintQuality = (Quality == 3 ? PwgPgHdr::Draft
+                      : (Quality == 4 ? PwgPgHdr::Normal
+                      : (Quality == 5 ? PwgPgHdr::High
+                      : PwgPgHdr::DefaultPrintQuality)));
   OutHdr.PageSizeName = PageSizeName;
 
   std::cerr << OutHdr.describe() << std::endl;
@@ -240,17 +242,13 @@ void make_urf_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
   UrfPgHdr OutHdr;
 
   OutHdr.BitsPerPixel = 8*Colors;
-  // 0: grey8
-  // 1: srgb24
-  // 2: CIElab (srgb24)
-  // 3: Adobe rgb (srgb24)
-  // 4: grey32
-  // 5: rgb24
-  // 6: cmyk32/64?
-  OutHdr.ColorSpace = Colors==3 ? 1 : 0;
-  // 1: no duplex, 2: short side, 3: long side
-  OutHdr.Duplex = Duplex ? (Tumble ? 2 : 3) : 1;
-  OutHdr.Quality = Quality;
+  OutHdr.ColorSpace = Colors==3 ? UrfPgHdr::sRGB : UrfPgHdr::sGray;
+  OutHdr.Duplex = Duplex ? (Tumble ? UrfPgHdr::ShortSide : UrfPgHdr::LongSide)
+                         : UrfPgHdr::NoDuplex;
+  OutHdr.Quality = (Quality == 3 ? UrfPgHdr::Draft
+                 : (Quality == 4 ? UrfPgHdr::Normal
+                 : (Quality == 5 ? UrfPgHdr::High
+                 : UrfPgHdr::DefaultQuality)));
   OutHdr.Width = ResX;
   OutHdr.Height = ResY;
   OutHdr.HWRes = HwResX;

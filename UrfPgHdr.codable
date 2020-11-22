@@ -1,8 +1,19 @@
 CODABLE(UrfPgHdr)
   FIELD(uint8_t, BitsPerPixel)
-  FIELD(uint8_t, ColorSpace)
-  FIELD(uint8_t, Duplex)
-  FIELD(uint8_t, Quality)
+  ENUM(uint8_t, ColorSpace, ENUM_VALUE(sGray, 0),
+                            ENUM_LABEL(sRGB),
+                            ENUM_LABEL(CieLab),
+                            ENUM_LABEL(AdobeRGB),
+                            ENUM_LABEL(Gray32),
+                            ENUM_LABEL(RGB),
+                            ENUM_LABEL(CMYK))
+  ENUM(uint8_t, Duplex, ENUM_VALUE(NoDuplex, 1),
+                        ENUM_LABEL(ShortSide),
+                        ENUM_LABEL(LongSide))
+  ENUM(uint8_t, Quality,  ENUM_VALUE(DefaultQuality, 0),
+                          ENUM_VALUE(Draft, 3),
+                          ENUM_VALUE(Normal, 4),
+                          ENUM_VALUE(High, 5))
   PADDING(1)
   FIELD(uint8_t, MediaPos)
   PADDING(2)

@@ -1,0 +1,38 @@
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: update submodules
+      run: git submodule sync --recursive && git submodule update --init --force --recursive --depth=1
+    - name: make
+      run: make
+    - name: make tests
+      run: make
+      working-directory: ./tests
+    - name: test
+      run: ./test
+      working-directory: ./tests
+
+  build_clang:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: update submodules
+      run: git submodule sync --recursive && git submodule update --init --force --recursive --depth=1
+    - name: make
+      run: CXX=clang++ make
+    - name: make tests
+      run: CXX=clang++ make
+      working-directory: ./tests
+    - name: test
+      run: ./test
+      working-directory: ./tests

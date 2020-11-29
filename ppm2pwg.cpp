@@ -132,9 +132,9 @@ int PPM2PWG_MAIN(int, char**)
         size_t current_start = bmp_line.pos();
         bmp_line/Colors >> current;
 
-        if(bmp_line/Colors >>= current)
+        if(bmp_line.atEnd() || bmp_line.peekBytestream(Colors) == current)
         {
-          int8_t repeat = 1;
+          int8_t repeat = 0;
           // Find number of repititions
           while(bmp_line >>= current)
           {
@@ -150,7 +150,8 @@ int PPM2PWG_MAIN(int, char**)
         {
           size_t verbatim = 1;
           // Find the number of byte sequences that are different
-          while(!bmp_line.atEnd() && bmp_line.peekBytestream(Colors) != current)
+          // (we know the first one is)
+          do
           {
             bmp_line/Colors >> current;
             verbatim++;
@@ -159,15 +160,29 @@ int PPM2PWG_MAIN(int, char**)
               break;
             }
           }
+          while(!bmp_line.atEnd() && bmp_line.peekBytestream(Colors) != current);
+
           // This and the next sequence are equal,
           // assume it starts a repeating sequence.
-          // But we ended up here for a reason, so encode at least one.
-          if(verbatim > 1)
+          // (unless we are at the end)
+          if(!bmp_line.atEnd())
+          {
             verbatim--;
-          bmp_line.setPos(current_start);
-          Bytestream tmp_bts;
-          bmp_line/(verbatim*Colors) >> tmp_bts;
-          enc_line << (uint8_t)(257-verbatim) << tmp_bts;
+          }
+
+          if(verbatim == 1)
+          { // We ended up with one sequence, encode it as such
+            bmp_line.setPos(current_start);
+            bmp_line/Colors >> current;
+            enc_line << (uint8_t)0 << current;
+          }
+          else
+          { // 2 or more non-repeating sequnces
+            bmp_line.setPos(current_start);
+            Bytestream tmp_bts;
+            bmp_line/(verbatim*Colors) >> tmp_bts;
+            enc_line << (uint8_t)(257-verbatim) << tmp_bts;
+          }
         }
       }
 

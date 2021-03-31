@@ -185,9 +185,8 @@ int PPM2PWG_MAIN(int, char**)
           else
           { // 2 or more non-repeating sequnces
             bmp_line.setPos(current_start);
-            bmp_line += verbatim*Colors;
             enc_line << (uint8_t)(257-verbatim);
-            enc_line.putBytes(&(bmp_line.raw()[current_start]), verbatim*Colors);
+            bmp_line.getBytes(enc_line, verbatim*Colors);
           }
         }
       }

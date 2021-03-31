@@ -19,6 +19,7 @@ void make_urf_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
 bool getenv_bool(std::string VarName);
 int getenv_int(std::string VarName, int Default);
 std::string getenv_str(std::string VarName, std::string Default);
+void resetPosOrResize(Bytestream& bts, size_t size);
 
 #ifndef PPM2PWG_MAIN
   #define PPM2PWG_MAIN main
@@ -54,9 +55,16 @@ int PPM2PWG_MAIN(int, char**)
 
   size_t Colors = 0;
 
+  Bytestream rotate_tmp;
+  Bytestream OutBts;
+  Bytestream bmp_line;
+  Bytestream bmp_bts;
+  Bytestream current;
+  Bytestream enc_line;
+
   while(!std::cin.eof())
   {
-    Bytestream OutBts;
+    OutBts.reset();
 
     std::cerr << "Page " << ++r << std::endl;
 
@@ -87,18 +95,18 @@ int PPM2PWG_MAIN(int, char**)
     unsigned int ResX = stoi(xs);
     unsigned int ResY = stoi(ys);
 
-    Bytestream bmp_bts(Colors*ResX*ResY);
+    resetPosOrResize(bmp_bts, Colors*ResX*ResY);
 
     if(ForcePortrait && (ResY < ResX))
     {
-      Bytestream tmp(Colors*ResX*ResY);
-      std::cin.read((char*)tmp.raw(), Colors*ResX*ResY);
+      resetPosOrResize(rotate_tmp, Colors*ResX*ResY);
+      std::cin.read((char*)rotate_tmp.raw(), Colors*ResX*ResY);
 
       for(size_t y=1; y<(ResY+1); y++)
       {
         for(size_t x=1; x<(ResX+1); x++)
         {
-          tmp.getBytes(bmp_bts.raw()+((x*ResY)-y)*Colors, Colors);
+          rotate_tmp.getBytes(bmp_bts.raw()+((x*ResY)-y)*Colors, Colors);
         }
       }
       std::swap(ResX, ResY);
@@ -121,14 +129,12 @@ int PPM2PWG_MAIN(int, char**)
 
     for(size_t y=0; y<ResY; y++)
     {
-      Bytestream bmp_line;
       bmp_bts/(Colors*ResX) >> bmp_line;
       uint8_t line_repeat = 0;
-      Bytestream enc_line;
+      enc_line.reset();
 
       while(bmp_line.remaining())
       {
-        Bytestream current;
         size_t current_start = bmp_line.pos();
         bmp_line/Colors >> current;
 
@@ -160,7 +166,7 @@ int PPM2PWG_MAIN(int, char**)
               break;
             }
           }
-          while(!bmp_line.atEnd() && bmp_line.peekBytestream(Colors) != current);
+          while(!bmp_line.atEnd() && !bmp_line.peekNextBytestream(current));
 
           // This and the next sequence are equal,
           // assume it starts a repeating sequence.
@@ -179,9 +185,9 @@ int PPM2PWG_MAIN(int, char**)
           else
           { // 2 or more non-repeating sequnces
             bmp_line.setPos(current_start);
-            Bytestream tmp_bts;
-            bmp_line/(verbatim*Colors) >> tmp_bts;
-            enc_line << (uint8_t)(257-verbatim) << tmp_bts;
+            bmp_line += verbatim*Colors;
+            enc_line << (uint8_t)(257-verbatim);
+            enc_line.putBytes(&(bmp_line.raw()[current_start]), verbatim*Colors);
           }
         }
       }
@@ -289,4 +295,16 @@ std::string getenv_str(std::string VarName, std::string Default)
 {
   char* tmp = getenv(VarName.c_str());
   return tmp ? tmp : Default;
+}
+
+void resetPosOrResize(Bytestream& bts, size_t size)
+{
+  if(bts.size() == size)
+  {
+    bts.setPos(0);
+  }
+  else
+  {
+    bts = Bytestream(size);
+  }
 }

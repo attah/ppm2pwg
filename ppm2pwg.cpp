@@ -19,7 +19,6 @@ void make_urf_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
 bool getenv_bool(std::string VarName);
 int getenv_int(std::string VarName, int Default);
 std::string getenv_str(std::string VarName, std::string Default);
-void resetPosOrResize(Bytestream& bts, size_t size);
 
 #ifndef PPM2PWG_MAIN
   #define PPM2PWG_MAIN main
@@ -48,7 +47,7 @@ int PPM2PWG_MAIN(int, char**)
     Bytestream UrfFileHdr;
     uint32_t pages = getenv_int("PAGES", 1);
     UrfFileHdr << "UNIRAST" << (uint8_t)0 << pages;
-    std::cout.write((char*)UrfFileHdr.raw(), UrfFileHdr.size());
+    std::cout << UrfFileHdr;
   }
 
   size_t r = 0;
@@ -95,12 +94,15 @@ int PPM2PWG_MAIN(int, char**)
     unsigned int ResX = stoi(xs);
     unsigned int ResY = stoi(ys);
 
-    resetPosOrResize(bmp_bts, Colors*ResX*ResY);
+    // If not the correct size (for this page), reallocate it
+    if(bmp_bts.size() != Colors*ResX*ResY)
+    {
+      bmp_bts = Bytestream(Colors*ResX*ResY);
+    }
 
     if(ForcePortrait && (ResY < ResX))
     {
-      resetPosOrResize(rotate_tmp, Colors*ResX*ResY);
-      std::cin.read((char*)rotate_tmp.raw(), Colors*ResX*ResY);
+      rotate_tmp.initFrom(std::cin, Colors*ResX*ResY);
 
       for(size_t y=1; y<(ResY+1); y++)
       {
@@ -110,10 +112,11 @@ int PPM2PWG_MAIN(int, char**)
         }
       }
       std::swap(ResX, ResY);
+      bmp_bts.setPos(0);
     }
     else
     {
-      std::cin.read((char*)bmp_bts.raw(), Colors*ResX*ResY);
+      bmp_bts.initFrom(std::cin, Colors*ResX*ResY);
     }
 
     if(!Urf)
@@ -203,7 +206,7 @@ int PPM2PWG_MAIN(int, char**)
       OutBts << line_repeat << enc_line;
     }
 
-    std::cout.write((char*)OutBts.raw(), OutBts.size());
+    std::cout << OutBts;
     if(bmp_bts.remaining())
     {
       std::cerr << "remaining != 0: " << bmp_bts.remaining() << "\n";
@@ -294,16 +297,4 @@ std::string getenv_str(std::string VarName, std::string Default)
 {
   char* tmp = getenv(VarName.c_str());
   return tmp ? tmp : Default;
-}
-
-void resetPosOrResize(Bytestream& bts, size_t size)
-{
-  if(bts.size() == size)
-  {
-    bts.setPos(0);
-  }
-  else
-  {
-    bts = Bytestream(size);
-  }
 }

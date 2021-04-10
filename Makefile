@@ -1,9 +1,16 @@
-.PHONY: all ppm2pwg pwg2ppm
+CXXFLAGS = -std=c++11 -O3 -pedantic -Wall -Wextra  -I. -Ibytestream
+VPATH = bytestream
 
 all: ppm2pwg pwg2ppm
 
-ppm2pwg:
-	g++ -std=c++11 -O3 -pedantic -Wall -Wextra  -I. -Ibytestream ppm2pwg.cpp bytestream/bytestream.cpp -o ppm2pwg
+%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $<
 
-pwg2ppm:
-	g++ -std=c++11 -O3 -pedantic -Wall -Wextra  -I. -Ibytestream pwg2ppm.cpp bytestream/bytestream.cpp -o pwg2ppm
+ppm2pwg: bytestream.o ppm2pwg.o
+	$(CXX) $^ -o $@
+
+pwg2ppm: bytestream.o pwg2ppm.o
+	$(CXX) $^ -o $@
+
+clean:
+	rm -f *.o ppm2pwg pwg2ppm

@@ -4,6 +4,7 @@
 #include <string>
 #include <cerrno>
 #include <cmath>
+#include <limits>
 #include <string.h>
 
 #include "PwgPgHdr.h"
@@ -68,7 +69,23 @@ int PPM2PWG_MAIN(int, char**)
     std::cerr << "Page " << ++r << std::endl;
 
     std::string p, xs, ys, r;
-    std::cin >> p >> xs >> ys >> r;
+    std::cin >> p;
+
+    if(std::cin.peek() == '\n')
+    {
+      std::cin.ignore(1);
+    }
+    if(std::cin.peek() == '#')
+    {
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+
+    std::cin >> xs >> ys >> r;
+
+    if(std::cin.peek() == '\n')
+    {
+      std::cin.ignore(1);
+    }
 
     if(p == "P6")
     {
@@ -82,11 +99,6 @@ int PPM2PWG_MAIN(int, char**)
     {
       std::cerr << "Only P5/P6 ppms supported, for now " << p << std::endl;
       return 1;
-    }
-
-    while(std::cin.peek() == 10)
-    {
-      std::cin.ignore(1);
     }
 
     std::cerr << p << " " << xs << "x" << ys << " " << r << std::endl;

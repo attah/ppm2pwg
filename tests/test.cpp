@@ -146,8 +146,12 @@ TEST(duplex_normal)
 
   ASSERT(pwg >>= "RaS2");
   hdr1.decode_from(pwg);
+  ASSERT(hdr1.CrossFeedTransform == 1);
+  ASSERT(hdr1.FeedTransform == 1);
   ASSERT(pwg >>= RightSideUp());
   hdr2.decode_from(pwg);
+  ASSERT(hdr2.CrossFeedTransform == 1);
+  ASSERT(hdr2.FeedTransform == 1);
   ASSERT(pwg >>= RightSideUp());
   ASSERT(pwg.atEnd());
 }
@@ -174,8 +178,12 @@ TEST(duplex_vflip)
 
   ASSERT(pwg >>= "RaS2");
   hdr1.decode_from(pwg);
+  ASSERT(hdr1.CrossFeedTransform == 1);
+  ASSERT(hdr1.FeedTransform == 1);
   ASSERT(pwg >>= RightSideUp());
   hdr2.decode_from(pwg);
+  ASSERT(hdr2.CrossFeedTransform == 1);
+  ASSERT(hdr2.FeedTransform == -1);
   ASSERT(pwg >>= UpsideDown());
   ASSERT(pwg.atEnd());
 }
@@ -202,8 +210,12 @@ TEST(duplex_hflip)
 
   ASSERT(pwg >>= "RaS2");
   hdr1.decode_from(pwg);
+  ASSERT(hdr1.CrossFeedTransform == 1);
+  ASSERT(hdr1.FeedTransform == 1);
   ASSERT(pwg >>= RightSideUp());
   hdr2.decode_from(pwg);
+  ASSERT(hdr2.CrossFeedTransform == -1);
+  ASSERT(hdr2.FeedTransform == 1);
   ASSERT(pwg >>= Flipped());
   ASSERT(pwg.atEnd());
 }
@@ -230,8 +242,12 @@ TEST(duplex_rotated)
 
   ASSERT(pwg >>= "RaS2");
   hdr1.decode_from(pwg);
+  ASSERT(hdr1.CrossFeedTransform == 1);
+  ASSERT(hdr1.FeedTransform == 1);
   ASSERT(pwg >>= RightSideUp());
   hdr2.decode_from(pwg);
+  ASSERT(hdr2.CrossFeedTransform == -1);
+  ASSERT(hdr2.FeedTransform == -1);
   ASSERT(pwg >>= Rotated());
   ASSERT(pwg.atEnd());
 }

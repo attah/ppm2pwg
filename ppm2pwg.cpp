@@ -13,7 +13,8 @@
 
 void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
                   size_t HwResX, size_t HwResY, size_t ResX, size_t ResY,
-                  bool Duplex, bool Tumble, std::string PageSizeName);
+                  bool Duplex, bool Tumble, std::string PageSizeName,
+                  bool HFlip, bool VFlip);
 void make_urf_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
                   size_t HwResX, size_t HwResY,size_t ResX, size_t ResY,
                   bool Duplex, bool Tumble);
@@ -135,10 +136,13 @@ int PPM2PWG_MAIN(int, char**)
       bmp_bts.initFrom(std::cin, Colors*ResX*ResY);
     }
 
+    bool backside = (page%2)==0;
+
     if(!Urf)
     {
       make_pwg_hdr(OutBts, Colors, Quality, HwResX, HwResY, ResX, ResY,
-                   Duplex, Tumble, PageSizeName);
+                   Duplex, Tumble, PageSizeName,
+                   backside&&BackHFlip, backside&&BackVFlip);
     }
     else
     {
@@ -148,7 +152,6 @@ int PPM2PWG_MAIN(int, char**)
 
     size_t bytesPerLine = Colors*ResX;
     uint8_t* raw = bmp_bts.raw();
-    bool backside = (page%2)==0;
 
     auto pos = backside&&BackVFlip
              ? std::function<uint8_t*(size_t)>([raw, ResY, bytesPerLine](size_t y)
@@ -260,7 +263,8 @@ int PPM2PWG_MAIN(int, char**)
 
 void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
                   size_t HwResX, size_t HwResY, size_t ResX, size_t ResY,
-                  bool Duplex, bool Tumble, std::string PageSizeName)
+                  bool Duplex, bool Tumble, std::string PageSizeName,
+                  bool HFlip, bool VFlip)
 {
   PwgPgHdr OutHdr;
 
@@ -279,8 +283,8 @@ void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
   OutHdr.ColorSpace = Colors==3 ? PwgPgHdr::sRGB : PwgPgHdr::sGray;
   OutHdr.NumColors = Colors;
   OutHdr.TotalPageCount = 0;
-  OutHdr.CrossFeedTransform = 1;
-  OutHdr.FeedTransform = 1;
+  OutHdr.CrossFeedTransform = HFlip ? -1 : 1;
+  OutHdr.FeedTransform = VFlip ? -1 : 1;
   OutHdr.AlternatePrimary = pow(2, OutHdr.BitsPerPixel)-1;
   OutHdr.PrintQuality = (Quality == 3 ? PwgPgHdr::Draft
                       : (Quality == 4 ? PwgPgHdr::Normal

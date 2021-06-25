@@ -198,7 +198,7 @@ int PPM2PWG_MAIN(int, char**)
         size_t current_start = bmp_line.pos();
         bmp_line/Colors >> current;
 
-        if(bmp_line.atEnd() || bmp_line.peekBytestream(Colors) == current)
+        if(bmp_line.atEnd() || bmp_line.peekNextBytestream(current))
         {
           int8_t repeat = 0;
           // Find number of repititions

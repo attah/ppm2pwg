@@ -144,8 +144,22 @@ int PPM2PWG_MAIN(int, char**)
 
     for(size_t y=0; y<ResY; y++)
     {
-      bmp_bts/(Colors*ResX) >> bmp_line;
+      bmp_line.initFrom(bmp_bts.raw()+(y*Colors*ResX), Colors*ResX);
+      // bmp_bts+=Colors*ResX;
       uint8_t line_repeat = 0;
+
+      while((y<(ResY-1)) && memcmp(bmp_bts.raw()+(y*Colors*ResX),
+                                   bmp_bts.raw()+((y+1)*Colors*ResX),
+                                   Colors*ResX) == 0)
+      {
+        y++;
+        line_repeat++;
+        if(line_repeat == 255)
+        {
+          break;
+        }
+      }
+
       enc_line.reset();
 
       while(bmp_line.remaining())
@@ -206,24 +220,10 @@ int PPM2PWG_MAIN(int, char**)
         }
       }
 
-      while((y<ResY) && (bmp_bts/(Colors*ResX) >>= bmp_line))
-      {
-        y++;
-        line_repeat++;
-        if(line_repeat == 255)
-        {
-          break;
-        }
-      }
       OutBts << line_repeat << enc_line;
     }
 
     std::cout << OutBts;
-    if(bmp_bts.remaining())
-    {
-      std::cerr << "remaining != 0: " << bmp_bts.remaining() << "\n";
-      return 1;
-    }
     std::cin.peek(); // maybe trigger eof
   }
   return 0;

@@ -6,6 +6,7 @@
 #include <cmath>
 #include <limits>
 #include <string.h>
+#include <functional>
 
 #include "PwgPgHdr.h"
 #include "UrfPgHdr.h"
@@ -37,6 +38,9 @@ int PPM2PWG_MAIN(int, char**)
   size_t HwResY = getenv_int("HWRES_Y", 300);
   size_t Quality = getenv_int("QUALITY", 4);
 
+  bool BackVFlip = getenv_bool("BACK_VFLIP");
+  bool BackHFlip = getenv_bool("BACK_HFLIP");
+
   std::string PageSizeName = getenv_str("PAGE_SIZE_NAME", "iso_a4_210x297mm");
 
   if(!Urf)
@@ -51,7 +55,7 @@ int PPM2PWG_MAIN(int, char**)
     std::cout << UrfFileHdr;
   }
 
-  size_t r = 0;
+  size_t page = 0;
 
   size_t Colors = 0;
 
@@ -66,7 +70,7 @@ int PPM2PWG_MAIN(int, char**)
   {
     OutBts.reset();
 
-    std::cerr << "Page " << ++r << std::endl;
+    std::cerr << "Page " << ++page << std::endl;
 
     std::string p, xs, ys, r;
     std::cin >> p;
@@ -142,15 +146,39 @@ int PPM2PWG_MAIN(int, char**)
                    Duplex, Tumble);
     }
 
+    size_t bytesPerLine = Colors*ResX;
+    uint8_t* raw = bmp_bts.raw();
+    bool backside = (page%2)==0;
+
+    auto pos = backside&&BackVFlip
+             ? std::function<uint8_t*(size_t)>([raw, ResY, bytesPerLine](size_t y)
+               {
+                 return raw+(ResY-1-y)*bytesPerLine;
+               })
+             : std::function<uint8_t*(size_t)>([raw, bytesPerLine](size_t y)
+               {
+                 return raw+y*bytesPerLine;
+               });
+
     for(size_t y=0; y<ResY; y++)
     {
-      bmp_line.initFrom(bmp_bts.raw()+(y*Colors*ResX), Colors*ResX);
-      // bmp_bts+=Colors*ResX;
       uint8_t line_repeat = 0;
 
-      while((y<(ResY-1)) && memcmp(bmp_bts.raw()+(y*Colors*ResX),
-                                   bmp_bts.raw()+((y+1)*Colors*ResX),
-                                   Colors*ResX) == 0)
+      if(backside&&BackHFlip)
+      {
+        bmp_line.reset();
+        for(int i = bytesPerLine-Colors; i >= 0; i -= Colors)
+        {
+          bmp_line.putBytes(pos(y)+i, Colors);
+        }
+      }
+      else
+      {
+        bmp_line.initFrom(pos(y), bytesPerLine);
+      }
+
+      while((y+1)<ResY &&
+            memcmp(pos(y), pos(y+1), bytesPerLine) == 0)
       {
         y++;
         line_repeat++;

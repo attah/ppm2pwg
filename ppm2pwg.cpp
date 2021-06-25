@@ -153,15 +153,16 @@ int PPM2PWG_MAIN(int, char**)
     size_t bytesPerLine = Colors*ResX;
     uint8_t* raw = bmp_bts.raw();
 
-    auto pos = backside&&BackVFlip
-             ? std::function<uint8_t*(size_t)>([raw, ResY, bytesPerLine](size_t y)
-               {
-                 return raw+(ResY-1-y)*bytesPerLine;
-               })
-             : std::function<uint8_t*(size_t)>([raw, bytesPerLine](size_t y)
-               {
-                 return raw+y*bytesPerLine;
-               });
+    #define pos_fun std::function<uint8_t*(size_t)>
+    pos_fun pos = backside&&BackVFlip
+                ? pos_fun([raw, ResY, bytesPerLine](size_t y)
+                  {
+                    return raw+(ResY-1-y)*bytesPerLine;
+                  })
+                : pos_fun([raw, bytesPerLine](size_t y)
+                  {
+                    return raw+y*bytesPerLine;
+                  });
 
     for(size_t y=0; y<ResY; y++)
     {

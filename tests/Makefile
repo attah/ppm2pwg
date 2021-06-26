@@ -1,13 +1,17 @@
 LDFLAGS = -ldl -Wl,--export-dynamic
-CXXFLAGS = -std=c++11 -g -pedantic -Wall -Werror -Wextra
+CXXFLAGS = -std=c++11 -g -pedantic -Wall -Werror -Wextra -I ../bytestream
+TEST_INCLUDES = -I .. -I ../bytestream/minitest -I ../bytestream/minitest/tests
 
-.PHONY: test
-# test.cpp listed explicitly since changing test.h would go unnoticed otherwise
-test:
-	$(CXX) $(CXXFLAGS) \
-	-I .. -I ../bytestream -I ../bytestream/minitest -I ../bytestream/minitest/tests \
-	../bytestream/bytestream.cpp test.cpp $(LDFLAGS) -o $@
+all: test
 
-.PHONY: clean
+bytestream.o: ../bytestream/bytestream.cpp
+	$(CXX) -c $(CXXFLAGS) $^
+
+text.o: test.cpp
+	$(CXX) -c $(TEST_INCLUDES) $(CXXFLAGS) $^
+
+test: bytestream.o text.o
+	$(CXX) $(CXXFLAGS) test.o bytestream.o $(LDFLAGS) -o $@
+
 clean:
-	rm -f test
+	rm -f test *.o

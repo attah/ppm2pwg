@@ -12,9 +12,9 @@ jobs:
     - name: update submodules
       run: git submodule sync --recursive && git submodule update --init --force --recursive --depth=1
     - name: make
-      run: make
+      run: make -j
     - name: make tests
-      run: make
+      run: make -j
       working-directory: ./tests
     - name: test
       run: ./test
@@ -29,9 +29,9 @@ jobs:
     - name: update submodules
       run: git submodule sync --recursive && git submodule update --init --force --recursive --depth=1
     - name: make
-      run: CXX=clang++ make
+      run: CXX=clang++ make -j
     - name: make tests
-      run: CXX=clang++ make
+      run: CXX=clang++ make -j
       working-directory: ./tests
     - name: test
       run: ./test

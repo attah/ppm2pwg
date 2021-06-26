@@ -65,7 +65,6 @@ int PPM2PWG_MAIN(int, char**)
   Bytestream bmp_line;
   Bytestream bmp_bts;
   Bytestream current;
-  Bytestream enc_line;
 
   while(!std::cin.eof())
   {
@@ -181,8 +180,7 @@ int PPM2PWG_MAIN(int, char**)
         bmp_line.initFrom(pos(y), bytesPerLine);
       }
 
-      while((y+1)<ResY &&
-            memcmp(pos(y), pos(y+1), bytesPerLine) == 0)
+      while((y+1)<ResY && memcmp(pos(y), pos(y+1), bytesPerLine) == 0)
       {
         y++;
         line_repeat++;
@@ -192,7 +190,7 @@ int PPM2PWG_MAIN(int, char**)
         }
       }
 
-      enc_line.reset();
+      OutBts << line_repeat;
 
       while(bmp_line.remaining())
       {
@@ -211,7 +209,7 @@ int PPM2PWG_MAIN(int, char**)
               break;
             }
           }
-          enc_line << repeat << current;
+          OutBts << repeat << current;
         }
         else
         {
@@ -241,18 +239,16 @@ int PPM2PWG_MAIN(int, char**)
           { // We ended up with one sequence, encode it as such
             bmp_line.setPos(current_start);
             bmp_line/Colors >> current;
-            enc_line << (uint8_t)0 << current;
+            OutBts << (uint8_t)0 << current;
           }
           else
           { // 2 or more non-repeating sequnces
             bmp_line.setPos(current_start);
-            enc_line << (uint8_t)(257-verbatim);
-            bmp_line.getBytes(enc_line, verbatim*Colors);
+            OutBts << (uint8_t)(257-verbatim);
+            bmp_line.getBytes(OutBts, verbatim*Colors);
           }
         }
       }
-
-      OutBts << line_repeat << enc_line;
     }
 
     std::cout << OutBts;

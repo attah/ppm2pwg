@@ -32,8 +32,7 @@ Bytestream RightSideUp()
 {
   Bytestream enc;
   enc << (uint8_t)0 << REPEAT(1) << W << REPEAT(3) << Y << REPEAT(4) << W
-      << (uint8_t)0 << VERBATIM(3) << Y << B << Y << REPEAT(3) << W
-                    << VERBATIM(2) << G << W
+      << (uint8_t)0 << VERBATIM(3) << Y << B << Y << REPEAT(3) << W << VERBATIM(2) << G << W
       << (uint8_t)0 << REPEAT(2) << Y << REPEAT(3) << W << REPEAT(3) << G
       << (uint8_t)0 << REPEAT(3) << Y << REPEAT(3) << W << VERBATIM(2) << G << W
       << (uint8_t)0 << REPEAT(1) << W << REPEAT(3) << Y << REPEAT(4) << W
@@ -99,6 +98,8 @@ TEST(ppm2pwg)
   ppm2pwg.stdin().write((char*)ppm.raw(), ppm.size());
   ppm2pwg.close();
 
+  ASSERT(ppm2pwg.wait() == 0);
+
   stringstream ss;
   ss << ppm2pwg.stdout().rdbuf();
 
@@ -135,6 +136,8 @@ TEST(duplex_normal)
   ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
   ppm2pwg.close();
 
+  ASSERT(ppm2pwg.wait() == 0);
+
   stringstream ss;
   ss << ppm2pwg.stdout().rdbuf();
 
@@ -166,6 +169,8 @@ TEST(duplex_vflip)
   subprocess::popen ppm2pwg("../ppm2pwg", {});
   ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
   ppm2pwg.close();
+
+  ASSERT(ppm2pwg.wait() == 0);
 
   stringstream ss;
   ss << ppm2pwg.stdout().rdbuf();
@@ -199,6 +204,8 @@ TEST(duplex_hflip)
   ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
   ppm2pwg.close();
 
+  ASSERT(ppm2pwg.wait() == 0);
+
   stringstream ss;
   ss << ppm2pwg.stdout().rdbuf();
 
@@ -230,6 +237,8 @@ TEST(duplex_rotated)
   subprocess::popen ppm2pwg("../ppm2pwg", {});
   ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
   ppm2pwg.close();
+
+  ASSERT(ppm2pwg.wait() == 0);
 
   stringstream ss;
   ss << ppm2pwg.stdout().rdbuf();

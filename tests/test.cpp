@@ -106,9 +106,6 @@ TEST(ppm2pwg)
   PwgPgHdr hdr;
   Bytestream pwg(ss.str().c_str(), ss.str().size());
 
-  ppm2pwg.stdout().rdbuf()->pubseekpos(0);
-  ppm2pwg.stdout().rdbuf()->sgetn((char*)pwg.raw(), pwg.size());
-
   ASSERT(pwg >>= "RaS2");
   hdr.decode_from(pwg);
 
@@ -144,9 +141,6 @@ TEST(duplex_normal)
   PwgPgHdr hdr1, hdr2;
   Bytestream pwg(ss.str().c_str(), ss.str().size());
 
-  ppm2pwg.stdout().rdbuf()->pubseekpos(0);
-  ppm2pwg.stdout().rdbuf()->sgetn((char*)pwg.raw(), pwg.size());
-
   ASSERT(pwg >>= "RaS2");
   hdr1.decode_from(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
@@ -177,9 +171,6 @@ TEST(duplex_vflip)
 
   PwgPgHdr hdr1, hdr2;
   Bytestream pwg(ss.str().c_str(), ss.str().size());
-
-  ppm2pwg.stdout().rdbuf()->pubseekpos(0);
-  ppm2pwg.stdout().rdbuf()->sgetn((char*)pwg.raw(), pwg.size());
 
   ASSERT(pwg >>= "RaS2");
   hdr1.decode_from(pwg);
@@ -212,9 +203,6 @@ TEST(duplex_hflip)
   PwgPgHdr hdr1, hdr2;
   Bytestream pwg(ss.str().c_str(), ss.str().size());
 
-  ppm2pwg.stdout().rdbuf()->pubseekpos(0);
-  ppm2pwg.stdout().rdbuf()->sgetn((char*)pwg.raw(), pwg.size());
-
   ASSERT(pwg >>= "RaS2");
   hdr1.decode_from(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
@@ -245,9 +233,6 @@ TEST(duplex_rotated)
 
   PwgPgHdr hdr1, hdr2;
   Bytestream pwg(ss.str().c_str(), ss.str().size());
-
-  ppm2pwg.stdout().rdbuf()->pubseekpos(0);
-  ppm2pwg.stdout().rdbuf()->sgetn((char*)pwg.raw(), pwg.size());
 
   ASSERT(pwg >>= "RaS2");
   hdr1.decode_from(pwg);

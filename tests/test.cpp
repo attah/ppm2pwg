@@ -82,16 +82,11 @@ Bytestream Rotated()
 
 TEST(ppm2pwg)
 {
-
   Bytestream ppm = PacmanPpm();
 
-  std::ifstream ppm_ifs("pacman.ppm", std::ios::in | std::ios::binary | std::ios::ate);
-  std::ifstream::pos_type ppmSize = ppm_ifs.tellg();
-  ppm_ifs.seekg(0, std::ios::beg);
-  Bytestream expected_ppm(ppmSize);
-  ppm_ifs.read((char*)(expected_ppm.raw()), ppmSize);
-
   // For sanity, make sure the one on disk is the same as created above
+  std::ifstream ppm_ifs("pacman.ppm");
+  Bytestream expected_ppm(ppm_ifs);
   ASSERT(ppm == expected_ppm);
 
   subprocess::popen ppm2pwg("../ppm2pwg", {});
@@ -111,11 +106,8 @@ TEST(ppm2pwg)
   ASSERT(pwg >>= enc);
   ASSERT(pwg.atEnd());
 
-  std::ifstream ifs("pacman.pwg", std::ios::in | std::ios::binary | std::ios::ate);
-  std::ifstream::pos_type pwgSize = ifs.tellg();
-  ifs.seekg(0, std::ios::beg);
-  Bytestream expected_pwg(pwgSize);
-  ifs.read((char*)(expected_pwg.raw()), pwgSize);
+  std::ifstream ifs("pacman.pwg");
+  Bytestream expected_pwg(ifs);
 
   ASSERT(pwg == expected_pwg);
 

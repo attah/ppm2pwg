@@ -1,11 +1,21 @@
 #include <poppler/glib/poppler.h>
 #include <poppler/glib/poppler-document.h>
+#include <poppler/cpp/poppler-document.h>
+#include <poppler/cpp/poppler-page.h>
+#include <poppler/cpp/poppler-page-renderer.h>
+#include <poppler/cpp/poppler-image.h>
+
 #include <cairo.h>
 #include <cairo-ps.h>
 #include <cairo-pdf.h>
 
 #include <iostream>
+#include <fstream>
 
+using namespace poppler;
+
+int to_raster(std::string infile, std::string outfile,
+              double w, double h, int dpi, bool urf, bool duplex, int colors);
 int to_pdf_or_ps(std::string infile, std::string outfile,
                  double w, double h, int dpi, bool ps, bool duplex);
 
@@ -29,7 +39,63 @@ int main(int argc, char** argv)
   bool ps = true;
   bool duplex = true;
 
-  return to_pdf_or_ps(infile, outfile, w, h, dpi, ps, duplex);
+  bool pwg = true;
+  bool urf = false;
+
+  if(pwg || urf)
+  {
+    char tmpfile[] = "/tmp/pdf2printable_XXXXXX";
+    int fd = mkstemp(tmpfile);
+    close(fd);
+    int res = to_pdf_or_ps(infile, tmpfile, w, h, dpi, false, duplex);
+    if(res)
+    {
+      remove(tmpfile);
+      return res;
+    }
+    res = to_raster(tmpfile, outfile, w, h, dpi, urf, duplex, 3);
+    remove(tmpfile);
+    return res;
+  }
+  else
+  {
+    return to_pdf_or_ps(infile, outfile, w, h, dpi, ps, duplex);
+  }
+}
+
+int to_raster(std::string infile, std::string outfile,
+              double w, double h, int dpi, bool urf, bool duplex, int colors)
+{
+  document* doc  = document::load_from_file(infile);
+
+  if(doc == NULL)
+  {
+    std::cerr << "Failed to open PDF" << std::endl;
+    return 1;
+  }
+
+  int pages = doc->pages();
+  page_renderer renderer;
+  renderer.set_image_format(colors == 3 ? image::format_rgb24 : image::format_gray8);
+
+  std::ofstream of(outfile, std::ofstream::out);
+  of << (colors==3 ? "P6" : "P5") << '\n' << w << ' ' << h << '\n' << 255 << '\n';
+
+  for(int i = 0; i < pages; i++)
+  {
+    std::cout << "Page " << i << std::endl;
+    page* p = doc->create_page(i);
+    image img = renderer.render_page(p, dpi, dpi, -1, -1, w, h);
+
+    std::cout << w << "x" << h << std::endl;
+
+    of.write(img.data(), img.height()*img.bytes_per_row());
+
+    delete p;
+  }
+
+  delete doc;
+  return 0;
 }
 
 int to_pdf_or_ps(std::string infile, std::string outfile,
@@ -44,7 +110,7 @@ int to_pdf_or_ps(std::string infile, std::string outfile,
   GError* error = nullptr;
   PopplerDocument* doc = poppler_document_new_from_file(url.c_str(), nullptr, &error);
 
-  if(!doc)
+  if(doc == NULL)
   {
     std::cerr << "Failed to open PDF: " << error->message << std::endl;
     return 1;

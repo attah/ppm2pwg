@@ -1,9 +1,5 @@
 #include <poppler/glib/poppler.h>
 #include <poppler/glib/poppler-document.h>
-#include <poppler/cpp/poppler-document.h>
-#include <poppler/cpp/poppler-page.h>
-#include <poppler/cpp/poppler-page-renderer.h>
-#include <poppler/cpp/poppler-image.h>
 
 #include <cairo.h>
 #include <cairo-ps.h>
@@ -12,12 +8,9 @@
 #include <iostream>
 #include <fstream>
 
-using namespace poppler;
-
-int to_raster(std::string infile, std::string outfile,
-              double w, double h, int dpi, bool urf, bool duplex, int colors);
-int to_pdf_or_ps(std::string infile, std::string outfile,
-                 double w, double h, int dpi, bool ps, bool duplex);
+int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
+                 double w, double h, int dpi, bool ps, bool pwg, bool urf,
+                 bool duplex);
 
 int main(int argc, char** argv)
 {
@@ -36,73 +29,24 @@ int main(int argc, char** argv)
   double h = 7016;
   int dpi = 600;
 
-  bool ps = true;
+  bool ps = false;
   bool duplex = true;
 
-  bool pwg = true;
+  bool pwg = false;
   bool urf = false;
 
-  if(pwg || urf)
-  {
-    char tmpfile[] = "/tmp/pdf2printable_XXXXXX";
-    int fd = mkstemp(tmpfile);
-    close(fd);
-    int res = to_pdf_or_ps(infile, tmpfile, w, h, dpi, false, duplex);
-    if(res)
-    {
-      remove(tmpfile);
-      return res;
-    }
-    res = to_raster(tmpfile, outfile, w, h, dpi, urf, duplex, 3);
-    remove(tmpfile);
-    return res;
-  }
-  else
-  {
-    return to_pdf_or_ps(infile, outfile, w, h, dpi, ps, duplex);
-  }
+  int colors = 3;
+
+  return to_pdf_or_ps(infile, outfile, colors, w, h, dpi, ps, pwg, urf, duplex);
 }
 
-int to_raster(std::string infile, std::string outfile,
-              double w, double h, int dpi, bool urf, bool duplex, int colors)
-{
-  document* doc  = document::load_from_file(infile);
-
-  if(doc == NULL)
-  {
-    std::cerr << "Failed to open PDF" << std::endl;
-    return 1;
-  }
-
-  int pages = doc->pages();
-  page_renderer renderer;
-  renderer.set_image_format(colors == 3 ? image::format_rgb24 : image::format_gray8);
-
-  std::ofstream of(outfile, std::ofstream::out);
-  of << (colors==3 ? "P6" : "P5") << '\n' << w << ' ' << h << '\n' << 255 << '\n';
-
-  for(int i = 0; i < pages; i++)
-  {
-    std::cout << "Page " << i << std::endl;
-    page* p = doc->create_page(i);
-    image img = renderer.render_page(p, dpi, dpi, -1, -1, w, h);
-
-    std::cout << w << "x" << h << std::endl;
-
-    of.write(img.data(), img.height()*img.bytes_per_row());
-
-    delete p;
-  }
-
-  delete doc;
-  return 0;
-}
-
-int to_pdf_or_ps(std::string infile, std::string outfile,
-                 double w, double h, int dpi, bool ps, bool duplex)
+int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
+                 double w, double h, int dpi, bool ps, bool pwg, bool urf,
+                 bool duplex)
 {
   double w_pts = (w/dpi)*72.0;
   double h_pts = (h/dpi)*72.0;
+  bool raster = pwg | urf;
   cairo_surface_t *surface;
 
   std::string url("file://");
@@ -116,9 +60,13 @@ int to_pdf_or_ps(std::string infile, std::string outfile,
     return 1;
   }
 
-  if(ps)
+  if(raster)
   {
-    surface = cairo_ps_surface_create(outfile.c_str(), w, h);
+    surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, w, h);
+  }
+  else if(ps)
+  {
+    surface = cairo_ps_surface_create(outfile.c_str(), w_pts, h_pts);
     cairo_ps_surface_restrict_to_level(surface, CAIRO_PS_LEVEL_2);
     if(duplex)
     {
@@ -143,7 +91,11 @@ int to_pdf_or_ps(std::string infile, std::string outfile,
     poppler_page_get_size(page, &page_width, &page_height);
     std::cout << page_width << "x" << page_height << std::endl;
 
-    if(ps)
+    if(raster)
+    {
+      //ok
+    }
+    else if(ps)
     {
       cairo_ps_surface_set_size(surface, w_pts, h_pts);
     }
@@ -158,21 +110,41 @@ int to_pdf_or_ps(std::string infile, std::string outfile,
 
     cr = cairo_create(surface);
 
+    if(raster)
+    {
+      cairo_save(cr);
+      cairo_set_source_rgb(cr, 1, 1, 1);
+      cairo_paint(cr);
+      cairo_restore(cr);
+    }
+
     if (page_width > page_height) {
         // Fix landscape pages
-        cairo_translate(cr, 0, h_pts);
+        cairo_translate(cr, 0, raster ? h : h_pts);
         cairo_matrix_init(&m, 0, -1, 1, 0, 0, 0);
         cairo_transform(cr, &m);
         std::swap(page_width, page_height);
     }
 
-    // TODO: find minimum scale and center the other axis
-    double h_scale = h_pts/page_height;
-    double w_scale = w_pts/page_width;
+    if(raster)
+    { // Scale to a pixel size
+      // TODO: find minimum scale and center the other axis
+      double h_scale = h/page_height;
+      double w_scale = w/page_width;
 
-    cairo_scale(cr, w_scale, h_scale);
+      cairo_scale(cr, h_scale, w_scale);
+    }
+    else
+    { // Scale to a poins size
+      // TODO: find minimum scale and center the other axis
+      double h_scale = h_pts/page_height;
+      double w_scale = w_pts/page_width;
+
+      cairo_scale(cr, w_scale, h_scale);
+    }
 
     poppler_page_render_for_printing(page, cr);
+    //g_object_unref(page);
 
     status = cairo_status(cr);
     if (status)
@@ -182,6 +154,27 @@ int to_pdf_or_ps(std::string infile, std::string outfile,
     cairo_destroy(cr);
     // g_free(page);
     cairo_surface_show_page(surface);
+
+    if(raster)
+    {
+      int h = cairo_image_surface_get_height(surface);
+      int w = cairo_image_surface_get_width(surface);
+
+      cairo_surface_flush(surface);
+      std::ofstream of(outfile, std::ofstream::out);
+      of << (colors==3 ? "P6" : "P5") << '\n' << w << ' ' << h << '\n' << 255 << '\n';
+
+      char* dat = (char*)cairo_image_surface_get_data(surface);
+      char* tmp = new char[w*h*colors];
+
+      for(int i=0; i<(w*h); i++)
+      {
+        memcpy(&tmp[i*3], &dat[i*4], 3);
+      }
+      of.write(tmp, w*h*colors);
+      delete tmp;
+    }
+
   }
 
   cairo_surface_finish(surface);

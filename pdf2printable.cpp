@@ -8,6 +8,9 @@
 #include <iostream>
 #include <fstream>
 
+int getenv_int(std::string VarName, int Default);
+std::string getenv_str(std::string VarName, std::string Default);
+
 int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
                  double w, double h, int dpi, bool ps, bool pwg, bool urf,
                  bool duplex);
@@ -20,22 +23,32 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  std::cout << argv[1] << std::endl;
-
   std::string infile(argv[1]);
   std::string outfile(argv[2]);
 
   double w = 4960;
   double h = 7016;
   int dpi = 600;
+  bool duplex = true;
+  int colors = getenv_int("COLORS", 3);
 
   bool ps = false;
-  bool duplex = true;
-
   bool pwg = false;
   bool urf = false;
 
-  int colors = 3;
+  std::string format = getenv_str("FORMAT", "pdf");
+  if(format == "ps" || format == "postscript")
+  {
+    ps = true;
+  }
+  else if(format == "pwg")
+  {
+    pwg = true;
+  }
+  else if(format == "urf")
+  {
+    urf = true;
+  }
 
   return to_pdf_or_ps(infile, outfile, colors, w, h, dpi, ps, pwg, urf, duplex);
 }
@@ -60,9 +73,13 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
     return 1;
   }
 
+  std::ofstream of;
+
   if(raster)
   {
     surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, w, h);
+    of = std::ofstream(outfile, std::ofstream::out);
+
   }
   else if(ps)
   {
@@ -84,12 +101,10 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
   int pages = poppler_document_get_n_pages(doc);
   for(int i = 0; i < pages; i++)
   {
-    std::cout << "Page " << i << std::endl;
     PopplerPage* page = poppler_document_get_page(doc, i);
     double page_width, page_height;
 
     poppler_page_get_size(page, &page_width, &page_height);
-    std::cout << page_width << "x" << page_height << std::endl;
 
     if(raster)
     {
@@ -161,17 +176,30 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
       int w = cairo_image_surface_get_width(surface);
 
       cairo_surface_flush(surface);
-      std::ofstream of(outfile, std::ofstream::out);
       of << (colors==3 ? "P6" : "P5") << '\n' << w << ' ' << h << '\n' << 255 << '\n';
 
-      char* dat = (char*)cairo_image_surface_get_data(surface);
-      char* tmp = new char[w*h*colors];
+      uint32_t* dat = (uint32_t*)cairo_image_surface_get_data(surface);
+      uint8_t* tmp = new uint8_t[w*h*colors];
 
-      for(int i=0; i<(w*h); i++)
+      if(colors == 1)
       {
-        memcpy(&tmp[i*3], &dat[i*4], 3);
+        for(int i=0; i<(w*h); i++)
+        {
+          tmp[i] = ((dat[i]&0xff)*0.114) // R
+                 + (((dat[i]>>8)&0xff)*0.587) // G
+                 + (((dat[i]>>16)&0xff)*0.299); // B
+        }
       }
-      of.write(tmp, w*h*colors);
+      else if(colors == 3)
+      {
+        for(int i=0; i<(w*h); i++)
+        {
+          tmp[i*3] = (dat[i]>>16)&0xff; // R
+          tmp[i*3+1] = (dat[i]>>8)&0xff; // G
+          tmp[i*3+2] = dat[i]&0xff; // B
+        }
+      }
+      of.write((char*)tmp, w*h*colors);
       delete tmp;
     }
 
@@ -181,4 +209,17 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
   cairo_surface_destroy(surface);
   g_free(doc);
   return 0;
+}
+
+
+int getenv_int(std::string VarName, int Default)
+{
+  char* tmp = getenv(VarName.c_str());
+  return tmp ? atoi(tmp) : Default;
+}
+
+std::string getenv_str(std::string VarName, std::string Default)
+{
+  char* tmp = getenv(VarName.c_str());
+  return tmp ? tmp : Default;
 }

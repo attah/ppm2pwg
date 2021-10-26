@@ -14,7 +14,7 @@ ppm2pwg: bytestream.o ppm2pwg.o ppm2pwg_main.o
 pwg2ppm: bytestream.o pwg2ppm.o
 	$(CXX) $^ -o $@
 
-pdf2printable: pdf2printable.o
+pdf2printable: bytestream.o ppm2pwg.o pdf2printable.o
 	$(CXX) $^ -lpoppler -lcairo -lglib-2.0 -lpoppler-glib -lpoppler-cpp -o $@
 
 clean:

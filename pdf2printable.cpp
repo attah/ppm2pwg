@@ -8,6 +8,9 @@
 #include <iostream>
 #include <fstream>
 
+#include <bytestream.h>
+#include "ppm2pwg.h"
+
 int getenv_int(std::string VarName, int Default);
 std::string getenv_str(std::string VarName, std::string Default);
 
@@ -176,10 +179,24 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
       int w = cairo_image_surface_get_width(surface);
 
       cairo_surface_flush(surface);
-      of << (colors==3 ? "P6" : "P5") << '\n' << w << ' ' << h << '\n' << 255 << '\n';
+      if(i==0)
+      {
+        Bytestream FileHdr;
+        if(urf)
+        {
+          uint32_t pages = getenv_int("PAGES", 1);
+          FileHdr = make_urf_file_hdr(pages);
+        }
+        else
+        {
+          FileHdr = make_pwg_file_hdr();
+        }
+        of << FileHdr;
+      }
 
       uint32_t* dat = (uint32_t*)cairo_image_surface_get_data(surface);
-      uint8_t* tmp = new uint8_t[w*h*colors];
+      Bytestream bmp_bts(w*h*colors);
+      uint8_t* tmp = bmp_bts.raw();
 
       if(colors == 1)
       {
@@ -199,8 +216,15 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
           tmp[i*3+2] = dat[i]&0xff; // B
         }
       }
-      of.write((char*)tmp, w*h*colors);
-      delete tmp;
+      Bytestream OutBts;
+      bmp_to_pwg(bmp_bts, OutBts, urf,
+                 i+1, colors, 4,
+                 dpi, dpi, w, h,
+                 duplex, false, "iso_a4_210x297mm",
+                 false, false);
+
+     of << OutBts;
+
     }
 
   }

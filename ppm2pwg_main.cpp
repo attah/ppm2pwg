@@ -58,8 +58,6 @@ int PPM2PWG_MAIN(int, char**)
   {
     OutBts.reset();
 
-    std::cerr << "Page " << ++page << std::endl;
-
     std::string p, xs, ys, r;
     std::cin >> p;
 

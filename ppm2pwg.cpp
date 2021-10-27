@@ -34,6 +34,8 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts, bool Urf,
   Bytestream current;
   bool backside = (page%2)==0;
 
+  std::cerr << "Page " << page << std::endl;
+
   if(!Urf)
   {
     make_pwg_hdr(OutBts, Colors, Quality, HwResX, HwResY, ResX, ResY,

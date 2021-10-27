@@ -9,14 +9,25 @@
 #include <fstream>
 
 #include <bytestream.h>
+#include "pwgpapersizes.h"
 #include "ppm2pwg.h"
 
+bool getenv_bool(std::string VarName);
 int getenv_int(std::string VarName, int Default);
 std::string getenv_str(std::string VarName, std::string Default);
 
-int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
-                 double w, double h, int dpi, bool ps, bool pwg, bool urf,
-                 bool duplex);
+enum Format
+{
+  PDF,
+  Postscript,
+  PWG,
+  URF
+};
+
+int do_convert(std::string Infile, std::string Outfile, int Colors,
+               std::string PaperSizeName, float PaperSizeX, float PaperSizeY,
+               size_t HwResX, size_t HwResY, Format TargetFormat,
+               bool Duplex, bool Tumble, bool BackHFlip, bool BackVFlip);
 
 int main(int argc, char** argv)
 {
@@ -26,47 +37,63 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  std::string infile(argv[1]);
-  std::string outfile(argv[2]);
+  std::string Infile(argv[1]);
+  std::string Outfile(argv[2]);
 
-  double w = 4960;
-  double h = 7016;
-  int dpi = 600;
-  bool duplex = true;
-  int colors = getenv_int("COLORS", 3);
+  Format TargetFormat = PDF;
 
-  bool ps = false;
-  bool pwg = false;
-  bool urf = false;
+  size_t HwResX = getenv_int("HWRES_X", getenv_int("HWRES", 300));
+  size_t HwResY = getenv_int("HWRES_Y", getenv_int("HWRES", 300));
+  std::string PaperSizeName = getenv_str("PAPER_SIZE", "iso_a4_210x297mm");
+
+  std::pair<float, float> PaperSize = PwgPaperSizes.at(PaperSizeName);
+  float PaperSizeX = PaperSize.first;
+  float PaperSizeY = PaperSize.second;
+
+  bool Duplex = true;
+  bool Tumble = false;
+  bool BackHFlip = false;
+  bool BackVFlip = false;
+  int Colors = getenv_int("COLORS", 3);
 
   std::string format = getenv_str("FORMAT", "pdf");
   if(format == "ps" || format == "postscript")
   {
-    ps = true;
+    TargetFormat = Postscript;
   }
   else if(format == "pwg")
   {
-    pwg = true;
+    TargetFormat = PWG;
   }
   else if(format == "urf")
   {
-    urf = true;
+    TargetFormat = URF;
+  }
+  else if(format != "pdf")
+  {
+    return 1;
   }
 
-  return to_pdf_or_ps(infile, outfile, colors, w, h, dpi, ps, pwg, urf, duplex);
+  return do_convert(Infile, Outfile, Colors,
+                    PaperSizeName, PaperSizeX, PaperSizeY,
+                    HwResX, HwResY, TargetFormat,
+                    Duplex, Tumble, BackHFlip, BackVFlip);
 }
 
-int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
-                 double w, double h, int dpi, bool ps, bool pwg, bool urf,
-                 bool duplex)
+int do_convert(std::string Infile, std::string Outfile, int Colors,
+               std::string PaperSizeName, float PaperSizeX, float PaperSizeY,
+               size_t HwResX, size_t HwResY, Format TargetFormat,
+               bool Duplex, bool Tumble, bool BackHFlip, bool BackVFlip)
 {
-  double w_pts = (w/dpi)*72.0;
-  double h_pts = (h/dpi)*72.0;
-  bool raster = pwg | urf;
+  double w_pts = PaperSizeX/25.4*72.0;
+  double h_pts = PaperSizeY/25.4*72.0;
+  size_t w_px = PaperSizeX/25.4*HwResX;
+  size_t h_px = PaperSizeY/25.4*HwResY;
+  bool raster = TargetFormat == PWG || TargetFormat == URF;
   cairo_surface_t *surface;
 
   std::string url("file://");
-  url.append(infile);
+  url.append(Infile);
   GError* error = nullptr;
   PopplerDocument* doc = poppler_document_new_from_file(url.c_str(), nullptr, &error);
 
@@ -80,15 +107,15 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
 
   if(raster)
   {
-    surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, w, h);
-    of = std::ofstream(outfile, std::ofstream::out);
+    surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, w_px, h_px);
+    of = std::ofstream(Outfile, std::ofstream::out);
 
   }
-  else if(ps)
+  else if(TargetFormat == Postscript)
   {
-    surface = cairo_ps_surface_create(outfile.c_str(), w_pts, h_pts);
+    surface = cairo_ps_surface_create(Outfile.c_str(), w_pts, h_pts);
     cairo_ps_surface_restrict_to_level(surface, CAIRO_PS_LEVEL_2);
-    if(duplex)
+    if(Duplex)
     {
       cairo_ps_surface_dsc_comment(surface, "%%Requirements: duplex");
       cairo_ps_surface_dsc_begin_setup(surface);
@@ -98,7 +125,7 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
   }
   else
   {
-    surface = cairo_pdf_surface_create(outfile.c_str(), w_pts, h_pts);
+    surface = cairo_pdf_surface_create(Outfile.c_str(), w_pts, h_pts);
   }
 
   int pages = poppler_document_get_n_pages(doc);
@@ -113,7 +140,7 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
     {
       //ok
     }
-    else if(ps)
+    else if(TargetFormat == Postscript)
     {
       cairo_ps_surface_set_size(surface, w_pts, h_pts);
     }
@@ -138,7 +165,7 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
 
     if (page_width > page_height) {
         // Fix landscape pages
-        cairo_translate(cr, 0, raster ? h : h_pts);
+        cairo_translate(cr, 0, raster ? h_px : h_pts);
         cairo_matrix_init(&m, 0, -1, 1, 0, 0, 0);
         cairo_transform(cr, &m);
         std::swap(page_width, page_height);
@@ -147,16 +174,16 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
     if(raster)
     { // Scale to a pixel size
       // TODO: find minimum scale and center the other axis
-      double h_scale = h/page_height;
-      double w_scale = w/page_width;
+      double w_scale = w_px/page_width;
+      double h_scale = h_px/page_height;
 
       cairo_scale(cr, h_scale, w_scale);
     }
     else
     { // Scale to a poins size
       // TODO: find minimum scale and center the other axis
-      double h_scale = h_pts/page_height;
       double w_scale = w_pts/page_width;
+      double h_scale = h_pts/page_height;
 
       cairo_scale(cr, w_scale, h_scale);
     }
@@ -182,7 +209,7 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
       if(i==0)
       {
         Bytestream FileHdr;
-        if(urf)
+        if(TargetFormat==URF)
         {
           uint32_t pages = getenv_int("PAGES", 1);
           FileHdr = make_urf_file_hdr(pages);
@@ -195,10 +222,10 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
       }
 
       uint32_t* dat = (uint32_t*)cairo_image_surface_get_data(surface);
-      Bytestream bmp_bts(w*h*colors);
+      Bytestream bmp_bts(w*h*Colors);
       uint8_t* tmp = bmp_bts.raw();
 
-      if(colors == 1)
+      if(Colors == 1)
       {
         for(int i=0; i<(w*h); i++)
         {
@@ -207,7 +234,7 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
                  + (((dat[i]>>16)&0xff)*0.299); // B
         }
       }
-      else if(colors == 3)
+      else if(Colors == 3)
       {
         for(int i=0; i<(w*h); i++)
         {
@@ -217,16 +244,14 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
         }
       }
       Bytestream OutBts;
-      bmp_to_pwg(bmp_bts, OutBts, urf,
-                 i+1, colors, 4,
-                 dpi, dpi, w, h,
-                 duplex, false, "iso_a4_210x297mm",
-                 false, false);
+      bmp_to_pwg(bmp_bts, OutBts, TargetFormat==URF,
+                 i+1, Colors, 4,
+                 HwResX, HwResY, w, h,
+                 Duplex, Tumble, PaperSizeName,
+                 BackHFlip, BackVFlip);
 
      of << OutBts;
-
     }
-
   }
 
   cairo_surface_finish(surface);
@@ -235,6 +260,11 @@ int to_pdf_or_ps(std::string infile, std::string outfile, int colors,
   return 0;
 }
 
+bool getenv_bool(std::string VarName)
+{
+  char* tmp = getenv(VarName.c_str());
+  return (tmp && strcmp(tmp,"0")!=0 && strcmp(tmp,"false")!=0);
+}
 
 int getenv_int(std::string VarName, int Default)
 {

@@ -149,7 +149,7 @@ int do_convert(std::string Infile, std::string Outfile, int Colors,
       cairo_pdf_surface_set_size(surface, w_pts, h_pts);
     }
 
-    cairo_t *cr;
+    cairo_t* cr;
     cairo_status_t status;
     cairo_matrix_t m;
 
@@ -189,7 +189,7 @@ int do_convert(std::string Infile, std::string Outfile, int Colors,
     }
 
     poppler_page_render_for_printing(page, cr);
-    //g_object_unref(page);
+    g_object_unref(page);
 
     status = cairo_status(cr);
     if (status)
@@ -197,7 +197,6 @@ int do_convert(std::string Infile, std::string Outfile, int Colors,
       std::cerr << "cairo error: " << cairo_status_to_string(status) << std::endl;
     }
     cairo_destroy(cr);
-    // g_free(page);
     cairo_surface_show_page(surface);
 
     if(raster)

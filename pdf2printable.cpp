@@ -90,8 +90,11 @@ int do_convert(std::string Infile, std::string Outfile, int Colors,
   size_t w_px = PaperSizeX/25.4*HwResX;
   size_t h_px = PaperSizeY/25.4*HwResY;
   bool raster = TargetFormat == PWG || TargetFormat == URF;
-  cairo_surface_t *surface;
 
+  Bytestream bmp_bts;
+  Bytestream OutBts;
+
+  cairo_surface_t* surface;
   std::string url("file://");
   url.append(Infile);
   GError* error = nullptr;
@@ -201,9 +204,6 @@ int do_convert(std::string Infile, std::string Outfile, int Colors,
 
     if(raster)
     {
-      int h = cairo_image_surface_get_height(surface);
-      int w = cairo_image_surface_get_width(surface);
-
       cairo_surface_flush(surface);
       if(i==0)
       {
@@ -221,12 +221,15 @@ int do_convert(std::string Infile, std::string Outfile, int Colors,
       }
 
       uint32_t* dat = (uint32_t*)cairo_image_surface_get_data(surface);
-      Bytestream bmp_bts(w*h*Colors);
+      if(bmp_bts.size() != (w_px*h_px*Colors))
+      {
+        bmp_bts = Bytestream(w_px*h_px*Colors);
+      }
       uint8_t* tmp = bmp_bts.raw();
 
       if(Colors == 1)
       {
-        for(int i=0; i<(w*h); i++)
+        for(size_t i=0; i<(w_px*h_px); i++)
         {
           tmp[i] = ((dat[i]&0xff)*0.114) // R
                  + (((dat[i]>>8)&0xff)*0.587) // G
@@ -235,17 +238,17 @@ int do_convert(std::string Infile, std::string Outfile, int Colors,
       }
       else if(Colors == 3)
       {
-        for(int i=0; i<(w*h); i++)
+        for(size_t i=0; i<(w_px*h_px); i++)
         {
           tmp[i*3] = (dat[i]>>16)&0xff; // R
           tmp[i*3+1] = (dat[i]>>8)&0xff; // G
           tmp[i*3+2] = dat[i]&0xff; // B
         }
       }
-      Bytestream OutBts;
+      OutBts.reset();
       bmp_to_pwg(bmp_bts, OutBts, TargetFormat==URF,
                  i+1, Colors, 4,
-                 HwResX, HwResY, w, h,
+                 HwResX, HwResY, w_px, h_px,
                  Duplex, Tumble, PaperSizeName,
                  BackHFlip, BackVFlip);
 

@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <math.h>
 
 #include <bytestream.h>
 #include "pwgpapersizes.h"
@@ -28,6 +29,14 @@ int do_convert(std::string Infile, std::string Outfile, int Colors,
                std::string PaperSizeName, float PaperSizeX, float PaperSizeY,
                size_t HwResX, size_t HwResY, Format TargetFormat,
                bool Duplex, bool Tumble, bool BackHFlip, bool BackVFlip);
+
+void fixup_scale(double& scale, double& x_offset, double& y_offset,
+                 double w_in, double h_in, double w_out, double h_out);
+
+double round2(double d)
+{
+  return roundf(d*100)/100;
+}
 
 int main(int argc, char** argv)
 {
@@ -174,22 +183,19 @@ int do_convert(std::string Infile, std::string Outfile, int Colors,
         std::swap(page_width, page_height);
     }
 
+    double scale = 0;
+    double x_offset = 0;
+    double y_offset = 0;
     if(raster)
     { // Scale to a pixel size
-      // TODO: find minimum scale and center the other axis
-      double w_scale = w_px/page_width;
-      double h_scale = h_px/page_height;
-
-      cairo_scale(cr, h_scale, w_scale);
+      fixup_scale(scale, x_offset, y_offset, page_width, page_height, w_px, h_px);
     }
     else
     { // Scale to a poins size
-      // TODO: find minimum scale and center the other axis
-      double w_scale = w_pts/page_width;
-      double h_scale = h_pts/page_height;
-
-      cairo_scale(cr, w_scale, h_scale);
+      fixup_scale(scale, x_offset, y_offset, page_width, page_height, w_pts, h_pts);
     }
+    cairo_translate(cr, x_offset, y_offset);
+    cairo_scale(cr, scale, scale);
 
     poppler_page_render_for_printing(page, cr);
     g_object_unref(page);
@@ -260,6 +266,14 @@ int do_convert(std::string Infile, std::string Outfile, int Colors,
   cairo_surface_destroy(surface);
   g_free(doc);
   return 0;
+}
+
+void fixup_scale(double& scale, double& x_offset, double& y_offset,
+                 double w_in, double h_in, double w_out, double h_out)
+{
+  scale = round2(std::min(w_out/w_in, h_out/h_in));
+  x_offset = roundf((w_out-(w_in*scale))/2);
+  y_offset = roundf((h_out-(h_in*scale))/2);
 }
 
 bool getenv_bool(std::string VarName)

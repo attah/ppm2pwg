@@ -13,6 +13,13 @@
 #include "pwgpapersizes.h"
 #include "ppm2pwg.h"
 
+#define R_RELATIVE_LUMINOSITY 0.299
+#define G_RELATIVE_LUMINOSITY 0.587
+#define B_RELATIVE_LUMINOSITY 0.114
+#define RGB32_R(Color) ((dat[i]>>16)&0xff)
+#define RGB32_G(Color) ((dat[i]>>8)&0xff)
+#define RGB32_B(Color) (dat[i]&0xff)
+
 bool getenv_bool(std::string VarName);
 int getenv_int(std::string VarName, int Default);
 std::string getenv_str(std::string VarName, std::string Default);
@@ -141,7 +148,6 @@ int do_convert(std::string Infile, std::string Outfile, size_t Colors, size_t Qu
     Bytestream FileHdr;
     if(TargetFormat==URF)
     {
-      uint32_t pages = getenv_int("PAGES", 1);
       FileHdr = make_urf_file_hdr(pages);
     }
     else
@@ -150,6 +156,12 @@ int do_convert(std::string Infile, std::string Outfile, size_t Colors, size_t Qu
     }
     of << FileHdr;
   }
+  else if(TargetFormat == PDF)
+  {
+    surface = cairo_pdf_surface_create(Outfile.c_str(), w_pts, h_pts);
+    cairo_pdf_surface_set_size(surface, w_pts, h_pts);
+  }
+
   else if(TargetFormat == Postscript)
   {
     surface = cairo_ps_surface_create(Outfile.c_str(), w_pts, h_pts);
@@ -161,10 +173,12 @@ int do_convert(std::string Infile, std::string Outfile, size_t Colors, size_t Qu
       cairo_ps_surface_dsc_comment(surface, "%%IncludeFeature: *Duplex DuplexNoTumble");
     }
     cairo_ps_surface_dsc_begin_page_setup(surface);
+    cairo_ps_surface_set_size(surface, w_pts, h_pts);
   }
   else
   {
-    surface = cairo_pdf_surface_create(Outfile.c_str(), w_pts, h_pts);
+    g_free(doc);
+    return 1;
   }
 
   size_t page_no;
@@ -179,19 +193,6 @@ int do_convert(std::string Infile, std::string Outfile, size_t Colors, size_t Qu
     PopplerPage* page = poppler_document_get_page(doc, page_index);
     double page_width, page_height;
     poppler_page_get_size(page, &page_width, &page_height);
-
-    if(raster)
-    {
-      //ok
-    }
-    else if(TargetFormat == Postscript)
-    {
-      cairo_ps_surface_set_size(surface, w_pts, h_pts);
-    }
-    else
-    {
-      cairo_pdf_surface_set_size(surface, w_pts, h_pts);
-    }
 
     cairo_t* cr;
     cairo_status_t status;
@@ -254,18 +255,18 @@ int do_convert(std::string Infile, std::string Outfile, size_t Colors, size_t Qu
       {
         for(size_t i=0; i<(w_px*h_px); i++)
         {
-          tmp[i] = ((dat[i]&0xff)*0.114) // R
-                 + (((dat[i]>>8)&0xff)*0.587) // G
-                 + (((dat[i]>>16)&0xff)*0.299); // B
+          tmp[i] = (RGB32_R(dat[i])*R_RELATIVE_LUMINOSITY)
+                 + (RGB32_G(dat[i])*G_RELATIVE_LUMINOSITY)
+                 + (RGB32_B(dat[i])*B_RELATIVE_LUMINOSITY);
         }
       }
       else if(Colors == 3)
       {
         for(size_t i=0; i<(w_px*h_px); i++)
         {
-          tmp[i*3] = (dat[i]>>16)&0xff; // R
-          tmp[i*3+1] = (dat[i]>>8)&0xff; // G
-          tmp[i*3+2] = dat[i]&0xff; // B
+          tmp[i*3] = RGB32_R(dat[i]);
+          tmp[i*3+1] = RGB32_G(dat[i]);
+          tmp[i*3+2] = RGB32_B(dat[i]);
         }
       }
       OutBts.reset();

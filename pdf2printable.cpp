@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <math.h>
+#include <functional>
 
 #include <bytestream.h>
 #include "pwgpapersizes.h"
@@ -23,6 +24,7 @@
 bool getenv_bool(std::string VarName);
 int getenv_int(std::string VarName, int Default);
 std::string getenv_str(std::string VarName, std::string Default);
+typedef std::function<bool(unsigned char const*, unsigned int)> write_fun;
 
 enum Format
 {
@@ -32,7 +34,12 @@ enum Format
   URF
 };
 
-int do_convert(std::string Infile, std::string Outfile, size_t Colors, size_t Quality,
+cairo_status_t lambda_adapter(void* lambda, const unsigned char* data, unsigned int length)
+{
+  return (*(write_fun*)lambda)(data, length) ? CAIRO_STATUS_SUCCESS : CAIRO_STATUS_WRITE_ERROR;
+}
+
+int do_convert(std::string Infile, write_fun WriteFun, size_t Colors, size_t Quality,
                std::string PaperSizeName, float PaperSizeX, float PaperSizeY,
                size_t HwResX, size_t HwResY, Format TargetFormat,
                bool Duplex, bool Tumble, bool BackHFlip, bool BackVFlip,
@@ -95,14 +102,21 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  return do_convert(Infile, Outfile, Colors, Quality,
+  std::ofstream of = std::ofstream(Outfile, std::ofstream::out);
+  write_fun WriteFun([&of](unsigned char const* buf, unsigned int len) -> bool
+            {
+              of.write((char*)buf, len);
+              return of.exceptions() == std::ostream::goodbit;
+            });
+
+  return do_convert(Infile, WriteFun, Colors, Quality,
                     PaperSizeName, PaperSizeX, PaperSizeY,
                     HwResX, HwResY, TargetFormat,
                     Duplex, Tumble, BackHFlip, BackVFlip,
                     FromPage, ToPage);
 }
 
-int do_convert(std::string Infile, std::string Outfile, size_t Colors, size_t Quality,
+int do_convert(std::string Infile, write_fun WriteFun, size_t Colors, size_t Quality,
                std::string PaperSizeName, float PaperSizeX, float PaperSizeY,
                size_t HwResX, size_t HwResY, Format TargetFormat,
                bool Duplex, bool Tumble, bool BackHFlip, bool BackVFlip,
@@ -144,7 +158,6 @@ int do_convert(std::string Infile, std::string Outfile, size_t Colors, size_t Qu
   if(raster)
   {
     surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, w_px, h_px);
-    of = std::ofstream(Outfile, std::ofstream::out);
     Bytestream FileHdr;
     if(TargetFormat==URF)
     {
@@ -154,17 +167,17 @@ int do_convert(std::string Infile, std::string Outfile, size_t Colors, size_t Qu
     {
       FileHdr = make_pwg_file_hdr();
     }
-    of << FileHdr;
+    WriteFun(FileHdr.raw(), FileHdr.size());
   }
   else if(TargetFormat == PDF)
   {
-    surface = cairo_pdf_surface_create(Outfile.c_str(), w_pts, h_pts);
+    surface = cairo_pdf_surface_create_for_stream(lambda_adapter, &WriteFun, w_pts, h_pts);
     cairo_pdf_surface_set_size(surface, w_pts, h_pts);
   }
 
   else if(TargetFormat == Postscript)
   {
-    surface = cairo_ps_surface_create(Outfile.c_str(), w_pts, h_pts);
+    surface = cairo_ps_surface_create_for_stream(lambda_adapter, &WriteFun, w_pts, h_pts);
     cairo_ps_surface_restrict_to_level(surface, CAIRO_PS_LEVEL_2);
     if(Duplex)
     {
@@ -276,7 +289,7 @@ int do_convert(std::string Infile, std::string Outfile, size_t Colors, size_t Qu
                  Duplex, Tumble, PaperSizeName,
                  BackHFlip, BackVFlip);
 
-     of << OutBts;
+      WriteFun(OutBts.raw(), OutBts.size());
     }
   }
 

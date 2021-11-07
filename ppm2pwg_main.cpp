@@ -57,6 +57,7 @@ int PPM2PWG_MAIN(int, char**)
   while(!std::cin.eof())
   {
     OutBts.reset();
+    page++;
 
     std::string p, xs, ys, r;
     std::cin >> p;

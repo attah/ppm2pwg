@@ -1,3 +1,6 @@
+#ifndef PPM2PWG_H
+#define PPM2PWG_H
+
 Bytestream make_pwg_file_hdr();
 
 Bytestream make_urf_file_hdr(uint32_t pages);
@@ -16,3 +19,5 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts, bool Urf,
                 size_t HwResX, size_t HwResY, size_t ResX, size_t ResY,
                 bool Duplex, bool Tumble, std::string PageSizeName,
                 bool BackHFlip, bool BackVFlip);
+
+#endif //PPM2PWG_H

@@ -8,11 +8,10 @@
 #include <iostream>
 #include <fstream>
 #include <math.h>
-#include <functional>
 
 #include <bytestream.h>
-#include "pwgpapersizes.h"
 #include "ppm2pwg.h"
+#include "pdf2printable.h"
 
 #define R_RELATIVE_LUMINOSITY 0.299
 #define G_RELATIVE_LUMINOSITY 0.587
@@ -21,106 +20,24 @@
 #define RGB32_G(Color) ((dat[i]>>8)&0xff)
 #define RGB32_B(Color) (dat[i]&0xff)
 
-bool getenv_bool(std::string VarName);
-int getenv_int(std::string VarName, int Default);
-std::string getenv_str(std::string VarName, std::string Default);
-typedef std::function<bool(unsigned char const*, unsigned int)> write_fun;
-
-enum Format
-{
-  PDF,
-  Postscript,
-  PWG,
-  URF
-};
+void fixup_scale(double& scale, double& x_offset, double& y_offset,
+                 double w_in, double h_in, double w_out, double h_out);
 
 cairo_status_t lambda_adapter(void* lambda, const unsigned char* data, unsigned int length)
 {
   return (*(write_fun*)lambda)(data, length) ? CAIRO_STATUS_SUCCESS : CAIRO_STATUS_WRITE_ERROR;
 }
 
-int do_convert(std::string Infile, write_fun WriteFun, size_t Colors, size_t Quality,
-               std::string PaperSizeName, float PaperSizeX, float PaperSizeY,
-               size_t HwResX, size_t HwResY, Format TargetFormat,
-               bool Duplex, bool Tumble, bool BackHFlip, bool BackVFlip,
-               size_t FromPage, size_t ToPage);
-
-void fixup_scale(double& scale, double& x_offset, double& y_offset,
-                 double w_in, double h_in, double w_out, double h_out);
-
 double round2(double d)
 {
   return roundf(d*100)/100;
 }
 
-int main(int argc, char** argv)
-{
-  if(argc != 3)
-  {
-    std::cerr << "Usage: pdf2printable <PDF-file> <outfile>" << std::endl;
-    return 1;
-  }
-
-  std::string Infile(argv[1]);
-  std::string Outfile(argv[2]);
-
-  Format TargetFormat = PDF;
-
-  size_t HwResX = getenv_int("HWRES_X", getenv_int("HWRES", 300));
-  size_t HwResY = getenv_int("HWRES_Y", getenv_int("HWRES", 300));
-  std::string PaperSizeName = getenv_str("PAPER_SIZE", "iso_a4_210x297mm");
-
-  std::pair<float, float> PaperSize = PwgPaperSizes.at(PaperSizeName);
-  float PaperSizeX = PaperSize.first;
-  float PaperSizeY = PaperSize.second;
-
-  size_t FromPage = getenv_int("FROM_PAGE", 0);
-  size_t ToPage = getenv_int("TO_PAGE", 0);
-
-  bool Duplex = true;
-  bool Tumble = false;
-  bool BackHFlip = false;
-  bool BackVFlip = false;
-  size_t Colors = getenv_int("COLORS", 3);
-  size_t Quality = getenv_int("QUALITY", 4);
-
-  std::string format = getenv_str("FORMAT", "pdf");
-  if(format == "ps" || format == "postscript")
-  {
-    TargetFormat = Postscript;
-  }
-  else if(format == "pwg")
-  {
-    TargetFormat = PWG;
-  }
-  else if(format == "urf")
-  {
-    TargetFormat = URF;
-  }
-  else if(format != "pdf")
-  {
-    return 1;
-  }
-
-  std::ofstream of = std::ofstream(Outfile, std::ofstream::out);
-  write_fun WriteFun([&of](unsigned char const* buf, unsigned int len) -> bool
-            {
-              of.write((char*)buf, len);
-              return of.exceptions() == std::ostream::goodbit;
-            });
-
-  return do_convert(Infile, WriteFun, Colors, Quality,
-                    PaperSizeName, PaperSizeX, PaperSizeY,
-                    HwResX, HwResY, TargetFormat,
-                    Duplex, Tumble, BackHFlip, BackVFlip,
-                    FromPage, ToPage);
-}
-
-int do_convert(std::string Infile, write_fun WriteFun, size_t Colors, size_t Quality,
-               std::string PaperSizeName, float PaperSizeX, float PaperSizeY,
-               size_t HwResX, size_t HwResY, Format TargetFormat,
-               bool Duplex, bool Tumble, bool BackHFlip, bool BackVFlip,
-               size_t FromPage, size_t ToPage)
+int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size_t Quality,
+                     std::string PaperSizeName, float PaperSizeX, float PaperSizeY,
+                     size_t HwResX, size_t HwResY, Format TargetFormat,
+                     bool Duplex, bool Tumble, bool BackHFlip, bool BackVFlip,
+                     size_t FromPage, size_t ToPage)
 {
   double w_pts = PaperSizeX/25.4*72.0;
   double h_pts = PaperSizeY/25.4*72.0;
@@ -305,22 +222,4 @@ void fixup_scale(double& scale, double& x_offset, double& y_offset,
   scale = round2(std::min(w_out/w_in, h_out/h_in));
   x_offset = roundf((w_out-(w_in*scale))/2);
   y_offset = roundf((h_out-(h_in*scale))/2);
-}
-
-bool getenv_bool(std::string VarName)
-{
-  char* tmp = getenv(VarName.c_str());
-  return (tmp && strcmp(tmp,"0")!=0 && strcmp(tmp,"false")!=0);
-}
-
-int getenv_int(std::string VarName, int Default)
-{
-  char* tmp = getenv(VarName.c_str());
-  return tmp ? atoi(tmp) : Default;
-}
-
-std::string getenv_str(std::string VarName, std::string Default)
-{
-  char* tmp = getenv(VarName.c_str());
-  return tmp ? tmp : Default;
 }

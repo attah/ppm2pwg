@@ -91,7 +91,6 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
     surface = cairo_pdf_surface_create_for_stream(lambda_adapter, &WriteFun, w_pts, h_pts);
     cairo_pdf_surface_set_size(surface, w_pts, h_pts);
   }
-
   else if(TargetFormat == Postscript)
   {
     surface = cairo_ps_surface_create_for_stream(lambda_adapter, &WriteFun, w_pts, h_pts);
@@ -111,14 +110,14 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
     return 1;
   }
 
-  size_t page_no;
+  size_t out_page_no = 0;
   for(size_t page_index = 0; page_index < pages; page_index++)
   {
-    page_no = page_index+1;
-    if(page_no < FromPage || page_no > ToPage)
+    if((page_index+1) < FromPage || (page_index+1) > ToPage)
     {
       continue;
     }
+    out_page_no++;
 
     PopplerPage* page = poppler_document_get_page(doc, page_index);
     double page_width, page_height;
@@ -201,7 +200,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
       }
       OutBts.reset();
       bmp_to_pwg(bmp_bts, OutBts, TargetFormat==URF,
-                 page_no, Colors, Quality,
+                 out_page_no, Colors, Quality,
                  HwResX, HwResY, w_px, h_px,
                  Duplex, Tumble, PaperSizeName,
                  BackHFlip, BackVFlip);

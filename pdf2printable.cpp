@@ -211,7 +211,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
 
   cairo_surface_finish(surface);
   cairo_surface_destroy(surface);
-  g_free(doc);
+  g_object_unref(doc);
   return 0;
 }
 

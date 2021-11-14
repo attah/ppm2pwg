@@ -37,7 +37,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
                      std::string PaperSizeName, float PaperSizeX, float PaperSizeY,
                      size_t HwResX, size_t HwResY, Format TargetFormat,
                      bool Duplex, bool Tumble, bool BackHFlip, bool BackVFlip,
-                     size_t FromPage, size_t ToPage)
+                     size_t FromPage, size_t ToPage, progress_fun ProgressFun)
 {
   double w_pts = PaperSizeX/25.4*72.0;
   double h_pts = PaperSizeY/25.4*72.0;
@@ -111,6 +111,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
   }
 
   size_t out_page_no = 0;
+  size_t total_pages = ToPage - (FromPage-1);
   for(size_t page_index = 0; page_index < pages; page_index++)
   {
     if((page_index+1) < FromPage || (page_index+1) > ToPage)
@@ -206,6 +207,12 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
                  BackHFlip, BackVFlip);
 
       WriteFun(OutBts.raw(), OutBts.size());
+
+      if(ProgressFun != nullptr)
+      {
+        ProgressFun(out_page_no, total_pages);
+      }
+
     }
   }
 

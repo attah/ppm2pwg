@@ -65,11 +65,16 @@ int main(int argc, char** argv)
               return of.exceptions() == std::ostream::goodbit;
             });
 
+  progress_fun ProgressFun([](size_t page, size_t total) -> void
+            {
+              std::cerr << "Progress: " << page << "/" << total << "\n\n";
+            });
+
   return pdf_to_printable(Infile, WriteFun, Colors, Quality,
                           PaperSizeName, PaperSizeX, PaperSizeY,
                           HwResX, HwResY, TargetFormat,
                           Duplex, Tumble, BackHFlip, BackVFlip,
-                          FromPage, ToPage);
+                          FromPage, ToPage, ProgressFun);
 }
 
 bool getenv_bool(std::string VarName)

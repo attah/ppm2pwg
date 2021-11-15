@@ -69,7 +69,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
   {
     FromPage = 1;
   }
-  if(ToPage == 0)
+  if(ToPage == 0 || ToPage > pages)
   {
     ToPage = pages;
   }

@@ -20,7 +20,6 @@ Bytestream make_urf_file_hdr(uint32_t pages)
 {
   Bytestream UrfFileHdr;
   UrfFileHdr << "UNIRAST" << (uint8_t)0 << pages;
-  std::cout << UrfFileHdr;
   return UrfFileHdr;
 }
 

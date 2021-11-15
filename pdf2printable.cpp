@@ -23,9 +23,10 @@
 void fixup_scale(double& scale, double& x_offset, double& y_offset,
                  double w_in, double h_in, double w_out, double h_out);
 
-cairo_status_t lambda_adapter(void* lambda, const unsigned char* data, unsigned int length)
+cairo_status_t bytestream_writer(void* bts, const unsigned char* data, unsigned int length)
 {
-  return (*(write_fun*)lambda)(data, length) ? CAIRO_STATUS_SUCCESS : CAIRO_STATUS_WRITE_ERROR;
+  ((Bytestream*)bts)->putBytes(data, length);
+  return CAIRO_STATUS_SUCCESS;
 }
 
 double round2(double d)
@@ -88,12 +89,12 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
   }
   else if(TargetFormat == PDF)
   {
-    surface = cairo_pdf_surface_create_for_stream(lambda_adapter, &WriteFun, w_pts, h_pts);
+    surface = cairo_pdf_surface_create_for_stream(bytestream_writer, &OutBts, w_pts, h_pts);
     cairo_pdf_surface_set_size(surface, w_pts, h_pts);
   }
   else if(TargetFormat == Postscript)
   {
-    surface = cairo_ps_surface_create_for_stream(lambda_adapter, &WriteFun, w_pts, h_pts);
+    surface = cairo_ps_surface_create_for_stream(bytestream_writer, &OutBts, w_pts, h_pts);
     cairo_ps_surface_restrict_to_level(surface, CAIRO_PS_LEVEL_2);
     if(Duplex)
     {
@@ -199,24 +200,31 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
           tmp[i*3+2] = RGB32_B(dat[i]);
         }
       }
-      OutBts.reset();
+
       bmp_to_pwg(bmp_bts, OutBts, TargetFormat==URF,
                  out_page_no, Colors, Quality,
                  HwResX, HwResY, w_px, h_px,
                  Duplex, Tumble, PaperSizeName,
                  BackHFlip, BackVFlip);
-
-      WriteFun(OutBts.raw(), OutBts.size());
-
-      if(ProgressFun != nullptr)
-      {
-        ProgressFun(out_page_no, total_pages);
-      }
-
     }
+
+    WriteFun(OutBts.raw(), OutBts.size());
+    OutBts.reset();
+
+    if(ProgressFun != nullptr)
+    {
+      ProgressFun(out_page_no, total_pages);
+    }
+
   }
 
   cairo_surface_finish(surface);
+  // PDF and PS will have written something now, write it out
+  if(OutBts.size() != 0)
+  {
+    WriteFun(OutBts.raw(), OutBts.size());
+  }
+
   cairo_surface_destroy(surface);
   g_object_unref(doc);
   return 0;

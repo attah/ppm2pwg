@@ -20,6 +20,8 @@
 #define RGB32_G(Color) ((dat[i]>>8)&0xff)
 #define RGB32_B(Color) (dat[i]&0xff)
 
+#define CHECK(call) if(!(call)) {res = 1; goto error;}
+
 void fixup_scale(double& scale, double& x_offset, double& y_offset,
                  double w_in, double h_in, double w_out, double h_out);
 
@@ -40,6 +42,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
                      bool Duplex, bool Tumble, bool BackHFlip, bool BackVFlip,
                      size_t FromPage, size_t ToPage, progress_fun ProgressFun)
 {
+  int res = 0;
   double w_pts = PaperSizeX/25.4*72.0;
   double h_pts = PaperSizeY/25.4*72.0;
   size_t w_px = PaperSizeX/25.4*HwResX;
@@ -71,7 +74,8 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
     ToPage = pages;
   }
 
-  std::ofstream of;
+  size_t out_page_no = 0;
+  size_t total_pages = 0;
 
   if(raster)
   {
@@ -85,7 +89,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
     {
       FileHdr = make_pwg_file_hdr();
     }
-    WriteFun(FileHdr.raw(), FileHdr.size());
+    CHECK(WriteFun(FileHdr.raw(), FileHdr.size()));
   }
   else if(TargetFormat == PDF)
   {
@@ -107,12 +111,11 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
   }
   else
   {
-    g_free(doc);
+    g_object_unref(doc);
     return 1;
   }
 
-  size_t out_page_no = 0;
-  size_t total_pages = ToPage - (FromPage-1);
+  total_pages = ToPage - (FromPage-1);
   for(size_t page_index = 0; page_index < pages; page_index++)
   {
     if((page_index+1) < FromPage || (page_index+1) > ToPage)
@@ -208,7 +211,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
                  BackHFlip, BackVFlip);
     }
 
-    WriteFun(OutBts.raw(), OutBts.size());
+    CHECK(WriteFun(OutBts.raw(), OutBts.size()));
     OutBts.reset();
 
     if(ProgressFun != nullptr)
@@ -222,12 +225,13 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
   // PDF and PS will have written something now, write it out
   if(OutBts.size() != 0)
   {
-    WriteFun(OutBts.raw(), OutBts.size());
+    CHECK(WriteFun(OutBts.raw(), OutBts.size()));
   }
 
+error:
   cairo_surface_destroy(surface);
   g_object_unref(doc);
-  return 0;
+  return res;
 }
 
 void fixup_scale(double& scale, double& x_offset, double& y_offset,

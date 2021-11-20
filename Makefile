@@ -5,6 +5,10 @@ VPATH = bytestream
 
 all: ppm2pwg pwg2ppm pdf2printable
 
+
+pdf2printable_mad.o: pdf2printable.cpp
+	$(CXX) -c -DMADNESS=1 $(CXXFLAGS) $^ -o $@
+
 %.o: %.cpp
 	$(CXX) -c $(CXXFLAGS) $<
 
@@ -17,5 +21,8 @@ pwg2ppm: bytestream.o pwg2ppm.o
 pdf2printable: bytestream.o ppm2pwg.o pdf2printable.o pdf2printable_main.o
 	$(CXX) $^ -lcairo -lglib-2.0 -lgobject-2.0 -lpoppler-glib -o $@
 
+pdf2printable_mad: bytestream.o ppm2pwg.o pdf2printable_mad.o pdf2printable_main.o
+	$(CXX) $^ -lglib-2.0 -lgobject-2.0 -ldl -o $@
+
 clean:
-	rm -f *.o ppm2pwg pwg2ppm pdf2printable
+	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad

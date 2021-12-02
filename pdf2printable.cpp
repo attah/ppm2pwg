@@ -21,6 +21,10 @@
 #define RGB32_G(Color) ((dat[i]>>8)&0xff)
 #define RGB32_B(Color) (dat[i]&0xff)
 
+#ifndef PDF_CREATOR
+#define PDF_CREATOR "pdf2printable"
+#endif
+
 #define CHECK(call) if(!(call)) {res = 1; goto error;}
 
 void fixup_scale(double& scale, double& x_offset, double& y_offset,
@@ -69,6 +73,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
   FUNC(cairo, void, cairo_ps_surface_set_size, cairo_surface_t*, double, double);
   FUNC(cairo, cairo_surface_t*, cairo_image_surface_create, cairo_format_t, int, int);
   FUNC(cairo, cairo_surface_t*, cairo_pdf_surface_create_for_stream, cairo_write_func_t, void*, double, double);
+  FUNC(cairo, void, cairo_pdf_surface_set_metadata, cairo_surface_t*, cairo_pdf_metadata_t, const char*);
   FUNC(cairo, void, cairo_pdf_surface_set_size, cairo_surface_t*, double, double);
   FUNC(cairo, void, cairo_translate, cairo_t*, double, double);
   FUNC(cairo, void, cairo_scale, cairo_t*, double, double);
@@ -130,6 +135,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
   else if(TargetFormat == PDF)
   {
     surface = cairo_pdf_surface_create_for_stream(bytestream_writer, &OutBts, w_pts, h_pts);
+    cairo_pdf_surface_set_metadata(surface, CAIRO_PDF_METADATA_CREATOR, PDF_CREATOR);
     cairo_pdf_surface_set_size(surface, w_pts, h_pts);
   }
   else if(TargetFormat == Postscript)

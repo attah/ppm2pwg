@@ -1,8 +1,6 @@
 #ifndef MADNESS_H
 #define MADNESS_H
 
-#if MADNESS
-
 #include <dlfcn.h>
 class LibLoader
 {
@@ -37,10 +35,4 @@ private:
           typedef ret (*name##_p)(__VA_ARGS__); \
           name##_p name = (name##_p)dlsym(lib.handle, STR(name))
 
-#else // MADNESS
-
-#define LIB(name, filename)
-#define FUNC(lib, ret, name, ...)
-
-#endif // MADNESS
 #endif // MADNESS_H

@@ -18,6 +18,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
                      std::string PaperSizeName, float PaperSizeX, float PaperSizeY,
                      size_t HwResX, size_t HwResY, Format TargetFormat,
                      bool Duplex, bool Tumble, bool BackHFlip, bool BackVFlip,
-                     size_t FromPage, size_t ToPage, progress_fun ProgressFun = nullptr);
+                     size_t FromPage, size_t ToPage,
+                     progress_fun ProgressFun = nullptr, bool Verbose = false);
 
 #endif //PDF2PRINTABLE_H

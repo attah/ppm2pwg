@@ -27,24 +27,27 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts, bool Urf,
                 size_t page, size_t Colors, size_t Quality,
                 size_t HwResX, size_t HwResY, size_t ResX, size_t ResY,
                 bool Duplex, bool Tumble, std::string PageSizeName,
-                bool BackHFlip, bool BackVFlip)
+                bool BackHFlip, bool BackVFlip, bool Verbose)
 {
   Bytestream bmp_line;
   Bytestream current;
   bool backside = (page%2)==0;
 
-  std::cerr << "Page " << page << std::endl;
+  if(Verbose)
+  {
+    std::cerr << "Page " << page << std::endl;
+  }
 
   if(!Urf)
   {
     make_pwg_hdr(OutBts, Colors, Quality, HwResX, HwResY, ResX, ResY,
                  Duplex, Tumble, PageSizeName,
-                 backside&&BackHFlip, backside&&BackVFlip);
+                 backside&&BackHFlip, backside&&BackVFlip, Verbose);
   }
   else
   {
     make_urf_hdr(OutBts, Colors, Quality, HwResX, HwResY, ResX, ResY,
-                 Duplex, Tumble);
+                 Duplex, Tumble, Verbose);
   }
 
   size_t bytesPerLine = Colors*ResX;
@@ -153,7 +156,7 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts, bool Urf,
 void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
                   size_t HwResX, size_t HwResY, size_t ResX, size_t ResY,
                   bool Duplex, bool Tumble, std::string PageSizeName,
-                  bool HFlip, bool VFlip)
+                  bool HFlip, bool VFlip, bool Verbose)
 {
   PwgPgHdr OutHdr;
 
@@ -181,14 +184,17 @@ void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
                       : PwgPgHdr::DefaultPrintQuality)));
   OutHdr.PageSizeName = PageSizeName;
 
-  std::cerr << OutHdr.describe() << std::endl;
+  if(Verbose)
+  {
+    std::cerr << OutHdr.describe() << std::endl;
+  }
 
   OutHdr.encode_into(OutBts);
 }
 
 void make_urf_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
                   size_t HwResX, size_t HwResY,size_t ResX, size_t ResY,
-                  bool Duplex, bool Tumble)
+                  bool Duplex, bool Tumble, bool Verbose)
 {
   if(HwResX != HwResY)
   {
@@ -209,7 +215,10 @@ void make_urf_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
   OutHdr.Height = ResY;
   OutHdr.HWRes = HwResX;
 
-  std::cerr << OutHdr.describe() << std::endl;
+  if(Verbose)
+  {
+    std::cerr << OutHdr.describe() << std::endl;
+  }
 
   OutHdr.encode_into(OutBts);
 }

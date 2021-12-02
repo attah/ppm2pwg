@@ -74,7 +74,7 @@ int main(int argc, char** argv)
                           PaperSizeName, PaperSizeX, PaperSizeY,
                           HwResX, HwResY, TargetFormat,
                           Duplex, Tumble, BackHFlip, BackVFlip,
-                          FromPage, ToPage, ProgressFun);
+                          FromPage, ToPage, ProgressFun, true);
 }
 
 bool getenv_bool(std::string VarName)

@@ -126,7 +126,7 @@ int PPM2PWG_MAIN(int, char**)
                page, Colors, Quality,
                HwResX, HwResY, ResX, ResY,
                Duplex, Tumble, PageSizeName,
-               BackHFlip, BackVFlip);
+               BackHFlip, BackVFlip, false);
 
     std::cout << OutBts;
     std::cin.peek(); // maybe trigger eof

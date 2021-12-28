@@ -1,5 +1,5 @@
 CXXFLAGS = -std=c++11 -O3 -pedantic -Wall -Wextra  -I. -Ibytestream \
--I/usr/include/glib-2.0/ -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/cairo/
+$(shell pkg-config --cflags glib-2.0) $(shell pkg-config --cflags cairo)
 
 VPATH = bytestream
 
@@ -19,10 +19,10 @@ pwg2ppm: bytestream.o pwg2ppm.o
 	$(CXX) $^ -o $@
 
 pdf2printable: bytestream.o ppm2pwg.o pdf2printable.o pdf2printable_main.o
-	$(CXX) $^ -lcairo -lglib-2.0 -lgobject-2.0 -lpoppler-glib -o $@
+	$(CXX) $^ $(shell pkg-config --libs poppler-glib) -o $@
 
 pdf2printable_mad: bytestream.o ppm2pwg.o pdf2printable_mad.o pdf2printable_main.o
-	$(CXX) $^ -lglib-2.0 -lgobject-2.0 -ldl -o $@
+	$(CXX) $^ $(shell pkg-config --libs gobject-2.0) -ldl -o $@
 
 clean:
 	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad

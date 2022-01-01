@@ -84,15 +84,15 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
   }
 
   size_t out_page_no = 0;
-  size_t total_pages = 0;
+  size_t total_pages = ToPage - (FromPage-1);
 
   if(raster)
   {
     surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, w_px, h_px);
     Bytestream FileHdr;
-    if(TargetFormat==URF)
+    if(TargetFormat == URF)
     {
-      FileHdr = make_urf_file_hdr(pages);
+      FileHdr = make_urf_file_hdr(total_pages);
     }
     else
     {
@@ -125,7 +125,6 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
     return 1;
   }
 
-  total_pages = ToPage - (FromPage-1);
   for(size_t page_index = 0; page_index < pages; page_index++)
   {
     if((page_index+1) < FromPage || (page_index+1) > ToPage)

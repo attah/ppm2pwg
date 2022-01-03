@@ -21,14 +21,17 @@
 #define RGB32_G(Color) ((dat[i]>>8)&0xff)
 #define RGB32_B(Color) (dat[i]&0xff)
 
+#define DPMM(dpi) dpi/25.4
+
 #ifndef PDF_CREATOR
 #define PDF_CREATOR "pdf2printable"
 #endif
 
 #define CHECK(call) if(!(call)) {res = 1; goto error;}
 
-void fixup_scale(double& scale, double& x_offset, double& y_offset,
-                 double w_in, double h_in, double w_out, double h_out);
+void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_offset,
+                 double w_in, double h_in, double w_out, double h_out,
+                 size_t HwResX, size_t HwResY);
 
 cairo_status_t bytestream_writer(void* bts, const unsigned char* data, unsigned int length)
 {
@@ -38,7 +41,7 @@ cairo_status_t bytestream_writer(void* bts, const unsigned char* data, unsigned 
 
 double round2(double d)
 {
-  return roundf(d*100)/100;
+  return round(d*100)/100;
 }
 
 int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size_t Quality,
@@ -48,10 +51,17 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
                      size_t FromPage, size_t ToPage, progress_fun ProgressFun, bool Verbose)
 {
   int res = 0;
-  double w_pts = PaperSizeX/25.4*72.0;
-  double h_pts = PaperSizeY/25.4*72.0;
-  size_t w_px = PaperSizeX/25.4*HwResX;
-  size_t h_px = PaperSizeY/25.4*HwResY;
+
+  if(TargetFormat == PDF || TargetFormat == Postscript)
+  { // Dimensions will be in points
+    HwResX = 72;
+    HwResY = 72;
+  }
+
+  double w = round2(PaperSizeX*DPMM(HwResX));
+  double h = round2(PaperSizeY*DPMM(HwResY));
+  size_t w_px = w;
+  size_t h_px = h;
   bool raster = TargetFormat == PWG || TargetFormat == URF;
 
   Bytestream bmp_bts;
@@ -102,13 +112,13 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
   }
   else if(TargetFormat == PDF)
   {
-    surface = cairo_pdf_surface_create_for_stream(bytestream_writer, &OutBts, w_pts, h_pts);
+    surface = cairo_pdf_surface_create_for_stream(bytestream_writer, &OutBts, w, h);
     cairo_pdf_surface_set_metadata(surface, CAIRO_PDF_METADATA_CREATOR, PDF_CREATOR);
-    cairo_pdf_surface_set_size(surface, w_pts, h_pts);
+    cairo_pdf_surface_set_size(surface, w, h);
   }
   else if(TargetFormat == Postscript)
   {
-    surface = cairo_ps_surface_create_for_stream(bytestream_writer, &OutBts, w_pts, h_pts);
+    surface = cairo_ps_surface_create_for_stream(bytestream_writer, &OutBts, w, h);
     cairo_ps_surface_restrict_to_level(surface, CAIRO_PS_LEVEL_2);
     if(Duplex)
     {
@@ -117,7 +127,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
       cairo_ps_surface_dsc_comment(surface, "%%IncludeFeature: *Duplex DuplexNoTumble");
     }
     cairo_ps_surface_dsc_begin_page_setup(surface);
-    cairo_ps_surface_set_size(surface, w_pts, h_pts);
+    cairo_ps_surface_set_size(surface, w, h);
   }
   else
   {
@@ -153,25 +163,20 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
 
     if (page_width > page_height) {
         // Fix landscape pages
-        cairo_translate(cr, 0, raster ? h_px : h_pts);
+        cairo_translate(cr, 0, h);
         cairo_matrix_init(&m, 0, -1, 1, 0, 0, 0);
         cairo_transform(cr, &m);
         std::swap(page_width, page_height);
     }
 
-    double scale = 0;
+    double x_scale = 0;
+    double y_scale = 0;
     double x_offset = 0;
     double y_offset = 0;
-    if(raster)
-    { // Scale to a pixel size
-      fixup_scale(scale, x_offset, y_offset, page_width, page_height, w_px, h_px);
-    }
-    else
-    { // Scale to a poins size
-      fixup_scale(scale, x_offset, y_offset, page_width, page_height, w_pts, h_pts);
-    }
+    fixup_scale(x_scale, y_scale, x_offset, y_offset,
+                page_width, page_height, PaperSizeX, PaperSizeY, HwResX, HwResY);
     cairo_translate(cr, x_offset, y_offset);
-    cairo_scale(cr, scale, scale);
+    cairo_scale(cr, x_scale, y_scale);
 
     poppler_page_render_for_printing(page, cr);
     g_object_unref(page);
@@ -243,10 +248,31 @@ error:
   return res;
 }
 
-void fixup_scale(double& scale, double& x_offset, double& y_offset,
-                 double w_in, double h_in, double w_out, double h_out)
+void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_offset,
+                 double w_in, double h_in, double w_out, double h_out,
+                 size_t HwResX, size_t HwResY)
 {
-  scale = round2(std::min(w_out/w_in, h_out/h_in));
+  // First, scale to fit as if we had a symmetric resolution
+  // ...this makes determining fitment easier
+  size_t min_res = std::min(HwResX, HwResY);
+  h_out *= DPMM(min_res);
+  w_out *= DPMM(min_res);
+  double scale = round2(std::min(w_out/w_in, h_out/h_in));
   x_offset = roundf((w_out-(w_in*scale))/2);
   y_offset = roundf((h_out-(h_in*scale))/2);
+
+  x_scale = scale;
+  y_scale = scale;
+
+  // Second, if we have an asymmetric resolution, compensate for it
+  if(HwResX > HwResY)
+  {
+    x_scale *= (HwResX/HwResY);
+    x_offset *= (HwResX/HwResY);
+  }
+  else if(HwResY > HwResX)
+  {
+    y_scale *= (HwResY/HwResX);
+    y_offset *= (HwResY/HwResX);
+  }
 }

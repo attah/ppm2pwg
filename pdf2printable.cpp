@@ -163,8 +163,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
 
     if (page_width > page_height) {
         // Fix landscape pages
-        cairo_translate(cr, 0, h);
-        cairo_matrix_init(&m, 0, -1, 1, 0, 0, 0);
+        cairo_matrix_init(&m, 0, -1, 1, 0, 0, h);
         cairo_transform(cr, &m);
         std::swap(page_width, page_height);
     }

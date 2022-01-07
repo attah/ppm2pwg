@@ -146,6 +146,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
     PopplerPage* page = poppler_document_get_page(doc, page_index);
     double page_width, page_height;
     poppler_page_get_size(page, &page_width, &page_height);
+    bool landscape = page_width > page_height;
 
     cairo_t* cr;
     cairo_status_t status;
@@ -161,11 +162,9 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
       cairo_restore(cr);
     }
 
-    if (page_width > page_height) {
-        // Fix landscape pages
-        cairo_matrix_init(&m, 0, -1, 1, 0, 0, h);
-        cairo_transform(cr, &m);
-        std::swap(page_width, page_height);
+    if (landscape)
+    { // Calculate/apply scaling in portrait
+      std::swap(page_width, page_height);
     }
 
     double x_scale = 0;
@@ -174,8 +173,15 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
     double y_offset = 0;
     fixup_scale(x_scale, y_scale, x_offset, y_offset,
                 page_width, page_height, PaperSizeX, PaperSizeY, HwResX, HwResY);
+
     cairo_translate(cr, x_offset, y_offset);
     cairo_scale(cr, x_scale, y_scale);
+
+    if (landscape)
+    { // Rotate to portrait
+      cairo_matrix_init(&m, 0, -1, 1, 0, 0, page_height);
+      cairo_transform(cr, &m);
+    }
 
     poppler_page_render_for_printing(page, cr);
     g_object_unref(page);

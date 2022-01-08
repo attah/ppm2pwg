@@ -15,7 +15,7 @@ pdf2printable_mad.o: pdf2printable.cpp
 ppm2pwg: bytestream.o ppm2pwg.o ppm2pwg_main.o
 	$(CXX) $^ -o $@
 
-pwg2ppm: bytestream.o pwg2ppm.o
+pwg2ppm: bytestream.o pwg2ppm.o pwg2ppm_main.o
 	$(CXX) $^ -o $@
 
 pdf2printable: bytestream.o ppm2pwg.o pdf2printable.o pdf2printable_main.o

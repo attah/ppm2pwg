@@ -1,82 +1,10 @@
-#include <bytestream.h>
+#include "pwg2ppm.h"
 #include <fstream>
 #include <iostream>
 
-#include "PwgPgHdr.h"
-#include "UrfPgHdr.h"
-
-void to_image(Bytestream& file, size_t width, size_t height, size_t colors,
-              bool urf, std::string outfile_prefix, int page);
-
-int main(int argc, char** argv)
+void raster_to_bmp(Bytestream& OutBts, Bytestream& file,
+                   size_t width, size_t height, size_t colors, bool urf)
 {
-  if(argc != 3)
-  {
-    std::cerr << "Usage: pwg2ppm <infile> <outfile prefix>" << std::endl;
-    return 1;
-  }
-  std::ifstream ifs(argv[1], std::ios::in | std::ios::binary | std::ios::ate);
-  std::string outfile_prefix(argv[2]);
-
-  std::ifstream::pos_type fileSize = ifs.tellg();
-  ifs.seekg(0, std::ios::beg);
-
-  Bytestream file(fileSize);
-  ifs.read((char*)(file.raw()), fileSize);
-
-  std::cerr << "File is " << fileSize << " long" << std::endl;
-
-  size_t pages = 0;
-
-  if(file >>= "RaS2")
-  {
-
-    std::cerr << "Smells like PWG Raster" << std::endl;
-    do
-    {
-      std::cerr << "Page " << ++pages << std::endl;
-      PwgPgHdr PwgHdr;
-      PwgHdr.decode_from(file);
-      std::cerr << PwgHdr.describe() << std::endl;
-      to_image(file, PwgHdr.Width, PwgHdr.Height, PwgHdr.NumColors, false,
-               outfile_prefix, pages);
-    }
-    while (file.remaining());
-  }
-  else if(file >>= "UNIRAST")
-  {
-    uint32_t PageCount;
-    file >> (uint8_t)0 >> PageCount;
-    std::cerr << "Smells like URF Raster, with "
-              << PageCount << " pages" << std::endl;
-    do
-    {
-      std::cerr << "Page " << ++pages << std::endl;
-      UrfPgHdr UrfHdr;
-      UrfHdr.decode_from(file);
-      std::cerr << UrfHdr.describe() << std::endl;
-      to_image(file, UrfHdr.Width, UrfHdr.Height, UrfHdr.BitsPerPixel/8, true,
-               outfile_prefix, pages);
-    }
-    while (file.remaining());
-  }
-  else
-  {
-    std::cerr << "Unknown file format" << std::endl;
-    return 1;
-  }
-  std::cerr << "Total pages: " << pages << std::endl;
-}
-
-void to_image(Bytestream& file, size_t width, size_t height, size_t colors,
-              bool urf, std::string outfile_prefix, int page)
-{
-  std::string outfile_name = outfile_prefix+std::to_string(page)
-                                           +(colors==3 ? ".ppm" : ".pgm");
-  std::ofstream outfile(outfile_name, std::ofstream::out);
-  outfile << (colors==3 ? "P6" : "P5")
-          << '\n' << width << ' ' << height << '\n' << 255 << '\n';
-
   Bytestream Grey8White {(uint8_t)0};
   Bytestream RGBWhite {(uint8_t)0xff, (uint8_t)0xff, (uint8_t)0xff};
   Bytestream White = (colors == 1 ? Grey8White : RGBWhite);
@@ -120,13 +48,24 @@ void to_image(Bytestream& file, size_t width, size_t height, size_t colors,
       }
     }
 
-    outfile.write((char*)line.raw(), line.size());
+    OutBts << line;
     height--;
-
     for(size_t i=0; i < line_repeat; i++)
     {
-      outfile.write((char*)line.raw(), line.size());
+      OutBts << line;
     }
     height-=line_repeat;
   }
+}
+
+void write_ppm(Bytestream& OutBts,size_t width, size_t height, size_t colors,
+               std::string outfile_prefix, int page)
+{
+  std::string outfile_name = outfile_prefix+std::to_string(page)
+                                           +(colors==3 ? ".ppm" : ".pgm");
+  std::ofstream outfile(outfile_name, std::ofstream::out);
+  outfile << (colors==3 ? "P6" : "P5")
+          << '\n' << width << ' ' << height << '\n' << 255 << '\n';
+
+  outfile << OutBts;
 }

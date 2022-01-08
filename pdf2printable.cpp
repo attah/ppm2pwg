@@ -72,6 +72,17 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
   #endif
 
   cairo_surface_t* surface;
+
+  if (!g_path_is_absolute(Infile.c_str()))
+  { // Wow, look at all this faff
+      gchar *absolute;
+      gchar *dir = g_get_current_dir();
+      absolute = g_build_filename(dir, Infile.c_str(), nullptr);
+      Infile = absolute;
+      free(absolute);
+      free(dir);
+  }
+
   std::string url("file://");
   url.append(Infile);
   GError* error = nullptr;
@@ -79,7 +90,8 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
 
   if(doc == NULL)
   {
-    std::cerr << "Failed to open PDF: " << error->message << std::endl;
+    std::cerr << "Failed to open PDF: " << error->message
+              << " (" << url << ")" << std::endl;
     return 1;
   }
 

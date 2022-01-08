@@ -2,6 +2,7 @@
 #include "test.h"
 #include "subprocess.hpp"
 #include "PwgPgHdr.h"
+#include "pwg2ppm.h"
 #include <cstring>
 using namespace std;
 
@@ -221,4 +222,103 @@ TEST(duplex_rotated)
   ASSERT(hdr2.FeedTransform == -1);
   ASSERT(pwg >>= Rotated());
   ASSERT(pwg.atEnd());
+}
+
+bool close_enough(size_t a, size_t b, size_t precision)
+{
+  return (a <= (b+precision)) && (a >= (b-precision));
+}
+
+void calc_parts(Bytestream line, size_t& left_margin, size_t& image_width, size_t& right_margin)
+{
+  left_margin = 0;
+  image_width = 0;
+  right_margin = 0;
+
+  Bytestream RGBWhite({(uint8_t)0xff, (uint8_t)0xff, (uint8_t)0xff});
+
+  while(line >>= RGBWhite)
+  {
+    left_margin++;
+  }
+  while(line.nextBytestream(RGBWhite, false))
+  {
+    image_width++;
+  }
+  while(line >>= RGBWhite)
+  {
+    right_margin++;
+  }
+}
+
+void do_test_16x9(std::string filename, bool asymmetric)
+{
+  setenv("FORMAT", "pwg", true);
+  setenv("HWRES_X", "300", true);
+  setenv("HWRES_Y", asymmetric ? "600" : "300", true);
+
+  subprocess::popen pdf2printable("../pdf2printable", {filename, "out.pwg"});
+  pdf2printable.close();
+  ASSERT(pdf2printable.wait() == 0);
+
+  std::ifstream ifs("out.pwg", std::ios::in | std::ios::binary);
+  Bytestream pwg(ifs);
+
+  ASSERT(pwg >>= "RaS2");
+  PwgPgHdr PwgHdr;
+  PwgHdr.decode_from(pwg);
+
+  double ratio = 9.0/16.0;
+  size_t width = PwgHdr.Width;
+  size_t height = PwgHdr.Height;
+  size_t colors = PwgHdr.NumColors;
+
+  ASSERT(close_enough(width, 2480, 1));
+  ASSERT(close_enough(height, asymmetric ? 7015 : 3507, 1));
+
+  Bytestream bmp;
+  raster_to_bmp(bmp, pwg, width, height, colors, false);
+
+
+  ASSERT(ratio < ((width*1.0)/height));
+
+  Bytestream firstline;
+  bmp/(width*colors) >> firstline;
+
+  size_t left_margin;
+  size_t image_width;
+  size_t right_margin;
+
+  calc_parts(firstline, left_margin, image_width, right_margin);
+
+  ASSERT(close_enough(left_margin, right_margin, 1));
+  ASSERT(close_enough(image_width, height*ratio, 2));
+
+  bmp += (bmp.remaining()-width*colors);
+  Bytestream lastline;
+  bmp/(width*colors) >> lastline;
+  calc_parts(lastline, left_margin, image_width, right_margin);
+
+  ASSERT(close_enough(left_margin, right_margin, 1));
+  ASSERT(close_enough(image_width, height*ratio, 2));
+}
+
+TEST(pdf2printable_16x9_portrait)
+{
+  do_test_16x9("portrait_16x9.pdf", false);
+}
+
+TEST(pdf2printable_16x9_landscape)
+{
+  do_test_16x9("landscape_16x9.pdf", false);
+}
+
+TEST(pdf2printable_16x9_portrait_asymmetric)
+{
+  do_test_16x9("portrait_16x9.pdf", false);
+}
+
+TEST(pdf2printable_16x9_landscape_asymmetric)
+{
+  do_test_16x9("landscape_16x9.pdf", false);
 }

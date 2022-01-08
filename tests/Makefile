@@ -7,11 +7,14 @@ all: test
 bytestream.o: ../bytestream/bytestream.cpp
 	$(CXX) -c $(CXXFLAGS) $^
 
-text.o: test.cpp
+pwg2ppm.o: ../pwg2ppm.cpp
+	$(CXX) -c $(CXXFLAGS) $^
+
+test.o: test.cpp
 	$(CXX) -c $(TEST_INCLUDES) $(CXXFLAGS) $^
 
-test: bytestream.o text.o
-	$(CXX) $(CXXFLAGS) test.o bytestream.o $(LDFLAGS) -o $@
+test: bytestream.o pwg2ppm.o test.o
+	$(CXX) $(CXXFLAGS) $^ $(LDFLAGS) -o $@
 
 clean:
 	rm -f test *.o

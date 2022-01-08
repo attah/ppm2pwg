@@ -3,7 +3,7 @@ name: C/C++ CI
 on: [push]
 
 jobs:
-  build:
+  build-and-test:
 
     runs-on: ubuntu-latest
 
@@ -11,27 +11,14 @@ jobs:
     - uses: actions/checkout@v2
     - name: update submodules
       run: git submodule sync --recursive && git submodule update --init --force --recursive --depth=1
-    - name: make ppm2pwg
-      run: make -j ppm2pwg
+    - name: install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libpoppler-dev libpoppler-glib-dev
+    - name: make
+      run: make -j
     - name: make tests
       run: make -j
-      working-directory: ./tests
-    - name: test
-      run: ./test
-      working-directory: ./tests
-
-  build_clang:
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: update submodules
-      run: git submodule sync --recursive && git submodule update --init --force --recursive --depth=1
-    - name: make ppm2pwg
-      run: CXX=clang++ make -j ppm2pwg
-    - name: make tests
-      run: CXX=clang++ make -j
       working-directory: ./tests
     - name: test
       run: ./test

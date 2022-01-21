@@ -30,7 +30,7 @@
 #define CHECK(call) if(!(call)) {res = 1; goto error;}
 
 void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_offset,
-                 double w_in, double h_in, double w_out, double h_out,
+                 bool& rotate, double& w_in, double& h_in, double w_out, double h_out,
                  size_t HwResX, size_t HwResY);
 
 std::string free_cstr(char* CStr)
@@ -161,7 +161,6 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
     PopplerPage* page = poppler_document_get_page(doc, page_index);
     double page_width, page_height;
     poppler_page_get_size(page, &page_width, &page_height);
-    bool landscape = page_width > page_height;
 
     cairo_t* cr;
     cairo_status_t status;
@@ -177,22 +176,18 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
       cairo_restore(cr);
     }
 
-    if (landscape)
-    { // Calculate/apply scaling in portrait
-      std::swap(page_width, page_height);
-    }
-
     double x_scale = 0;
     double y_scale = 0;
     double x_offset = 0;
     double y_offset = 0;
-    fixup_scale(x_scale, y_scale, x_offset, y_offset,
+    bool rotate = false;
+    fixup_scale(x_scale, y_scale, x_offset, y_offset, rotate,
                 page_width, page_height, PaperSizeX, PaperSizeY, HwResX, HwResY);
 
     cairo_translate(cr, x_offset, y_offset);
     cairo_scale(cr, x_scale, y_scale);
 
-    if (landscape)
+    if (rotate)
     { // Rotate to portrait
       cairo_matrix_init(&m, 0, -1, 1, 0, 0, page_height);
       cairo_transform(cr, &m);
@@ -269,10 +264,17 @@ error:
 }
 
 void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_offset,
-                 double w_in, double h_in, double w_out, double h_out,
+                 bool& rotate, double& w_in, double& h_in, double w_out, double h_out,
                  size_t HwResX, size_t HwResY)
 {
-  // First, scale to fit as if we had a symmetric resolution
+  // If the page is landscape, contunue as if it is not, but remember to rotate
+  if(w_in > h_in)
+  {
+    std::swap(w_in, h_in);
+    rotate = true;
+  }
+
+  // Scale to fit as if we had a symmetric resolution
   // ...this makes determining fitment easier
   size_t min_res = std::min(HwResX, HwResY);
   h_out *= DPMM(min_res);
@@ -284,7 +286,7 @@ void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_o
   x_scale = scale;
   y_scale = scale;
 
-  // Second, if we have an asymmetric resolution, compensate for it
+  // Finally, if we have an asymmetric resolution, compensate for it
   if(HwResX > HwResY)
   {
     x_scale *= (HwResX/HwResY);

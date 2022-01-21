@@ -33,6 +33,13 @@ void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_o
                  double w_in, double h_in, double w_out, double h_out,
                  size_t HwResX, size_t HwResY);
 
+std::string free_cstr(char* CStr)
+{
+  std::string tmp(CStr);
+  free(CStr);
+  return tmp;
+}
+
 cairo_status_t bytestream_writer(void* bts, const unsigned char* data, unsigned int length)
 {
   ((Bytestream*)bts)->putBytes(data, length);
@@ -74,13 +81,9 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
   cairo_surface_t* surface;
 
   if (!g_path_is_absolute(Infile.c_str()))
-  { // Wow, look at all this faff
-      gchar *absolute;
-      gchar *dir = g_get_current_dir();
-      absolute = g_build_filename(dir, Infile.c_str(), nullptr);
-      Infile = absolute;
-      free(absolute);
-      free(dir);
+  {
+      std::string dir = free_cstr(g_get_current_dir());
+      Infile = free_cstr(g_build_filename(dir.c_str(), Infile.c_str(), NULL));
   }
 
   std::string url("file://");

@@ -135,12 +135,6 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
   {
     surface = cairo_ps_surface_create_for_stream(bytestream_writer, &OutBts, w, h);
     cairo_ps_surface_restrict_to_level(surface, CAIRO_PS_LEVEL_2);
-    if(Duplex)
-    {
-      cairo_ps_surface_dsc_comment(surface, "%%Requirements: duplex");
-      cairo_ps_surface_dsc_begin_setup(surface);
-      cairo_ps_surface_dsc_comment(surface, "%%IncludeFeature: *Duplex DuplexNoTumble");
-    }
     cairo_ps_surface_dsc_begin_page_setup(surface);
     cairo_ps_surface_set_size(surface, w, h);
   }

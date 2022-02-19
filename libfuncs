@@ -8,8 +8,6 @@ FUNC(poppler, void, poppler_page_render_for_printing, PopplerPage*, cairo_t*);
 LIB(cairo, "libcairo.so.2");
 FUNC(cairo, cairo_surface_t*, cairo_ps_surface_create_for_stream, cairo_write_func_t, void*, double, double);
 FUNC(cairo, void, cairo_ps_surface_restrict_to_level, cairo_surface_t*, cairo_ps_level_t);
-FUNC(cairo, void, cairo_ps_surface_dsc_comment, cairo_surface_t*, const char*);
-FUNC(cairo, void, cairo_ps_surface_dsc_begin_setup, cairo_surface_t*);
 FUNC(cairo, void, cairo_ps_surface_dsc_begin_page_setup, cairo_surface_t*);
 FUNC(cairo, void, cairo_ps_surface_set_size, cairo_surface_t*, double, double);
 FUNC(cairo, cairo_surface_t*, cairo_image_surface_create, cairo_format_t, int, int);

@@ -1,4 +1,4 @@
-CXXFLAGS = -std=c++11 -O3 -pedantic -Wall -Wextra  -I. -Ibytestream \
+CXXFLAGS = -std=c++11 -O3 -pedantic -Wall -Wextra -Werror -I. -Ibytestream \
 $(shell pkg-config --cflags glib-2.0) $(shell pkg-config --cflags cairo)
 
 VPATH = bytestream

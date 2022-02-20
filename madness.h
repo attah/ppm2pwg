@@ -25,14 +25,11 @@ private:
   LibLoader& operator=(const LibLoader&);
 };
 
-#define STR(s) STR_(#s)
-#define STR_(s) s
-
 #define LIB(name, filename) \
         LibLoader name(filename)
 
 #define FUNC(lib, ret, name, ...) \
           typedef ret (*name##_p)(__VA_ARGS__); \
-          name##_p name = (name##_p)dlsym(lib.handle, STR(name))
+          name##_p name = (name##_p)dlsym(lib.handle, #name)
 
 #endif // MADNESS_H

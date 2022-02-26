@@ -26,3 +26,6 @@ pdf2printable_mad: bytestream.o ppm2pwg.o pdf2printable_mad.o pdf2printable_main
 
 clean:
 	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad
+
+analyze:
+	clang++ --analyze $(CXXFLAGS) *.cpp

@@ -3,7 +3,7 @@ $(shell pkg-config --cflags glib-2.0) $(shell pkg-config --cflags cairo)
 
 VPATH = bytestream
 
-all: ppm2pwg pwg2ppm pdf2printable
+all: ppm2pwg pwg2ppm pdf2printable hexdump baselinify
 
 
 pdf2printable_mad.o: pdf2printable.cpp
@@ -26,6 +26,9 @@ pdf2printable_mad: bytestream.o ppm2pwg.o pdf2printable_mad.o pdf2printable_main
 
 hexdump: bytestream.o hexdump.o
 	$(CXX) $^ -o $@
+
+baselinify: bytestream.o baselinify.o baselinify_main.o
+	$(CXX) $^ -ljpeg -o $@
 
 clean:
 	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad

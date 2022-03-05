@@ -24,6 +24,9 @@ pdf2printable: bytestream.o ppm2pwg.o pdf2printable.o pdf2printable_main.o
 pdf2printable_mad: bytestream.o ppm2pwg.o pdf2printable_mad.o pdf2printable_main.o
 	$(CXX) $^ $(shell pkg-config --libs gobject-2.0) -ldl -o $@
 
+hexdump: bytestream.o hexdump.o
+	$(CXX) $^ -o $@
+
 clean:
 	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad
 

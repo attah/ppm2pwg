@@ -1,0 +1,12 @@
+LIB(jpeg, "libjpeg.so");
+FUNC(jpeg, int, jpeg_read_header, j_decompress_ptr cinfo, boolean);
+FUNC(jpeg, jvirt_barray_ptr*, jpeg_read_coefficients, j_decompress_ptr);
+FUNC(jpeg, void, jpeg_copy_critical_parameters, j_decompress_ptr, j_compress_ptr);
+FUNC(jpeg, void, jpeg_write_coefficients, j_compress_ptr, jvirt_barray_ptr*);
+FUNC(jpeg, void, jpeg_finish_compress, j_compress_ptr);
+FUNC(jpeg, void, jpeg_destroy_compress, j_compress_ptr);
+FUNC(jpeg, boolean, jpeg_finish_decompress, j_decompress_ptr);
+FUNC(jpeg, void, jpeg_destroy_decompress, j_decompress_ptr);
+FUNC(jpeg, void, jpeg_CreateCompress, j_compress_ptr, int, size_t);
+FUNC(jpeg, void, jpeg_CreateDecompress, j_decompress_ptr, int, size_t);
+FUNC(jpeg, struct jpeg_error_mgr*, jpeg_std_error, struct jpeg_error_mgr*);

@@ -1,10 +1,16 @@
 #include <bytestream.h>
 #include <jpeglib.h>
+#include "madness.h"
 
 struct bts_source_mgr
 {
   bts_source_mgr(Bytestream& in) : bts(in)
   {
+    #if MADNESS
+    LIB(jpeg, "libjpeg.so");
+    FUNC(jpeg, boolean, jpeg_resync_to_restart, j_decompress_ptr, int);
+    #endif
+
     pub.init_source = init_source;
     pub.fill_input_buffer = fill_input_buffer;
     pub.skip_input_data = skip_input_data;
@@ -85,6 +91,10 @@ void baselinify(Bytestream& InBts, Bytestream& OutBts)
   struct jpeg_compress_struct dstinfo;
   struct jpeg_error_mgr jsrcerr, jdsterr;
   jvirt_barray_ptr* coef_arrays;
+
+  #if MADNESS
+  #include "libfuncs_jpeg"
+  #endif
 
   srcinfo.err = jpeg_std_error(&jsrcerr);
   jpeg_create_decompress(&srcinfo);

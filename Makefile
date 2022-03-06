@@ -9,6 +9,9 @@ all: ppm2pwg pwg2ppm pdf2printable hexdump baselinify
 pdf2printable_mad.o: pdf2printable.cpp
 	$(CXX) -c -DMADNESS=1 $(CXXFLAGS) $^ -o $@
 
+baselinify_mad.o: baselinify.cpp
+	$(CXX) -c -DMADNESS=1 $(CXXFLAGS) $^ -o $@
+
 %.o: %.cpp
 	$(CXX) -c $(CXXFLAGS) $<
 
@@ -29,6 +32,9 @@ hexdump: bytestream.o hexdump.o
 
 baselinify: bytestream.o baselinify.o baselinify_main.o
 	$(CXX) $^ -ljpeg -o $@
+
+baselinify_mad: bytestream.o baselinify_mad.o baselinify_main.o
+	$(CXX) $^ -ldl -o $@
 
 clean:
 	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad

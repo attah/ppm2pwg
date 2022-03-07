@@ -1,0 +1,10 @@
+*.o
+tests/test
+tests/*.o
+ppm2pwg
+pwg2ppm
+pdf2printable
+pdf2printable_mad
+hexdump
+baselinify
+baselinify_mad

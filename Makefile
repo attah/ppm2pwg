@@ -37,7 +37,7 @@ baselinify_mad: bytestream.o baselinify_mad.o baselinify_main.o
 	$(CXX) $^ -ldl -o $@
 
 clean:
-	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad
+	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad hexdump baselinify baselinify_mad
 
 analyze:
 	clang++ --analyze $(CXXFLAGS) *.cpp

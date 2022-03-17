@@ -3,6 +3,7 @@
 #include "subprocess.hpp"
 #include "PwgPgHdr.h"
 #include "pwg2ppm.h"
+#include "printparameters.h"
 #include <cstring>
 using namespace std;
 
@@ -106,6 +107,8 @@ TEST(ppm2pwg)
 
   ASSERT(pwg >>= enc);
   ASSERT(pwg.atEnd());
+
+  pwg.setPos(0);
 
   std::ifstream ifs("pacman.pwg");
   Bytestream expected_pwg(ifs);
@@ -343,4 +346,86 @@ TEST(pdf2printable_4x3_portrait_asymmetric)
 TEST(pdf2printable_4x3_landscape_asymmetric)
 {
   do_test_16x9(__func__, "landscape_4x3.pdf", true);
+}
+
+TEST(printparameters)
+{
+  PrintParameters A4;
+  A4.paperSizeUnits = PrintParameters::Millimeters;
+  A4.paperSizeW = 210;
+  A4.paperSizeH = 297;
+  A4.hwResW = 300;
+  A4.hwResH = 300;
+
+  PrintParameters A4Px;
+  A4Px.paperSizeUnits = PrintParameters::Pixels;
+  A4Px.paperSizeW = (float)A4.getPaperSizeWInPixels();
+  A4Px.paperSizeH = (float)A4.getPaperSizeHInPixels();
+  A4Px.hwResW = 300;
+  A4Px.hwResH = 300;
+
+  ASSERT(A4.getPaperSizeWInPixels() == 2480);
+  ASSERT(A4.getPaperSizeHInPixels() == 3508);
+
+  ASSERT(round(A4.getPaperSizeWInPoints()) == 595);
+  ASSERT(round(A4.getPaperSizeHInPoints()) == 842);
+
+  ASSERT(round(A4Px.getPaperSizeWInPoints()) == 595);
+  ASSERT(round(A4Px.getPaperSizeHInPoints()) == 842);
+
+  A4.hwResW = 600;
+  A4.hwResH = 600;
+  A4Px.paperSizeW = (float)A4.getPaperSizeWInPixels();
+  A4Px.paperSizeH = (float)A4.getPaperSizeHInPixels();
+  A4Px.hwResW = 600;
+  A4Px.hwResH = 600;
+
+  ASSERT(A4.getPaperSizeWInPixels() == 4960);
+  ASSERT(A4.getPaperSizeHInPixels() == 7016);
+
+  ASSERT(round(A4.getPaperSizeWInPoints()) == 595);
+  ASSERT(round(A4.getPaperSizeHInPoints()) == 842);
+
+  ASSERT(round(A4Px.getPaperSizeWInPoints()) == 595);
+  ASSERT(round(A4Px.getPaperSizeHInPoints()) == 842);
+
+  PrintParameters Letter;
+  Letter.paperSizeUnits = PrintParameters::Inches;
+  Letter.paperSizeW = 8.5;
+  Letter.paperSizeH = 11;
+  Letter.hwResW = 300;
+  Letter.hwResH = 300;
+
+  PrintParameters LetterPx;
+  LetterPx.paperSizeUnits = PrintParameters::Pixels;
+  LetterPx.paperSizeW = (float)Letter.getPaperSizeWInPixels();
+  LetterPx.paperSizeH = (float)Letter.getPaperSizeHInPixels();
+  LetterPx.hwResW = 300;
+  LetterPx.hwResH = 300;
+
+  ASSERT(Letter.getPaperSizeWInPixels() == 2550);
+  ASSERT(Letter.getPaperSizeHInPixels() == 3300);
+
+  ASSERT(Letter.getPaperSizeWInPoints() == 612);
+  ASSERT(Letter.getPaperSizeHInPoints() == 792);
+
+  ASSERT(LetterPx.getPaperSizeWInPoints() == 612);
+  ASSERT(LetterPx.getPaperSizeHInPoints() == 792);
+
+  Letter.hwResW = 600;
+  Letter.hwResH = 600;
+  LetterPx.paperSizeW = (float)Letter.getPaperSizeWInPixels();
+  LetterPx.paperSizeH = (float)Letter.getPaperSizeHInPixels();
+  LetterPx.hwResW = 600;
+  LetterPx.hwResH = 600;
+
+  ASSERT(Letter.getPaperSizeWInPixels() == 5100);
+  ASSERT(Letter.getPaperSizeHInPixels() == 6600);
+
+  ASSERT(Letter.getPaperSizeWInPoints() == 612);
+  ASSERT(Letter.getPaperSizeHInPoints() == 792);
+
+  ASSERT(LetterPx.getPaperSizeWInPoints() == 612);
+  ASSERT(LetterPx.getPaperSizeHInPoints() == 792);
+
 }

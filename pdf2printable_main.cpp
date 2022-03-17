@@ -20,38 +20,38 @@ int main(int argc, char** argv)
   std::string Infile(argv[1]);
   std::string Outfile(argv[2]);
 
-  Format TargetFormat = PDF;
+  PrintParameters Params;
 
-  size_t HwResX = getenv_int("HWRES_X", getenv_int("HWRES", 300));
-  size_t HwResY = getenv_int("HWRES_Y", getenv_int("HWRES", 300));
-  std::string PaperSizeName = getenv_str("PAPER_SIZE", "iso_a4_210x297mm");
+  Params.hwResW = getenv_int("HWRES_X", getenv_int("HWRES", Params.hwResW));
+  Params.hwResH = getenv_int("HWRES_Y", getenv_int("HWRES", Params.hwResH));
+  Params.paperSizeName = getenv_str("PAPER_SIZE", Params.paperSizeName);
 
-  std::pair<float, float> PaperSize = PwgPaperSizes.at(PaperSizeName);
-  float PaperSizeX = PaperSize.first;
-  float PaperSizeY = PaperSize.second;
+  std::pair<float, float> PaperSize = PwgPaperSizes.at(Params.paperSizeName);
+  Params.paperSizeW = PaperSize.first;
+  Params.paperSizeH = PaperSize.second;
 
-  size_t FromPage = getenv_int("FROM_PAGE", 0);
-  size_t ToPage = getenv_int("TO_PAGE", 0);
+  Params.fromPage = getenv_int("FROM_PAGE", Params.fromPage);
+  Params.toPage = getenv_int("TO_PAGE", Params.toPage);
 
-  bool Duplex = getenv_bool("DUPLEX");
-  bool Tumble = getenv_bool("TUMBLE");
-  bool BackHFlip = getenv_bool("BACK_HFLIP");
-  bool BackVFlip = getenv_bool("BACK_VFLIP");
-  size_t Colors = getenv_int("COLORS", 3);
-  size_t Quality = getenv_int("QUALITY", 4);
+  Params.duplex = getenv_bool("DUPLEX");
+  Params.tumble = getenv_bool("TUMBLE");
+  Params.backHFlip = getenv_bool("BACK_HFLIP");
+  Params.backVFlip = getenv_bool("BACK_VFLIP");
+  Params.colors = getenv_int("COLORS", Params.colors);
+  Params.quality = getenv_int("QUALITY", Params.quality);
 
   std::string format = getenv_str("FORMAT", "pdf");
   if(format == "ps" || format == "postscript")
   {
-    TargetFormat = Postscript;
+    Params.format = PrintParameters::Postscript;
   }
   else if(format == "pwg")
   {
-    TargetFormat = PWG;
+    Params.format = PrintParameters::PWG;
   }
   else if(format == "urf")
   {
-    TargetFormat = URF;
+    Params.format = PrintParameters::URF;
   }
   else if(format != "pdf")
   {
@@ -70,11 +70,7 @@ int main(int argc, char** argv)
               std::cerr << "Progress: " << page << "/" << total << "\n\n";
             });
 
-  return pdf_to_printable(Infile, WriteFun, Colors, Quality,
-                          PaperSizeName, PaperSizeX, PaperSizeY,
-                          HwResX, HwResY, TargetFormat,
-                          Duplex, Tumble, BackHFlip, BackVFlip,
-                          FromPage, ToPage, ProgressFun, true);
+  return pdf_to_printable(Infile, WriteFun, Params, ProgressFun, true);
 }
 
 bool getenv_bool(std::string VarName)

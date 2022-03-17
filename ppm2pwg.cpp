@@ -23,11 +23,8 @@ Bytestream make_urf_file_hdr(uint32_t pages)
   return UrfFileHdr;
 }
 
-void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts, bool Urf,
-                size_t page, size_t Colors, size_t Quality,
-                size_t HwResX, size_t HwResY, size_t ResX, size_t ResY,
-                bool Duplex, bool Tumble, std::string PageSizeName,
-                bool BackHFlip, bool BackVFlip, bool Verbose)
+void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts,
+                size_t page, PrintParameters Params, bool Verbose)
 {
   Bytestream bmp_line;
   Bytestream current;
@@ -38,23 +35,21 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts, bool Urf,
     std::cerr << "Page " << page << std::endl;
   }
 
-  if(!Urf)
+  if(!(Params.format == PrintParameters::URF))
   {
-    make_pwg_hdr(OutBts, Colors, Quality, HwResX, HwResY, ResX, ResY,
-                 Duplex, Tumble, PageSizeName,
-                 backside&&BackHFlip, backside&&BackVFlip, Verbose);
+    make_pwg_hdr(OutBts, Params, backside, Verbose);
   }
   else
   {
-    make_urf_hdr(OutBts, Colors, Quality, HwResX, HwResY, ResX, ResY,
-                 Duplex, Tumble, Verbose);
+    make_urf_hdr(OutBts, Params, Verbose);
   }
 
-  size_t bytesPerLine = Colors*ResX;
+  size_t bytesPerLine = Params.colors*Params.getPaperSizeWInPixels();
+  size_t ResY = Params.getPaperSizeHInPixels();
   uint8_t* raw = bmp_bts.raw();
 
   #define pos_fun std::function<uint8_t*(size_t)>
-  pos_fun pos = backside&&BackVFlip
+  pos_fun pos = backside&&Params.backVFlip
               ? pos_fun([raw, ResY, bytesPerLine](size_t y)
                 {
                   return raw+(ResY-1-y)*bytesPerLine;
@@ -68,12 +63,12 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts, bool Urf,
   {
     uint8_t line_repeat = 0;
 
-    if(backside&&BackHFlip)
+    if(backside&&Params.backHFlip)
     {
       bmp_line.reset();
-      for(int i = bytesPerLine-Colors; i >= 0; i -= Colors)
+      for(int i = bytesPerLine-Params.colors; i >= 0; i -= Params.colors)
       {
-        bmp_line.putBytes(pos(y)+i, Colors);
+        bmp_line.putBytes(pos(y)+i, Params.colors);
       }
     }
     else
@@ -96,7 +91,7 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts, bool Urf,
     while(bmp_line.remaining())
     {
       size_t current_start = bmp_line.pos();
-      bmp_line/Colors >> current;
+      bmp_line/Params.colors >> current;
 
       if(bmp_line.atEnd() || bmp_line.peekNextBytestream(current))
       {
@@ -119,7 +114,7 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts, bool Urf,
         // (we know the first one is)
         do
         {
-          bmp_line/Colors >> current;
+          bmp_line/Params.colors >> current;
           verbatim++;
           if(verbatim == 127)
           {
@@ -139,50 +134,47 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts, bool Urf,
         if(verbatim == 1)
         { // We ended up with one sequence, encode it as such
           bmp_line.setPos(current_start);
-          bmp_line/Colors >> current;
+          bmp_line/Params.colors >> current;
           OutBts << (uint8_t)0 << current;
         }
         else
         { // 2 or more non-repeating sequnces
           bmp_line.setPos(current_start);
           OutBts << (uint8_t)(257-verbatim);
-          bmp_line.getBytes(OutBts, verbatim*Colors);
+          bmp_line.getBytes(OutBts, verbatim*Params.colors);
         }
       }
     }
   }
 }
 
-void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
-                  size_t HwResX, size_t HwResY, size_t ResX, size_t ResY,
-                  bool Duplex, bool Tumble, std::string PageSizeName,
-                  bool HFlip, bool VFlip, bool Verbose)
+void make_pwg_hdr(Bytestream& OutBts, PrintParameters Params, bool backside, bool Verbose)
 {
   PwgPgHdr OutHdr;
 
-  OutHdr.Duplex = Duplex;
-  OutHdr.HWResolutionX = HwResX;
-  OutHdr.HWResolutionY = HwResY;
+  OutHdr.Duplex = Params.duplex;
+  OutHdr.HWResolutionX = Params.hwResW;
+  OutHdr.HWResolutionY = Params.hwResH;
   OutHdr.NumCopies = 1;
-  OutHdr.PageSizeX = ResX * 72.0 / OutHdr.HWResolutionX; // width in pt, WTF?!
-  OutHdr.PageSizeY = ResY * 72.0 / OutHdr.HWResolutionY; // height in pt, WTF?!
-  OutHdr.Tumble = Tumble;
-  OutHdr.Width = ResX;
-  OutHdr.Height = ResY;
+  OutHdr.PageSizeX = round(Params.getPaperSizeWInPoints());
+  OutHdr.PageSizeY = round(Params.getPaperSizeHInPoints());
+  OutHdr.Tumble = Params.tumble;
+  OutHdr.Width = Params.getPaperSizeWInPixels();
+  OutHdr.Height = Params.getPaperSizeHInPixels();
   OutHdr.BitsPerColor = 8;
-  OutHdr.BitsPerPixel = Colors * OutHdr.BitsPerColor;
-  OutHdr.BytesPerLine = Colors * ResX;
-  OutHdr.ColorSpace = Colors==3 ? PwgPgHdr::sRGB : PwgPgHdr::sGray;
-  OutHdr.NumColors = Colors;
+  OutHdr.BitsPerPixel = Params.colors * OutHdr.BitsPerColor;
+  OutHdr.BytesPerLine = Params.colors * OutHdr.Width;
+  OutHdr.ColorSpace = Params.colors==3 ? PwgPgHdr::sRGB : PwgPgHdr::sGray;
+  OutHdr.NumColors = Params.colors;
   OutHdr.TotalPageCount = 0;
-  OutHdr.CrossFeedTransform = HFlip ? -1 : 1;
-  OutHdr.FeedTransform = VFlip ? -1 : 1;
+  OutHdr.CrossFeedTransform = backside&&Params.backHFlip ? -1 : 1;
+  OutHdr.FeedTransform = backside&&Params.backVFlip ? -1 : 1;
   OutHdr.AlternatePrimary = pow(2, OutHdr.BitsPerPixel)-1;
-  OutHdr.PrintQuality = (Quality == 3 ? PwgPgHdr::Draft
-                      : (Quality == 4 ? PwgPgHdr::Normal
-                      : (Quality == 5 ? PwgPgHdr::High
+  OutHdr.PrintQuality = (Params.quality == 3 ? PwgPgHdr::Draft
+                      : (Params.quality == 4 ? PwgPgHdr::Normal
+                      : (Params.quality == 5 ? PwgPgHdr::High
                       : PwgPgHdr::DefaultPrintQuality)));
-  OutHdr.PageSizeName = PageSizeName;
+  OutHdr.PageSizeName = Params.paperSizeName;
 
   if(Verbose)
   {
@@ -192,28 +184,26 @@ void make_pwg_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
   OutHdr.encode_into(OutBts);
 }
 
-void make_urf_hdr(Bytestream& OutBts, size_t Colors, size_t Quality,
-                  size_t HwResX, size_t HwResY,size_t ResX, size_t ResY,
-                  bool Duplex, bool Tumble, bool Verbose)
+void make_urf_hdr(Bytestream& OutBts, PrintParameters Params, bool Verbose)
 {
-  if(HwResX != HwResY)
+  if(Params.hwResW != Params.hwResH)
   {
     exit(2);
   }
 
   UrfPgHdr OutHdr;
 
-  OutHdr.BitsPerPixel = 8*Colors;
-  OutHdr.ColorSpace = Colors==3 ? UrfPgHdr::sRGB : UrfPgHdr::sGray;
-  OutHdr.Duplex = Duplex ? (Tumble ? UrfPgHdr::ShortSide : UrfPgHdr::LongSide)
+  OutHdr.BitsPerPixel = 8*Params.colors;
+  OutHdr.ColorSpace = Params.colors==3 ? UrfPgHdr::sRGB : UrfPgHdr::sGray;
+  OutHdr.Duplex = Params.duplex ? (Params.tumble ? UrfPgHdr::ShortSide : UrfPgHdr::LongSide)
                          : UrfPgHdr::NoDuplex;
-  OutHdr.Quality = (Quality == 3 ? UrfPgHdr::Draft
-                 : (Quality == 4 ? UrfPgHdr::Normal
-                 : (Quality == 5 ? UrfPgHdr::High
+  OutHdr.Quality = (Params.quality == 3 ? UrfPgHdr::Draft
+                 : (Params.quality == 4 ? UrfPgHdr::Normal
+                 : (Params.quality == 5 ? UrfPgHdr::High
                  : UrfPgHdr::DefaultQuality)));
-  OutHdr.Width = ResX;
-  OutHdr.Height = ResY;
-  OutHdr.HWRes = HwResX;
+  OutHdr.Width = Params.getPaperSizeWInPixels();
+  OutHdr.Height = Params.getPaperSizeHInPixels();
+  OutHdr.HWRes = Params.hwResW;
 
   if(Verbose)
   {

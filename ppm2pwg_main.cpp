@@ -17,24 +17,33 @@ std::string getenv_str(std::string VarName, std::string Default);
 
 int PPM2PWG_MAIN(int, char**)
 {
+  PrintParameters Params;
+  Params.paperSizeUnits = PrintParameters::Pixels;
 
-  bool Urf = getenv_bool("URF");
-  bool Duplex = getenv_bool("DUPLEX");
-  bool Tumble = getenv_bool("TUMBLE");
+  if(getenv_bool("URF"))
+  {
+    Params.format = PrintParameters::URF;
+  }
+  else
+  {
+    Params.format = PrintParameters::PWG;
+  }
+  Params.duplex = getenv_bool("DUPLEX");
+  Params.tumble = getenv_bool("TUMBLE");
   bool ForcePortrait = getenv_bool("FORCE_PORTRAIT");
 
-  size_t HwResX = getenv_int("HWRES_X", 300);
-  size_t HwResY = getenv_int("HWRES_Y", 300);
-  size_t Quality = getenv_int("QUALITY", 4);
+  Params.hwResW = getenv_int("HWRES_X", Params.hwResW);
+  Params.hwResH = getenv_int("HWRES_Y", Params.hwResH);
+  Params.quality = getenv_int("QUALITY", Params.quality);
 
-  bool BackVFlip = getenv_bool("BACK_VFLIP");
-  bool BackHFlip = getenv_bool("BACK_HFLIP");
+  Params.backVFlip = getenv_bool("BACK_VFLIP");
+  Params.backHFlip = getenv_bool("BACK_HFLIP");
 
-  std::string PageSizeName = getenv_str("PAGE_SIZE_NAME", "iso_a4_210x297mm");
+  Params.paperSizeName = getenv_str("PAGE_SIZE_NAME", Params.paperSizeName);
 
   Bytestream FileHdr;
 
-  if(Urf)
+  if(Params.format == PrintParameters::URF)
   {
     uint32_t pages = getenv_int("PAGES", 1);
     FileHdr = make_urf_file_hdr(pages);
@@ -122,11 +131,9 @@ int PPM2PWG_MAIN(int, char**)
       bmp_bts.initFrom(std::cin, Colors*ResX*ResY);
     }
 
-    bmp_to_pwg(bmp_bts, OutBts, Urf,
-               page, Colors, Quality,
-               HwResX, HwResY, ResX, ResY,
-               Duplex, Tumble, PageSizeName,
-               BackHFlip, BackVFlip, false);
+    Params.paperSizeW = ResX;
+    Params.paperSizeH = ResY;
+    bmp_to_pwg(bmp_bts, OutBts, page, Params, true);
 
     std::cout << OutBts;
     std::cin.peek(); // maybe trigger eof

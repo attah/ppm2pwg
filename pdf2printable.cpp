@@ -21,8 +21,6 @@
 #define RGB32_G(Color) ((dat[i]>>8)&0xff)
 #define RGB32_B(Color) (dat[i]&0xff)
 
-#define DPMM(dpi) dpi/25.4
-
 #ifndef PDF_CREATOR
 #define PDF_CREATOR "pdf2printable"
 #endif
@@ -30,8 +28,7 @@
 #define CHECK(call) if(!(call)) {res = 1; goto error;}
 
 void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_offset,
-                 bool& rotate, double& w_in, double& h_in, double w_out, double h_out,
-                 size_t HwResX, size_t HwResY);
+                 bool& rotate, double& w_in, double& h_in, PrintParameters Params);
 
 std::string free_cstr(char* CStr)
 {
@@ -51,25 +48,13 @@ double round2(double d)
   return round(d*100)/100;
 }
 
-int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size_t Quality,
-                     std::string PaperSizeName, float PaperSizeX, float PaperSizeY,
-                     size_t HwResX, size_t HwResY, Format TargetFormat,
-                     bool Duplex, bool Tumble, bool BackHFlip, bool BackVFlip,
-                     size_t FromPage, size_t ToPage, progress_fun ProgressFun, bool Verbose)
+int pdf_to_printable(std::string Infile, write_fun WriteFun, PrintParameters Params,
+                     progress_fun ProgressFun, bool Verbose)
 {
   int res = 0;
 
-  if(TargetFormat == PDF || TargetFormat == Postscript)
-  { // Dimensions will be in points
-    HwResX = 72;
-    HwResY = 72;
-  }
-
-  double w = round2(PaperSizeX*DPMM(HwResX));
-  double h = round2(PaperSizeY*DPMM(HwResY));
-  size_t w_px = w;
-  size_t h_px = h;
-  bool raster = TargetFormat == PWG || TargetFormat == URF;
+  bool raster = Params.format == PrintParameters::PWG ||
+                Params.format == PrintParameters::URF;
 
   Bytestream bmp_bts;
   Bytestream OutBts;
@@ -99,23 +84,17 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
   }
 
   size_t pages = poppler_document_get_n_pages(doc);
-  if(FromPage == 0)
-  {
-    FromPage = 1;
-  }
-  if(ToPage == 0 || ToPage > pages)
-  {
-    ToPage = pages;
-  }
 
   size_t out_page_no = 0;
-  size_t total_pages = ToPage - (FromPage-1);
+  size_t total_pages = Params.getFromPage() - Params.getToPage(pages) + 1;
 
   if(raster)
   {
-    surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, w_px, h_px);
+    surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24,
+                                         Params.getPaperSizeWInPixels(),
+                                         Params.getPaperSizeHInPixels());
     Bytestream FileHdr;
-    if(TargetFormat == URF)
+    if(Params.format == PrintParameters::URF)
     {
       FileHdr = make_urf_file_hdr(total_pages);
     }
@@ -125,14 +104,18 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
     }
     CHECK(WriteFun(FileHdr.raw(), FileHdr.size()));
   }
-  else if(TargetFormat == PDF)
+  else if(Params.format == PrintParameters::PDF)
   {
-    surface = cairo_pdf_surface_create_for_stream(bytestream_writer, &OutBts, w, h);
+    surface = cairo_pdf_surface_create_for_stream(bytestream_writer, &OutBts,
+                                                  Params.getPaperSizeWInPoints(),
+                                                  Params.getPaperSizeHInPoints());
     cairo_pdf_surface_set_metadata(surface, CAIRO_PDF_METADATA_CREATOR, PDF_CREATOR);
   }
-  else if(TargetFormat == Postscript)
+  else if(Params.format == PrintParameters::Postscript)
   {
-    surface = cairo_ps_surface_create_for_stream(bytestream_writer, &OutBts, w, h);
+    surface = cairo_ps_surface_create_for_stream(bytestream_writer, &OutBts,
+                                                 Params.getPaperSizeWInPoints(),
+                                                 Params.getPaperSizeHInPoints());
     cairo_ps_surface_restrict_to_level(surface, CAIRO_PS_LEVEL_2);
   }
   else
@@ -143,7 +126,8 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
 
   for(size_t page_index = 0; page_index < pages; page_index++)
   {
-    if((page_index+1) < FromPage || (page_index+1) > ToPage)
+    if((page_index+1) < Params.getFromPage() ||
+       (page_index+1) > Params.getToPage(pages))
     {
       continue;
     }
@@ -173,7 +157,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
     double y_offset = 0;
     bool rotate = false;
     fixup_scale(x_scale, y_scale, x_offset, y_offset, rotate,
-                page_width, page_height, PaperSizeX, PaperSizeY, HwResX, HwResY);
+                page_width, page_height, Params);
 
     cairo_translate(cr, x_offset, y_offset);
     cairo_scale(cr, x_scale, y_scale);
@@ -199,24 +183,30 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
     {
       cairo_surface_flush(surface);
       uint32_t* dat = (uint32_t*)cairo_image_surface_get_data(surface);
-      if(bmp_bts.size() != (w_px*h_px*Colors))
+      if(bmp_bts.size() != (Params.getPaperSizeWInPixels() *
+                            Params.getPaperSizeHInPixels() *
+                            Params.colors))
       {
-        bmp_bts = Bytestream(w_px*h_px*Colors);
+        bmp_bts = Bytestream(Params.getPaperSizeWInPixels() *
+                             Params.getPaperSizeHInPixels() *
+                             Params.colors);
       }
       uint8_t* tmp = bmp_bts.raw();
 
-      if(Colors == 1)
+      if(Params.colors == 1)
       {
-        for(size_t i=0; i<(w_px*h_px); i++)
+        for(size_t i=0; i<(Params.getPaperSizeWInPixels() *
+                           Params.getPaperSizeHInPixels()); i++)
         {
           tmp[i] = (RGB32_R(dat[i])*R_RELATIVE_LUMINOSITY)
                  + (RGB32_G(dat[i])*G_RELATIVE_LUMINOSITY)
                  + (RGB32_B(dat[i])*B_RELATIVE_LUMINOSITY);
         }
       }
-      else if(Colors == 3)
+      else if(Params.colors == 3)
       {
-        for(size_t i=0; i<(w_px*h_px); i++)
+        for(size_t i=0; i<(Params.getPaperSizeWInPixels() *
+                           Params.getPaperSizeHInPixels()); i++)
         {
           tmp[i*3] = RGB32_R(dat[i]);
           tmp[i*3+1] = RGB32_G(dat[i]);
@@ -224,11 +214,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
         }
       }
 
-      bmp_to_pwg(bmp_bts, OutBts, TargetFormat==URF,
-                 out_page_no, Colors, Quality,
-                 HwResX, HwResY, w_px, h_px,
-                 Duplex, Tumble, PaperSizeName,
-                 BackHFlip, BackVFlip, Verbose);
+      bmp_to_pwg(bmp_bts, OutBts, out_page_no, Params, Verbose);
     }
 
     CHECK(WriteFun(OutBts.raw(), OutBts.size()));
@@ -255,8 +241,7 @@ error:
 }
 
 void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_offset,
-                 bool& rotate, double& w_in, double& h_in, double w_out, double h_out,
-                 size_t HwResX, size_t HwResY)
+                 bool& rotate, double& w_in, double& h_in, PrintParameters Params)
 {
   // If the page is landscape, contunue as if it is not, but remember to rotate
   if(w_in > h_in)
@@ -267,9 +252,17 @@ void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_o
 
   // Scale to fit as if we had a symmetric resolution
   // ...this makes determining fitment easier
-  size_t min_res = std::min(HwResX, HwResY);
-  h_out *= DPMM(min_res);
-  w_out *= DPMM(min_res);
+  PrintParameters tmp = Params;
+  tmp.hwResW = std::min(Params.hwResW, Params.hwResH);
+  tmp.hwResH = std::min(Params.hwResW, Params.hwResH);
+
+  bool pointsBased = Params.format == PrintParameters::PDF ||
+                     Params.format == PrintParameters::Postscript;
+
+  size_t h_out = pointsBased ? tmp.getPaperSizeHInPoints()
+                             : tmp.getPaperSizeHInPixels();
+  size_t w_out = pointsBased ? tmp.getPaperSizeWInPoints()
+                             : tmp.getPaperSizeWInPixels();
   double scale = round2(std::min(w_out/w_in, h_out/h_in));
   x_offset = roundf((w_out-(w_in*scale))/2);
   y_offset = roundf((h_out-(h_in*scale))/2);
@@ -278,14 +271,14 @@ void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_o
   y_scale = scale;
 
   // Finally, if we have an asymmetric resolution, compensate for it
-  if(HwResX > HwResY)
+  if(Params.hwResW > Params.hwResH)
   {
-    x_scale *= (HwResX/HwResY);
-    x_offset *= (HwResX/HwResY);
+    x_scale *= (Params.hwResW/Params.hwResH);
+    x_offset *= (Params.hwResW/Params.hwResH);
   }
-  else if(HwResY > HwResX)
+  else if(Params.hwResH > Params.hwResW)
   {
-    y_scale *= (HwResY/HwResX);
-    y_offset *= (HwResY/HwResX);
+    y_scale *= (Params.hwResH/Params.hwResW);
+    y_offset *= (Params.hwResH/Params.hwResW);
   }
 }

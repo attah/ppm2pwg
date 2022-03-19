@@ -226,49 +226,28 @@ TEST(duplex_rotated)
 
 bool close_enough(size_t a, size_t b, size_t precision)
 {
-  return (a <= (b+precision)) && (a >= (b-precision));
+  size_t lower = b == 0 ? 0 : b-precision;
+  size_t upper = b == 0 ? 0 : b+precision;
+  return (a <= upper) && (a >= lower);
 }
 
-void calc_parts(Bytestream line, size_t& left_margin, size_t& image_width, size_t& right_margin)
-{
-  left_margin = 0;
-  image_width = 0;
-  right_margin = 0;
-
-  Bytestream RGBWhite({(uint8_t)0xff, (uint8_t)0xff, (uint8_t)0xff});
-
-  while(line >>= RGBWhite)
-  {
-    left_margin++;
-  }
-  while(line.nextBytestream(RGBWhite, false))
-  {
-    image_width++;
-  }
-  while(line >>= RGBWhite)
-  {
-    right_margin++;
-  }
-}
-
-void do_test_16x9(std::string filename, bool asymmetric)
+void do_test_16x9(const char* test_name, std::string filename, bool asymmetric)
 {
   setenv("FORMAT", "pwg", true);
   setenv("HWRES_X", "300", true);
   setenv("HWRES_Y", asymmetric ? "600" : "300", true);
 
-  subprocess::popen pdf2printable("../pdf2printable", {filename, "out.pwg"});
+  subprocess::popen pdf2printable("../pdf2printable", {filename, test_name});
   pdf2printable.close();
   ASSERT(pdf2printable.wait() == 0);
 
-  std::ifstream ifs("out.pwg", std::ios::in | std::ios::binary);
+  std::ifstream ifs(test_name, std::ios::in | std::ios::binary);
   Bytestream pwg(ifs);
 
   ASSERT(pwg >>= "RaS2");
   PwgPgHdr PwgHdr;
   PwgHdr.decode_from(pwg);
 
-  double ratio = 9.0/16.0;
   size_t width = PwgHdr.Width;
   size_t height = PwgHdr.Height;
   size_t colors = PwgHdr.NumColors;
@@ -279,46 +258,89 @@ void do_test_16x9(std::string filename, bool asymmetric)
   Bytestream bmp;
   raster_to_bmp(bmp, pwg, width, height, colors, false);
 
+  size_t left_margin, right_margin, top_margin, bottom_margin;
 
-  ASSERT(ratio < ((width*1.0)/height));
+  left_margin = 0;
+  right_margin = 0;
+  top_margin = 0;
+  bottom_margin = 0;
 
-  Bytestream firstline;
-  bmp/(width*colors) >> firstline;
+  Bytestream white_line(0xff, width*colors);
 
-  size_t left_margin;
-  size_t image_width;
-  size_t right_margin;
+  while(bmp.nextBytestream(white_line))
+  {
+    top_margin++;
+  }
+  while(bmp.nextBytestream(white_line, false))
+  {
+  }
+  while(bmp.nextBytestream(white_line))
+  {
+    bottom_margin++;
+  }
 
-  calc_parts(firstline, left_margin, image_width, right_margin);
+  Bytestream middle_line;
+  bmp.setPos((height/2)*(width*colors));
+  bmp/(width*colors) >> middle_line;
+
+  Bytestream white_pixel(0xff, colors);
+
+  while(middle_line.nextBytestream(white_pixel))
+  {
+    left_margin++;
+  }
+  while(middle_line.nextBytestream(white_pixel, false))
+  {
+  }
+  while(middle_line.nextBytestream(white_pixel))
+  {
+    right_margin++;
+  }
 
   ASSERT(close_enough(left_margin, right_margin, 1));
-  ASSERT(close_enough(image_width, height*ratio, 2));
+  ASSERT(close_enough(top_margin, bottom_margin, 1));
+  // ASSERT(close_enough(image_width, height*ratio, 2));
 
-  bmp += (bmp.remaining()-width*colors);
-  Bytestream lastline;
-  bmp/(width*colors) >> lastline;
-  calc_parts(lastline, left_margin, image_width, right_margin);
-
-  ASSERT(close_enough(left_margin, right_margin, 1));
-  ASSERT(close_enough(image_width, height*ratio, 2));
 }
 
+// More rectangular than A4
 TEST(pdf2printable_16x9_portrait)
 {
-  do_test_16x9("portrait_16x9.pdf", false);
+  do_test_16x9(__func__, "portrait_16x9.pdf", false);
 }
 
 TEST(pdf2printable_16x9_landscape)
 {
-  do_test_16x9("landscape_16x9.pdf", false);
+  do_test_16x9(__func__, "landscape_16x9.pdf", false);
 }
 
 TEST(pdf2printable_16x9_portrait_asymmetric)
 {
-  do_test_16x9("portrait_16x9.pdf", false);
+  do_test_16x9(__func__, "portrait_16x9.pdf", true);
 }
 
 TEST(pdf2printable_16x9_landscape_asymmetric)
 {
-  do_test_16x9("landscape_16x9.pdf", false);
+  do_test_16x9(__func__, "landscape_16x9.pdf", true);
+}
+
+// More square than A4
+TEST(pdf2printable_4x3_portrait)
+{
+  do_test_16x9(__func__, "portrait_4x3.pdf", false);
+}
+
+TEST(pdf2printable_4x3_landscape)
+{
+  do_test_16x9(__func__, "landscape_4x3.pdf", false);
+}
+
+TEST(pdf2printable_4x3_portrait_asymmetric)
+{
+  do_test_16x9(__func__, "portrait_4x3.pdf", true);
+}
+
+TEST(pdf2printable_4x3_landscape_asymmetric)
+{
+  do_test_16x9(__func__, "landscape_4x3.pdf", true);
 }

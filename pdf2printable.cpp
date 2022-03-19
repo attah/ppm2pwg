@@ -86,7 +86,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, PrintParameters Par
   size_t pages = poppler_document_get_n_pages(doc);
 
   size_t out_page_no = 0;
-  size_t total_pages = Params.getFromPage() - Params.getToPage(pages) + 1;
+  size_t total_pages = Params.getToPage(pages) - Params.getFromPage() + 1;
 
   if(raster)
   {

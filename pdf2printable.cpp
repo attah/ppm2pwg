@@ -129,14 +129,11 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, size_t Colors, size
   {
     surface = cairo_pdf_surface_create_for_stream(bytestream_writer, &OutBts, w, h);
     cairo_pdf_surface_set_metadata(surface, CAIRO_PDF_METADATA_CREATOR, PDF_CREATOR);
-    cairo_pdf_surface_set_size(surface, w, h);
   }
   else if(TargetFormat == Postscript)
   {
     surface = cairo_ps_surface_create_for_stream(bytestream_writer, &OutBts, w, h);
     cairo_ps_surface_restrict_to_level(surface, CAIRO_PS_LEVEL_2);
-    cairo_ps_surface_dsc_begin_page_setup(surface);
-    cairo_ps_surface_set_size(surface, w, h);
   }
   else
   {

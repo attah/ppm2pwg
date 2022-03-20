@@ -113,7 +113,9 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, PrintParameters Par
     surface = cairo_pdf_surface_create_for_stream(bytestream_writer, &OutBts,
                                                   Params.getPaperSizeWInPoints(),
                                                   Params.getPaperSizeHInPoints());
+#if CAIRO_VERSION_MAJOR > 1 || CAIRO_VERSION_MINOR >= 16
     cairo_pdf_surface_set_metadata(surface, CAIRO_PDF_METADATA_CREATOR, PDF_CREATOR);
+#endif
   }
   else if(Params.format == PrintParameters::Postscript)
   {

@@ -427,4 +427,34 @@ TEST(printparameters)
   ASSERT(LetterPx.getPaperSizeWInPoints() == 612);
   ASSERT(LetterPx.getPaperSizeHInPoints() == 792);
 
+  A4.hwResH = 1200;
+  A4Px.hwResH = 1200;
+  A4Px.paperSizeH = (float)A4.getPaperSizeHInPixels();
+
+  Letter.hwResH = 1200;
+  LetterPx.hwResH = 1200;
+  LetterPx.paperSizeH = (float)Letter.getPaperSizeHInPixels();
+
+  ASSERT(A4.getPaperSizeWInPixels() == 4960);
+  ASSERT(A4.getPaperSizeHInPixels() == 14031);
+  ASSERT(A4Px.getPaperSizeWInPixels() == 4960);
+  ASSERT(A4Px.getPaperSizeHInPixels() == 14031);
+
+  // Asymmetric resolution does not affect dimension in points
+  ASSERT(round(A4.getPaperSizeWInPoints()) == 595);
+  ASSERT(round(A4.getPaperSizeHInPoints()) == 842);
+  ASSERT(round(A4Px.getPaperSizeWInPoints()) == 595);
+  ASSERT(round(A4Px.getPaperSizeHInPoints()) == 842);
+
+  ASSERT(Letter.getPaperSizeWInPixels() == 5100);
+  ASSERT(Letter.getPaperSizeHInPixels() == 13200);
+  ASSERT(LetterPx.getPaperSizeWInPixels() == 5100);
+  ASSERT(LetterPx.getPaperSizeHInPixels() == 13200);
+
+  // Asymmetric resolution does not affect dimension in points
+  ASSERT(LetterPx.getPaperSizeWInPoints() == 612);
+  ASSERT(LetterPx.getPaperSizeHInPoints() == 792);
+  ASSERT(LetterPx.getPaperSizeWInPoints() == 612);
+  ASSERT(LetterPx.getPaperSizeHInPoints() == 792);
+
 }

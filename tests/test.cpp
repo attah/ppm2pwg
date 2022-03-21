@@ -234,7 +234,7 @@ bool close_enough(size_t a, size_t b, size_t precision)
   return (a <= upper) && (a >= lower);
 }
 
-void do_test_16x9(const char* test_name, std::string filename, bool asymmetric)
+void do_test_centering(const char* test_name, std::string filename, bool asymmetric)
 {
   setenv("FORMAT", "pwg", true);
   setenv("HWRES_X", "300", true);
@@ -302,50 +302,49 @@ void do_test_16x9(const char* test_name, std::string filename, bool asymmetric)
 
   ASSERT(close_enough(left_margin, right_margin, 1));
   ASSERT(close_enough(top_margin, bottom_margin, 1));
-  // ASSERT(close_enough(image_width, height*ratio, 2));
 
 }
 
 // More rectangular than A4
 TEST(pdf2printable_16x9_portrait)
 {
-  do_test_16x9(__func__, "portrait_16x9.pdf", false);
+  do_test_centering(__func__, "portrait_16x9.pdf", false);
 }
 
 TEST(pdf2printable_16x9_landscape)
 {
-  do_test_16x9(__func__, "landscape_16x9.pdf", false);
+  do_test_centering(__func__, "landscape_16x9.pdf", false);
 }
 
 TEST(pdf2printable_16x9_portrait_asymmetric)
 {
-  do_test_16x9(__func__, "portrait_16x9.pdf", true);
+  do_test_centering(__func__, "portrait_16x9.pdf", true);
 }
 
 TEST(pdf2printable_16x9_landscape_asymmetric)
 {
-  do_test_16x9(__func__, "landscape_16x9.pdf", true);
+  do_test_centering(__func__, "landscape_16x9.pdf", true);
 }
 
 // More square than A4
 TEST(pdf2printable_4x3_portrait)
 {
-  do_test_16x9(__func__, "portrait_4x3.pdf", false);
+  do_test_centering(__func__, "portrait_4x3.pdf", false);
 }
 
 TEST(pdf2printable_4x3_landscape)
 {
-  do_test_16x9(__func__, "landscape_4x3.pdf", false);
+  do_test_centering(__func__, "landscape_4x3.pdf", false);
 }
 
 TEST(pdf2printable_4x3_portrait_asymmetric)
 {
-  do_test_16x9(__func__, "portrait_4x3.pdf", true);
+  do_test_centering(__func__, "portrait_4x3.pdf", true);
 }
 
 TEST(pdf2printable_4x3_landscape_asymmetric)
 {
-  do_test_16x9(__func__, "landscape_4x3.pdf", true);
+  do_test_centering(__func__, "landscape_4x3.pdf", true);
 }
 
 TEST(printparameters)

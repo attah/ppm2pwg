@@ -17,9 +17,9 @@
 #define R_RELATIVE_LUMINOSITY 0.299
 #define G_RELATIVE_LUMINOSITY 0.587
 #define B_RELATIVE_LUMINOSITY 0.114
-#define RGB32_R(Color) ((dat[i]>>16)&0xff)
-#define RGB32_G(Color) ((dat[i]>>8)&0xff)
-#define RGB32_B(Color) (dat[i]&0xff)
+#define RGB32_R(RGB) ((RGB>>16)&0xff)
+#define RGB32_G(RGB) ((RGB>>8)&0xff)
+#define RGB32_B(RGB) (RGB&0xff)
 
 #ifndef PDF_CREATOR
 #define PDF_CREATOR "pdf2printable"

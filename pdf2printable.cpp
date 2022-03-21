@@ -53,17 +53,21 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, PrintParameters Par
 {
   int res = 0;
 
+  if(Params.format == PrintParameters::URF && (Params.hwResW != Params.hwResH))
+  { // URF must have a symmetric resolution
+    return 1;
+  }
+
   bool raster = Params.format == PrintParameters::PWG ||
                 Params.format == PrintParameters::URF;
 
+  cairo_surface_t* surface;
   Bytestream bmp_bts;
   Bytestream OutBts;
 
   #if MADNESS
   #include "libfuncs"
   #endif
-
-  cairo_surface_t* surface;
 
   if (!g_path_is_absolute(Infile.c_str()))
   {
@@ -256,13 +260,13 @@ void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_o
   tmp.hwResW = std::min(Params.hwResW, Params.hwResH);
   tmp.hwResH = std::min(Params.hwResW, Params.hwResH);
 
-  bool pointsBased = Params.format == PrintParameters::PDF ||
-                     Params.format == PrintParameters::Postscript;
+  bool raster = Params.format == PrintParameters::PWG ||
+                Params.format == PrintParameters::URF;
 
-  size_t h_out = pointsBased ? tmp.getPaperSizeHInPoints()
-                             : tmp.getPaperSizeHInPixels();
-  size_t w_out = pointsBased ? tmp.getPaperSizeWInPoints()
-                             : tmp.getPaperSizeWInPixels();
+  size_t h_out = raster ? tmp.getPaperSizeHInPixels()
+                        : tmp.getPaperSizeHInPoints();
+  size_t w_out = raster ? tmp.getPaperSizeWInPixels()
+                        : tmp.getPaperSizeWInPoints();
   double scale = round2(std::min(w_out/w_in, h_out/h_in));
   x_offset = roundf((w_out-(w_in*scale))/2);
   y_offset = roundf((h_out-(h_in*scale))/2);
@@ -270,15 +274,19 @@ void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_o
   x_scale = scale;
   y_scale = scale;
 
-  // Finally, if we have an asymmetric resolution, compensate for it
-  if(Params.hwResW > Params.hwResH)
-  {
-    x_scale *= (Params.hwResW/Params.hwResH);
-    x_offset *= (Params.hwResW/Params.hwResH);
-  }
-  else if(Params.hwResH > Params.hwResW)
-  {
-    y_scale *= (Params.hwResH/Params.hwResW);
-    y_offset *= (Params.hwResH/Params.hwResW);
+  // Finally, if we have an asymmetric resolution
+  // and are not working in absolute dimensions (points), compensate for it.
+  if(raster)
+  { // URF will/should not end up here, but still...
+    if(Params.hwResW > Params.hwResH)
+    {
+      x_scale *= (Params.hwResW/Params.hwResH);
+      x_offset *= (Params.hwResW/Params.hwResH);
+    }
+    else if(Params.hwResH > Params.hwResW)
+    {
+      y_scale *= (Params.hwResH/Params.hwResW);
+      y_offset *= (Params.hwResH/Params.hwResW);
+    }
   }
 }

@@ -57,8 +57,6 @@ int PPM2PWG_MAIN(int, char**)
 
   size_t page = 0;
 
-  size_t Colors = 0;
-
   Bytestream rotate_tmp;
   Bytestream OutBts;
   Bytestream bmp_bts;
@@ -89,11 +87,11 @@ int PPM2PWG_MAIN(int, char**)
 
     if(p == "P6")
     {
-      Colors = 3;
+      Params.colors = 3;
     }
     else if(p == "P5")
     {
-      Colors = 1;
+      Params.colors = 1;
     }
     else
     {
@@ -107,20 +105,20 @@ int PPM2PWG_MAIN(int, char**)
     unsigned int ResY = stoi(ys);
 
     // If not the correct size (for this page), reallocate it
-    if(bmp_bts.size() != Colors*ResX*ResY)
+    if(bmp_bts.size() != Params.colors*ResX*ResY)
     {
-      bmp_bts = Bytestream(Colors*ResX*ResY);
+      bmp_bts = Bytestream(Params.colors*ResX*ResY);
     }
 
     if(ForcePortrait && (ResY < ResX))
     {
-      rotate_tmp.initFrom(std::cin, Colors*ResX*ResY);
+      rotate_tmp.initFrom(std::cin, Params.colors*ResX*ResY);
 
       for(size_t y=1; y<(ResY+1); y++)
       {
         for(size_t x=1; x<(ResX+1); x++)
         {
-          rotate_tmp.getBytes(bmp_bts.raw()+((x*ResY)-y)*Colors, Colors);
+          rotate_tmp.getBytes(bmp_bts.raw()+((x*ResY)-y)*Params.colors, Params.colors);
         }
       }
       std::swap(ResX, ResY);
@@ -128,7 +126,7 @@ int PPM2PWG_MAIN(int, char**)
     }
     else
     {
-      bmp_bts.initFrom(std::cin, Colors*ResX*ResY);
+      bmp_bts.initFrom(std::cin, Params.colors*ResX*ResY);
     }
 
     Params.paperSizeW = ResX;

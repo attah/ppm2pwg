@@ -1,9 +1,5 @@
-#include <bytestream.h>
 #include <iostream>
-#include <string>
-#include <cmath>
 #include <string.h>
-#include <functional>
 
 #include "ppm2pwg.h"
 #include "PwgPgHdr.h"
@@ -24,10 +20,8 @@ Bytestream make_urf_file_hdr(uint32_t pages)
 }
 
 void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts,
-                size_t page, PrintParameters Params, bool Verbose)
+                size_t page, const PrintParameters& Params, bool Verbose)
 {
-  Bytestream bmp_line;
-  Bytestream current;
   bool backside = (page%2)==0;
 
   if(Verbose)
@@ -44,41 +38,23 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts,
     make_urf_hdr(OutBts, Params, Verbose);
   }
 
-  size_t bytesPerLine = Params.colors*Params.getPaperSizeWInPixels();
   size_t ResY = Params.getPaperSizeHInPixels();
   uint8_t* raw = bmp_bts.raw();
-
-  #define pos_fun std::function<uint8_t*(size_t)>
-  pos_fun pos = backside&&Params.backVFlip
-              ? pos_fun([raw, ResY, bytesPerLine](size_t y)
-                {
-                  return raw+(ResY-1-y)*bytesPerLine;
-                })
-              : pos_fun([raw, bytesPerLine](size_t y)
-                {
-                  return raw+y*bytesPerLine;
-                });
+  size_t bytesPerLine = Params.colors*Params.getPaperSizeWInPixels();
+  int step = backside&&Params.backVFlip ? -bytesPerLine : bytesPerLine;
+  uint8_t* row0 = backside&&Params.backVFlip ? raw+(ResY-1)*bytesPerLine : raw;
+  uint8_t* tmp_line = new uint8_t[bytesPerLine];
 
   for(size_t y=0; y<ResY; y++)
   {
+    uint8_t* this_line = row0+y*step;
     uint8_t line_repeat = 0;
 
-    if(backside&&Params.backHFlip)
-    {
-      bmp_line.reset();
-      for(int i = bytesPerLine-Params.colors; i >= 0; i -= Params.colors)
-      {
-        bmp_line.putBytes(pos(y)+i, Params.colors);
-      }
-    }
-    else
-    {
-      bmp_line.initFrom(pos(y), bytesPerLine);
-    }
-
-    while((y+1)<ResY && memcmp(pos(y), pos(y+1), bytesPerLine) == 0)
+    uint8_t* next_line = this_line + step;
+    while((y+1)<ResY && memcmp(this_line, next_line, bytesPerLine) == 0)
     {
       y++;
+      next_line += step;
       line_repeat++;
       if(line_repeat == 255)
       {
@@ -87,62 +63,88 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts,
     }
 
     OutBts << line_repeat;
-
-    while(bmp_line.remaining())
+    if(backside&&Params.backHFlip)
     {
-      size_t current_start = bmp_line.pos();
-      bmp_line/Params.colors >> current;
-
-      if(bmp_line.atEnd() || bmp_line.peekNextBytestream(current))
+      // Flip line into tmp buffer
+      for(size_t i=0; i<bytesPerLine; i+=Params.colors)
       {
-        int8_t repeat = 0;
-        // Find number of repititions
-        while(bmp_line >>= current)
+        memcpy(tmp_line+i, this_line+bytesPerLine-Params.colors-i, Params.colors);
+      }
+      compress_line(tmp_line, bytesPerLine, OutBts, Params.colors);
+    }
+    else
+    {
+      compress_line(this_line, bytesPerLine, OutBts, Params.colors);
+    }
+  }
+  delete[] tmp_line;
+}
+
+void compress_line(uint8_t* raw, size_t len, Bytestream& OutBts, int Colors)
+{
+  uint8_t* current;
+  uint8_t* pos = raw;
+  uint8_t* epos = raw+len;
+  while(pos != epos)
+  {
+    uint8_t* current_start = pos;
+    current = pos;
+    pos += Colors;
+
+    if(pos == epos || memcmp(pos, current, Colors) == 0)
+    {
+      int8_t repeat = 0;
+      // Find number of repititions
+      while(pos != epos && memcmp(pos, current, Colors) == 0)
+      {
+        pos += Colors;
+        repeat++;
+        if(repeat == 127)
         {
-          repeat++;
-          if(repeat == 127)
-          {
-            break;
-          }
+          break;
         }
-        OutBts << repeat << current;
+      }
+      OutBts << repeat;
+      OutBts.putBytes(current, Colors);
+    }
+    else
+    {
+      size_t verbatim = 1;
+      // Find the number of byte sequences that are different
+      // (we know the first one is)
+      do
+      {
+        current = pos;
+        pos += Colors;
+        verbatim++;
+        if(verbatim == 127)
+        {
+          break;
+        }
+      }
+      while(pos != epos && memcmp(pos, current, Colors) != 0);
+
+      // This and the next sequence are equal,
+      // assume it starts a repeating sequence.
+      // (unless we are at the end)
+      if(pos != epos)
+      {
+        verbatim--;
+      }
+
+      // Yes, these are similar and technically only the second case is needed.
+      // But in order to not lean on that (uint8_t)(256)==0, we have this.
+      if(verbatim == 1)
+      { // We ended up with one sequence, encode it as such
+        pos = current_start + Colors;
+        OutBts << (uint8_t)0;
+        OutBts.putBytes(current_start, Colors);
       }
       else
-      {
-        size_t verbatim = 1;
-        // Find the number of byte sequences that are different
-        // (we know the first one is)
-        do
-        {
-          bmp_line/Params.colors >> current;
-          verbatim++;
-          if(verbatim == 127)
-          {
-            break;
-          }
-        }
-        while(!bmp_line.atEnd() && !bmp_line.peekNextBytestream(current));
-
-        // This and the next sequence are equal,
-        // assume it starts a repeating sequence.
-        // (unless we are at the end)
-        if(!bmp_line.atEnd())
-        {
-          verbatim--;
-        }
-
-        if(verbatim == 1)
-        { // We ended up with one sequence, encode it as such
-          bmp_line.setPos(current_start);
-          bmp_line/Params.colors >> current;
-          OutBts << (uint8_t)0 << current;
-        }
-        else
-        { // 2 or more non-repeating sequnces
-          bmp_line.setPos(current_start);
-          OutBts << (uint8_t)(257-verbatim);
-          bmp_line.getBytes(OutBts, verbatim*Params.colors);
-        }
+      { // 2 or more non-repeating sequnces
+        pos = current_start + verbatim*Colors;
+        OutBts << (uint8_t)(257-verbatim);
+        OutBts.putBytes(current_start, verbatim*Colors);
       }
     }
   }

@@ -50,7 +50,7 @@ struct PrintParameters
   size_t fromPage = 0; // Auto first
   size_t toPage = 0; // Auto last
 
-  size_t getPaperSizeWInPixels()
+  size_t getPaperSizeWInPixels() const
   {
     switch(paperSizeUnits)
     {
@@ -64,7 +64,7 @@ struct PrintParameters
     return 0;
   }
 
-  size_t getPaperSizeHInPixels()
+  size_t getPaperSizeHInPixels() const
   {
     switch(paperSizeUnits)
     {
@@ -78,7 +78,7 @@ struct PrintParameters
     return 0;
   }
 
-  float getPaperSizeWInPoints()
+  float getPaperSizeWInPoints() const
   {
     switch(paperSizeUnits)
     {
@@ -92,7 +92,7 @@ struct PrintParameters
     return 0;
   }
 
-  float getPaperSizeHInPoints()
+  float getPaperSizeHInPoints() const
   {
     switch(paperSizeUnits)
     {
@@ -106,18 +106,18 @@ struct PrintParameters
     return 0;
   }
 
-  size_t getFromPage()
+  size_t getFromPage() const
   {
     return fromPage == 0 ? 1 : fromPage;
   }
 
-  size_t getToPage(size_t max)
+  size_t getToPage(size_t max) const
   {
     return (toPage == 0 || toPage > max) ? max : toPage;
   }
 
 private:
-  double round2(double d)
+  double round2(double d) const
   {
     return round(d*100)/100;
   }

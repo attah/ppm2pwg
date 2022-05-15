@@ -247,6 +247,8 @@ void do_test_centering(const char* test_name, std::string filename, bool asymmet
   std::ifstream ifs(test_name, std::ios::in | std::ios::binary);
   Bytestream pwg(ifs);
 
+  ASSERT(pwg.size() != 0);
+
   ASSERT(pwg >>= "RaS2");
   PwgPgHdr PwgHdr;
   PwgHdr.decode_from(pwg);

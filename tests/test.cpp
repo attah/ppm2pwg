@@ -82,6 +82,64 @@ Bytestream Rotated()
   return enc;
 }
 
+Bytestream P4_0101()
+{
+  Bytestream ppm {string("P4\n24 8\n")};
+  ppm << (uint8_t)0x8f << (uint8_t)0x78 << (uint8_t)0xf7
+      << (uint8_t)0x76 << (uint8_t)0x77 << (uint8_t)0x67
+      << (uint8_t)0x77 << (uint8_t)0x77 << (uint8_t)0x77
+      << (uint8_t)0x77 << (uint8_t)0x77 << (uint8_t)0x77
+      << (uint8_t)0x77 << (uint8_t)0x77 << (uint8_t)0x77
+      << (uint8_t)0x77 << (uint8_t)0x77 << (uint8_t)0x77
+      << (uint8_t)0x8e << (uint8_t)0x38 << (uint8_t)0xe3
+      << (uint8_t)0xff << (uint8_t)0xff << (uint8_t)0xff;
+  return ppm;
+}
+
+Bytestream BilevelPwg0101()
+{
+  Bytestream enc;
+  enc << (uint8_t)0 << VERBATIM(3) << (uint8_t)0x8f << (uint8_t)0x78 << (uint8_t)0xf7
+      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0x76 << (uint8_t)0x77 << (uint8_t)0x67
+      << (uint8_t)3 << REPEAT(3) << (uint8_t)0x77
+      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0x8e << (uint8_t)0x38 << (uint8_t)0xe3
+      << (uint8_t)0 << REPEAT(3) << (uint8_t)0xff;
+  return enc;
+}
+
+Bytestream BilevelPwg0101_UpsideDown()
+{
+  Bytestream enc;
+  enc << (uint8_t)0 << REPEAT(3) << (uint8_t)0xff
+      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0x8e << (uint8_t)0x38 << (uint8_t)0xe3
+      << (uint8_t)3 << REPEAT(3) << (uint8_t)0x77
+      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0x76 << (uint8_t)0x77 << (uint8_t)0x67
+      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0x8f << (uint8_t)0x78 << (uint8_t)0xf7;
+  return enc;
+}
+
+Bytestream BilevelPwg0101_Flipped()
+{
+  Bytestream enc;
+  enc << (uint8_t)0 << VERBATIM(3) << (uint8_t)0xef << (uint8_t)0x1e << (uint8_t)0xf1
+      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0xe6 << (uint8_t)0xee << (uint8_t)0x6e
+      << (uint8_t)3 << REPEAT(3) << (uint8_t)0xee
+      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0xc7 << (uint8_t)0x1c << (uint8_t)0x71
+      << (uint8_t)0 << REPEAT(3) << (uint8_t)0xff;
+  return enc;
+}
+
+Bytestream BilevelPwg0101_Rotated()
+{
+  Bytestream enc;
+  enc << (uint8_t)0 << REPEAT(3) << (uint8_t)0xff
+      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0xc7 << (uint8_t)0x1c << (uint8_t)0x71
+      << (uint8_t)3 << REPEAT(3) << (uint8_t)0xee
+      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0xe6 << (uint8_t)0xee << (uint8_t)0x6e
+      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0xef << (uint8_t)0x1e << (uint8_t)0xf1;
+  return enc;
+}
+
 TEST(ppm2pwg)
 {
   Bytestream ppm = PacmanPpm();
@@ -114,7 +172,6 @@ TEST(ppm2pwg)
   Bytestream expected_pwg(ifs);
 
   ASSERT(pwg == expected_pwg);
-
 }
 
 TEST(duplex_normal)
@@ -224,6 +281,115 @@ TEST(duplex_rotated)
   ASSERT(hdr2.CrossFeedTransform == -1);
   ASSERT(hdr2.FeedTransform == -1);
   ASSERT(pwg >>= Rotated());
+  ASSERT(pwg.atEnd());
+}
+
+TEST(bilevel)
+{
+  Bytestream P4 = P4_0101();
+
+  subprocess::popen ppm2pwg("../ppm2pwg", {});
+  ppm2pwg.stdin().write((char*)P4.raw(), P4.size());
+  ppm2pwg.close();
+
+  ASSERT(ppm2pwg.wait() == 0);
+
+  Bytestream pwg(ppm2pwg.stdout());
+
+  PwgPgHdr hdr1;
+  ASSERT(pwg >>= "RaS2");
+  hdr1.decode_from(pwg);
+  ASSERT(hdr1.CrossFeedTransform == 1);
+  ASSERT(hdr1.FeedTransform == 1);
+  ASSERT(pwg >>= BilevelPwg0101());
+}
+
+TEST(bilevel_vflip)
+{
+  Bytestream twoSided;
+  twoSided << P4_0101() << P4_0101();
+
+  setenv("BACK_VFLIP", "true", true);
+  setenv("BACK_HFLIP", "false", true);
+
+  subprocess::popen ppm2pwg("../ppm2pwg", {});
+  ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
+  ppm2pwg.close();
+
+  ASSERT(ppm2pwg.wait() == 0);
+
+  Bytestream pwg(ppm2pwg.stdout());
+  PwgPgHdr hdr1, hdr2;
+
+  ASSERT(pwg >>= "RaS2");
+  hdr1.decode_from(pwg);
+  ASSERT(hdr1.CrossFeedTransform == 1);
+  ASSERT(hdr1.FeedTransform == 1);
+  ASSERT(pwg >>= BilevelPwg0101());
+  hdr2.decode_from(pwg);
+  ASSERT(hdr2.CrossFeedTransform == 1);
+  ASSERT(hdr2.FeedTransform == -1);
+  ASSERT(pwg >>= BilevelPwg0101_UpsideDown());
+  ASSERT(pwg.atEnd());
+}
+
+TEST(bilevel_hflip)
+{
+  Bytestream twoSided;
+  twoSided << P4_0101() << P4_0101();
+
+  setenv("BACK_VFLIP", "false", true);
+  setenv("BACK_HFLIP", "true", true);
+
+  subprocess::popen ppm2pwg("../ppm2pwg", {});
+  ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
+  ppm2pwg.close();
+
+  ASSERT(ppm2pwg.wait() == 0);
+
+  Bytestream pwg(ppm2pwg.stdout());
+  PwgPgHdr hdr1, hdr2;
+
+  ASSERT(pwg >>= "RaS2");
+  hdr1.decode_from(pwg);
+  ASSERT(hdr1.CrossFeedTransform == 1);
+  ASSERT(hdr1.FeedTransform == 1);
+  ASSERT(pwg >>= BilevelPwg0101());
+  hdr2.decode_from(pwg);
+  ASSERT(hdr2.CrossFeedTransform == -1);
+  ASSERT(hdr2.FeedTransform == 1);
+
+  ASSERT(pwg >>= BilevelPwg0101_Flipped());
+  ASSERT(pwg.atEnd());
+}
+
+TEST(bilevel_rotated)
+{
+  Bytestream twoSided;
+  twoSided << P4_0101() << P4_0101();
+
+  setenv("BACK_VFLIP", "true", true);
+  setenv("BACK_HFLIP", "true", true);
+
+  subprocess::popen ppm2pwg("../ppm2pwg", {});
+  ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
+  ppm2pwg.close();
+
+  ASSERT(ppm2pwg.wait() == 0);
+
+  Bytestream pwg(ppm2pwg.stdout());
+  PwgPgHdr hdr1, hdr2;
+
+  ASSERT(pwg >>= "RaS2");
+  hdr1.decode_from(pwg);
+  ASSERT(hdr1.CrossFeedTransform == 1);
+  ASSERT(hdr1.FeedTransform == 1);
+  ASSERT(pwg >>= BilevelPwg0101());
+  hdr2.decode_from(pwg);
+  ASSERT(hdr2.CrossFeedTransform == -1);
+  ASSERT(hdr2.FeedTransform == -1);
+
+  ASSERT(pwg >>= BilevelPwg0101_Rotated());
   ASSERT(pwg.atEnd());
 }
 

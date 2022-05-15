@@ -21,6 +21,10 @@ struct PrintParameters
   Format format = PDF;
 
   size_t colors = 3; // RGB
+  size_t bitsPerColor = 8;
+  // More color is black, like for black_1, black_8.
+  // False for regular modes like sRGB and sGray.
+  bool black = false;
   size_t quality = 0; // Default
   std::string paperSizeName = "iso_a4_210x297mm";
 
@@ -62,6 +66,11 @@ struct PrintParameters
         return paperSizeW * hwResW;
     }
     return 0;
+  }
+
+  size_t getPaperSizeWInBytes() const
+  {
+    return colors * getPaperSizeWInPixels() / (8 / bitsPerColor);
   }
 
   size_t getPaperSizeHInPixels() const

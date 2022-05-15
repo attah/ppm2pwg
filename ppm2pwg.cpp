@@ -4,6 +4,7 @@
 #include "ppm2pwg.h"
 #include "PwgPgHdr.h"
 #include "UrfPgHdr.h"
+#include "reversebytes.h"
 
 Bytestream make_pwg_file_hdr()
 {
@@ -40,7 +41,7 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts,
 
   size_t ResY = Params.getPaperSizeHInPixels();
   uint8_t* raw = bmp_bts.raw();
-  size_t bytesPerLine = Params.colors*Params.getPaperSizeWInPixels();
+  size_t bytesPerLine = Params.getPaperSizeWInBytes();
   int step = backside&&Params.backVFlip ? -bytesPerLine : bytesPerLine;
   uint8_t* row0 = backside&&Params.backVFlip ? raw+(ResY-1)*bytesPerLine : raw;
   uint8_t* tmp_line = new uint8_t[bytesPerLine];
@@ -66,9 +67,19 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts,
     if(backside&&Params.backHFlip)
     {
       // Flip line into tmp buffer
-      for(size_t i=0; i<bytesPerLine; i+=Params.colors)
+      if(Params.bitsPerColor == 1)
       {
-        memcpy(tmp_line+i, this_line+bytesPerLine-Params.colors-i, Params.colors);
+        for(size_t i = 0; i < bytesPerLine; i++)
+        {
+          tmp_line[i] = reverse_bytes[this_line[bytesPerLine-1-i]];
+        }
+      }
+      else
+      {
+        for(size_t i = 0; i < bytesPerLine; i += Params.colors)
+        {
+          memcpy(tmp_line+i, this_line+bytesPerLine-Params.colors-i, Params.colors);
+        }
       }
       compress_line(tmp_line, bytesPerLine, OutBts, Params.colors);
     }
@@ -163,15 +174,17 @@ void make_pwg_hdr(Bytestream& OutBts, PrintParameters Params, bool backside, boo
   OutHdr.Tumble = Params.tumble;
   OutHdr.Width = Params.getPaperSizeWInPixels();
   OutHdr.Height = Params.getPaperSizeHInPixels();
-  OutHdr.BitsPerColor = 8;
+  OutHdr.BitsPerColor = Params.bitsPerColor;
   OutHdr.BitsPerPixel = Params.colors * OutHdr.BitsPerColor;
-  OutHdr.BytesPerLine = Params.colors * OutHdr.Width;
-  OutHdr.ColorSpace = Params.colors==3 ? PwgPgHdr::sRGB : PwgPgHdr::sGray;
+  OutHdr.BytesPerLine = Params.getPaperSizeWInBytes();
+  OutHdr.ColorSpace = Params.colors == 3 ? PwgPgHdr::sRGB
+                    : Params.black ? PwgPgHdr::Black
+                    : PwgPgHdr::sGray;
   OutHdr.NumColors = Params.colors;
   OutHdr.TotalPageCount = 0;
   OutHdr.CrossFeedTransform = backside&&Params.backHFlip ? -1 : 1;
   OutHdr.FeedTransform = backside&&Params.backVFlip ? -1 : 1;
-  OutHdr.AlternatePrimary = pow(2, OutHdr.BitsPerPixel)-1;
+  OutHdr.AlternatePrimary = Params.black ? 0 : 0x00ffffff;
   OutHdr.PrintQuality = (Params.quality == 3 ? PwgPgHdr::Draft
                       : (Params.quality == 4 ? PwgPgHdr::Normal
                       : (Params.quality == 5 ? PwgPgHdr::High

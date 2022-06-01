@@ -1,4 +1,4 @@
-LIB(jpeg, "libjpeg.so");
+LIB(jpeg, "libjpeg.so.62");
 FUNC(jpeg, int, jpeg_read_header, j_decompress_ptr cinfo, boolean);
 FUNC(jpeg, jvirt_barray_ptr*, jpeg_read_coefficients, j_decompress_ptr);
 FUNC(jpeg, void, jpeg_copy_critical_parameters, j_decompress_ptr, j_compress_ptr);

@@ -7,7 +7,7 @@ struct bts_source_mgr: jpeg_source_mgr
   bts_source_mgr(Bytestream& in) : bts(in)
   {
     #if MADNESS
-    LIB(jpeg, "libjpeg.so");
+    LIB(jpeg, "libjpeg.so.62");
     FUNC(jpeg, boolean, jpeg_resync_to_restart, j_decompress_ptr, int);
     #endif
 

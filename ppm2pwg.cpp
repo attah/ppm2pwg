@@ -161,7 +161,7 @@ void compress_line(uint8_t* raw, size_t len, Bytestream& OutBts, int Colors)
   }
 }
 
-void make_pwg_hdr(Bytestream& OutBts, PrintParameters Params, bool backside, bool Verbose)
+void make_pwg_hdr(Bytestream& OutBts, const PrintParameters& Params, bool backside, bool Verbose)
 {
   PwgPgHdr OutHdr;
 
@@ -199,7 +199,7 @@ void make_pwg_hdr(Bytestream& OutBts, PrintParameters Params, bool backside, boo
   OutHdr.encode_into(OutBts);
 }
 
-void make_urf_hdr(Bytestream& OutBts, PrintParameters Params, bool Verbose)
+void make_urf_hdr(Bytestream& OutBts, const PrintParameters& Params, bool Verbose)
 {
   if(Params.hwResW != Params.hwResH)
   {

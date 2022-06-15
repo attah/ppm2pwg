@@ -28,7 +28,7 @@
 #define CHECK(call) if(!(call)) {res = 1; goto error;}
 
 void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_offset,
-                 bool& rotate, double& w_in, double& h_in, PrintParameters Params);
+                 bool& rotate, double& w_in, double& h_in, const PrintParameters& Params);
 
 std::string free_cstr(char* CStr)
 {
@@ -48,7 +48,7 @@ double round2(double d)
   return round(d*100)/100;
 }
 
-int pdf_to_printable(std::string Infile, write_fun WriteFun, PrintParameters Params,
+int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParameters& Params,
                      progress_fun ProgressFun, bool Verbose)
 {
   int res = 0;
@@ -245,7 +245,7 @@ error:
 }
 
 void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_offset,
-                 bool& rotate, double& w_in, double& h_in, PrintParameters Params)
+                 bool& rotate, double& w_in, double& h_in, const PrintParameters& Params)
 {
   // If the page is landscape, contunue as if it is not, but remember to rotate
   if(w_in > h_in)

@@ -68,11 +68,6 @@ struct PrintParameters
     return 0;
   }
 
-  size_t getPaperSizeWInBytes() const
-  {
-    return colors * getPaperSizeWInPixels() / (8 / bitsPerColor);
-  }
-
   size_t getPaperSizeHInPixels() const
   {
     switch(paperSizeUnits)
@@ -85,6 +80,11 @@ struct PrintParameters
         return paperSizeH * hwResH;
     }
     return 0;
+  }
+
+  size_t getPaperSizeInPixels() const
+  {
+    return getPaperSizeWInPixels() * getPaperSizeHInPixels();
   }
 
   float getPaperSizeWInPoints() const
@@ -113,6 +113,16 @@ struct PrintParameters
         return paperSizeH * PTS_PER_IN;
     }
     return 0;
+  }
+
+  size_t getPaperSizeWInBytes() const
+  {
+    return colors * getPaperSizeWInPixels() / (8 / bitsPerColor);
+  }
+
+  size_t getPaperSizeInBytes() const
+  {
+    return getPaperSizeWInBytes() * getPaperSizeHInPixels();
   }
 
   size_t getFromPage() const

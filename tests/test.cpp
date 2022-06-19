@@ -534,6 +534,10 @@ TEST(printparameters)
   ASSERT(A4.getPaperSizeWInPixels() == 2480);
   ASSERT(A4.getPaperSizeHInPixels() == 3508);
 
+  ASSERT(A4.getPaperSizeWInBytes() == 2480*3);
+  ASSERT(A4.getPaperSizeInPixels() == 2480*3508);
+  ASSERT(A4.getPaperSizeInBytes() == 2480*3508*3);
+
   ASSERT(round(A4.getPaperSizeWInPoints()) == 595);
   ASSERT(round(A4.getPaperSizeHInPoints()) == 842);
 
@@ -549,6 +553,10 @@ TEST(printparameters)
 
   ASSERT(A4.getPaperSizeWInPixels() == 4960);
   ASSERT(A4.getPaperSizeHInPixels() == 7016);
+
+  ASSERT(A4.getPaperSizeWInBytes() == 4960*3);
+  ASSERT(A4.getPaperSizeInPixels() == 4960*7016);
+  ASSERT(A4.getPaperSizeInBytes() == 4960*7016*3);
 
   ASSERT(round(A4.getPaperSizeWInPoints()) == 595);
   ASSERT(round(A4.getPaperSizeHInPoints()) == 842);
@@ -573,6 +581,10 @@ TEST(printparameters)
   ASSERT(Letter.getPaperSizeWInPixels() == 2550);
   ASSERT(Letter.getPaperSizeHInPixels() == 3300);
 
+  ASSERT(Letter.getPaperSizeWInBytes() == 2550*3);
+  ASSERT(Letter.getPaperSizeInPixels() == 2550*3300);
+  ASSERT(Letter.getPaperSizeInBytes() == 2550*3300*3);
+
   ASSERT(Letter.getPaperSizeWInPoints() == 612);
   ASSERT(Letter.getPaperSizeHInPoints() == 792);
 
@@ -588,6 +600,10 @@ TEST(printparameters)
 
   ASSERT(Letter.getPaperSizeWInPixels() == 5100);
   ASSERT(Letter.getPaperSizeHInPixels() == 6600);
+
+  ASSERT(Letter.getPaperSizeWInBytes() == 5100*3);
+  ASSERT(Letter.getPaperSizeInPixels() == 5100*6600);
+  ASSERT(Letter.getPaperSizeInBytes() == 5100*6600*3);
 
   ASSERT(Letter.getPaperSizeWInPoints() == 612);
   ASSERT(Letter.getPaperSizeHInPoints() == 792);
@@ -607,6 +623,14 @@ TEST(printparameters)
   ASSERT(A4.getPaperSizeHInPixels() == 14031);
   ASSERT(A4Px.getPaperSizeWInPixels() == 4960);
   ASSERT(A4Px.getPaperSizeHInPixels() == 14031);
+
+  ASSERT(A4.getPaperSizeWInBytes() == 4960*3);
+  ASSERT(A4.getPaperSizeInPixels() == 4960*14031);
+  ASSERT(A4.getPaperSizeInBytes() == 4960*14031*3);
+
+  ASSERT(A4Px.getPaperSizeWInBytes() == 4960*3);
+  ASSERT(A4Px.getPaperSizeInPixels() == 4960*14031);
+  ASSERT(A4Px.getPaperSizeInBytes() == 4960*14031*3);
 
   // Asymmetric resolution does not affect dimension in points
   ASSERT(round(A4.getPaperSizeWInPoints()) == 595);

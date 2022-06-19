@@ -186,21 +186,19 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
     if(raster)
     {
       cairo_surface_flush(surface);
+
       uint32_t* dat = (uint32_t*)cairo_image_surface_get_data(surface);
-      if(bmp_bts.size() != (Params.getPaperSizeWInPixels() *
-                            Params.getPaperSizeHInPixels() *
-                            Params.colors))
+      size_t size = Params.getPaperSizeInPixels();
+
+      if(bmp_bts.size() != Params.getPaperSizeInBytes())
       {
-        bmp_bts = Bytestream(Params.getPaperSizeWInPixels() *
-                             Params.getPaperSizeHInPixels() *
-                             Params.colors);
+        bmp_bts = Bytestream(Params.getPaperSizeInBytes());
       }
       uint8_t* tmp = bmp_bts.raw();
 
       if(Params.colors == 1)
       {
-        for(size_t i=0; i<(Params.getPaperSizeWInPixels() *
-                           Params.getPaperSizeHInPixels()); i++)
+        for(size_t i=0; i < size; i++)
         {
           tmp[i] = (RGB32_R(dat[i])*R_RELATIVE_LUMINOSITY)
                  + (RGB32_G(dat[i])*G_RELATIVE_LUMINOSITY)
@@ -209,8 +207,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
       }
       else if(Params.colors == 3)
       {
-        for(size_t i=0; i<(Params.getPaperSizeWInPixels() *
-                           Params.getPaperSizeHInPixels()); i++)
+        for(size_t i=0; i < size; i++)
         {
           tmp[i*3] = RGB32_R(dat[i]);
           tmp[i*3+1] = RGB32_G(dat[i]);

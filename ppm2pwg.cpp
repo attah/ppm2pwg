@@ -23,7 +23,7 @@ Bytestream make_urf_file_hdr(uint32_t pages)
 void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts,
                 size_t page, const PrintParameters& Params, bool Verbose)
 {
-  bool backside = (page%2)==0;
+  bool backside = Params.duplex && ((page%2)==0);
 
   if(Verbose)
   {

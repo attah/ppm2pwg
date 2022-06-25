@@ -179,6 +179,7 @@ TEST(duplex_normal)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
+  setenv("DUPLEX", "true", true);
   subprocess::popen ppm2pwg("../ppm2pwg", {});
   ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
   ppm2pwg.close();
@@ -205,6 +206,7 @@ TEST(duplex_vflip)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
+  setenv("DUPLEX", "true", true);
   setenv("BACK_VFLIP", "true", true);
   setenv("BACK_HFLIP", "false", true);
   subprocess::popen ppm2pwg("../ppm2pwg", {});
@@ -233,6 +235,7 @@ TEST(duplex_hflip)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
+  setenv("DUPLEX", "true", true);
   setenv("BACK_VFLIP", "false", true);
   setenv("BACK_HFLIP", "true", true);
   subprocess::popen ppm2pwg("../ppm2pwg", {});
@@ -261,6 +264,7 @@ TEST(duplex_rotated)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
+  setenv("DUPLEX", "true", true);
   setenv("BACK_VFLIP", "true", true);
   setenv("BACK_HFLIP", "true", true);
   subprocess::popen ppm2pwg("../ppm2pwg", {});
@@ -281,6 +285,35 @@ TEST(duplex_rotated)
   ASSERT(hdr2.CrossFeedTransform == -1);
   ASSERT(hdr2.FeedTransform == -1);
   ASSERT(pwg >>= Rotated());
+  ASSERT(pwg.atEnd());
+}
+
+TEST(two_pages_no_duplex)
+{
+  Bytestream twoSided;
+  twoSided << PacmanPpm() << PacmanPpm();
+
+  setenv("DUPLEX", "false", true);
+  setenv("BACK_VFLIP", "true", true);
+  setenv("BACK_HFLIP", "true", true);
+  subprocess::popen ppm2pwg("../ppm2pwg", {});
+  ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
+  ppm2pwg.close();
+
+  ASSERT(ppm2pwg.wait() == 0);
+
+  Bytestream pwg(ppm2pwg.stdout());
+  PwgPgHdr hdr1, hdr2;
+
+  ASSERT(pwg >>= "RaS2");
+  hdr1.decode_from(pwg);
+  ASSERT(hdr1.CrossFeedTransform == 1);
+  ASSERT(hdr1.FeedTransform == 1);
+  ASSERT(pwg >>= RightSideUp());
+  hdr2.decode_from(pwg);
+  ASSERT(hdr2.CrossFeedTransform == 1);
+  ASSERT(hdr2.FeedTransform == 1);
+  ASSERT(pwg >>= RightSideUp());
   ASSERT(pwg.atEnd());
 }
 
@@ -309,6 +342,7 @@ TEST(bilevel_vflip)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
+  setenv("DUPLEX", "true", true);
   setenv("BACK_VFLIP", "true", true);
   setenv("BACK_HFLIP", "false", true);
 
@@ -338,6 +372,7 @@ TEST(bilevel_hflip)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
+  setenv("DUPLEX", "true", true);
   setenv("BACK_VFLIP", "false", true);
   setenv("BACK_HFLIP", "true", true);
 
@@ -368,6 +403,7 @@ TEST(bilevel_rotated)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
+  setenv("DUPLEX", "true", true);
   setenv("BACK_VFLIP", "true", true);
   setenv("BACK_HFLIP", "true", true);
 

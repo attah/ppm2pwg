@@ -27,6 +27,8 @@
 
 #define CHECK(call) if(!(call)) {res = 1; goto error;}
 
+void copy_raster_buffer(Bytestream& bmp_bts, uint32_t* dat, const PrintParameters& Params);
+
 void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_offset,
                  bool& rotate, double& w_in, double& h_in, const PrintParameters& Params);
 
@@ -186,35 +188,8 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
     if(raster)
     {
       cairo_surface_flush(surface);
-
       uint32_t* dat = (uint32_t*)cairo_image_surface_get_data(surface);
-      size_t size = Params.getPaperSizeInPixels();
-
-      if(bmp_bts.size() != Params.getPaperSizeInBytes())
-      {
-        bmp_bts = Bytestream(Params.getPaperSizeInBytes());
-      }
-      uint8_t* tmp = bmp_bts.raw();
-
-      if(Params.colors == 1)
-      {
-        for(size_t i=0; i < size; i++)
-        {
-          tmp[i] = (RGB32_R(dat[i])*R_RELATIVE_LUMINOSITY)
-                 + (RGB32_G(dat[i])*G_RELATIVE_LUMINOSITY)
-                 + (RGB32_B(dat[i])*B_RELATIVE_LUMINOSITY);
-        }
-      }
-      else if(Params.colors == 3)
-      {
-        for(size_t i=0; i < size; i++)
-        {
-          tmp[i*3] = RGB32_R(dat[i]);
-          tmp[i*3+1] = RGB32_G(dat[i]);
-          tmp[i*3+2] = RGB32_B(dat[i]);
-        }
-      }
-
+      copy_raster_buffer(bmp_bts, dat, Params);
       bmp_to_pwg(bmp_bts, OutBts, out_page_no, Params, Verbose);
     }
 
@@ -240,6 +215,37 @@ error:
   g_object_unref(doc);
   return res;
 }
+
+void copy_raster_buffer(Bytestream& bmp_bts, uint32_t* dat, const PrintParameters& Params)
+{
+  size_t size = Params.getPaperSizeInPixels();
+
+  if(bmp_bts.size() != Params.getPaperSizeInBytes())
+  {
+    bmp_bts = Bytestream(Params.getPaperSizeInBytes());
+  }
+  uint8_t* tmp = bmp_bts.raw();
+
+  if(Params.colors == 1)
+  {
+    for(size_t i=0; i < size; i++)
+    {
+      tmp[i] = (RGB32_R(dat[i])*R_RELATIVE_LUMINOSITY)
+             + (RGB32_G(dat[i])*G_RELATIVE_LUMINOSITY)
+             + (RGB32_B(dat[i])*B_RELATIVE_LUMINOSITY);
+    }
+  }
+  else if(Params.colors == 3)
+  {
+    for(size_t i=0; i < size; i++)
+    {
+      tmp[i*3] = RGB32_R(dat[i]);
+      tmp[i*3+1] = RGB32_G(dat[i]);
+      tmp[i*3+2] = RGB32_B(dat[i]);
+    }
+  }
+}
+
 
 void fixup_scale(double& x_scale, double& y_scale, double& x_offset, double& y_offset,
                  bool& rotate, double& w_in, double& h_in, const PrintParameters& Params)

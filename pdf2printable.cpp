@@ -20,6 +20,11 @@
 #define RGB32_R(RGB) ((RGB>>16)&0xff)
 #define RGB32_G(RGB) ((RGB>>8)&0xff)
 #define RGB32_B(RGB) (RGB&0xff)
+#define RGB32_GRAY(RGB) (((RGB32_R(RGB)*R_RELATIVE_LUMINOSITY) \
+                        + (RGB32_G(RGB)*G_RELATIVE_LUMINOSITY) \
+                        + (RGB32_B(RGB)*B_RELATIVE_LUMINOSITY)))
+
+#define MAX3(A,B,C) std::max(std::max(A, B), C)
 
 #ifndef PDF_CREATOR
 #define PDF_CREATOR "pdf2printable"
@@ -224,15 +229,38 @@ void copy_raster_buffer(Bytestream& bmp_bts, uint32_t* dat, const PrintParameter
   {
     bmp_bts = Bytestream(Params.getPaperSizeInBytes());
   }
+
   uint8_t* tmp = bmp_bts.raw();
 
-  if(Params.colors == 1)
+  if(Params.colors == 1 && Params.bitsPerColor == 1)
+  {
+    size_t paperSizeWInPixels = Params.getPaperSizeWInPixels();
+    size_t paperSizeWInBytes = Params.getPaperSizeWInBytes();
+    size_t paperSizeHInPixels = Params.getPaperSizeHInPixels();
+    memset(tmp, Params.black ? 0 : 0xff, bmp_bts.size());
+    for(size_t line=0; line < paperSizeHInPixels; line++)
+    {
+      for(size_t col=0; col < paperSizeWInPixels; col++)
+      {
+        if(RGB32_GRAY(dat[line*paperSizeWInPixels+col]) < 200)
+        {
+          if(Params.black)
+          {
+            tmp[line*paperSizeWInBytes+col/8] |= (0x80 >> (col % 8));
+          }
+          else
+          {
+            tmp[line*paperSizeWInBytes+col/8] &= ~(0x80 >> (col % 8));
+          }
+        }
+      }
+    }
+  }
+  else if(Params.colors == 1 && Params.bitsPerColor == 8)
   {
     for(size_t i=0; i < size; i++)
     {
-      tmp[i] = (RGB32_R(dat[i])*R_RELATIVE_LUMINOSITY)
-             + (RGB32_G(dat[i])*G_RELATIVE_LUMINOSITY)
-             + (RGB32_B(dat[i])*B_RELATIVE_LUMINOSITY);
+      tmp[i] = Params.black ? (255 - RGB32_GRAY(dat[i])) : RGB32_GRAY(dat[i]);
     }
   }
   else if(Params.colors == 3)
@@ -242,6 +270,17 @@ void copy_raster_buffer(Bytestream& bmp_bts, uint32_t* dat, const PrintParameter
       tmp[i*3] = RGB32_R(dat[i]);
       tmp[i*3+1] = RGB32_G(dat[i]);
       tmp[i*3+2] = RGB32_B(dat[i]);
+    }
+  }
+  else if(Params.colors == 4)
+  {
+    for(size_t i=0; i < size; i++)
+    {
+      uint32_t white = MAX3(RGB32_R(dat[i]), RGB32_G(dat[i]), RGB32_B(dat[i]));
+      tmp[i*4] = (white - RGB32_R(dat[i]));
+      tmp[i*4+1] = (white - RGB32_G(dat[i]));
+      tmp[i*4+2] = (white - RGB32_B(dat[i]));
+      tmp[i*4+3] = 255-white;
     }
   }
 }

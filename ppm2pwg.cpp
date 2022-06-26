@@ -177,14 +177,15 @@ void make_pwg_hdr(Bytestream& OutBts, const PrintParameters& Params, bool backsi
   OutHdr.BitsPerColor = Params.bitsPerColor;
   OutHdr.BitsPerPixel = Params.colors * OutHdr.BitsPerColor;
   OutHdr.BytesPerLine = Params.getPaperSizeWInBytes();
-  OutHdr.ColorSpace = Params.colors == 3 ? PwgPgHdr::sRGB
+  OutHdr.ColorSpace = Params.colors == 4 ? PwgPgHdr::CMYK
+                    : Params.colors == 3 ? PwgPgHdr::sRGB
                     : Params.black ? PwgPgHdr::Black
                     : PwgPgHdr::sGray;
   OutHdr.NumColors = Params.colors;
   OutHdr.TotalPageCount = 0;
   OutHdr.CrossFeedTransform = backside&&Params.backHFlip ? -1 : 1;
   OutHdr.FeedTransform = backside&&Params.backVFlip ? -1 : 1;
-  OutHdr.AlternatePrimary = Params.black ? 0 : 0x00ffffff;
+  OutHdr.AlternatePrimary = 0x00ffffff;
   OutHdr.PrintQuality = (Params.quality == 3 ? PwgPgHdr::Draft
                       : (Params.quality == 4 ? PwgPgHdr::Normal
                       : (Params.quality == 5 ? PwgPgHdr::High
@@ -209,7 +210,9 @@ void make_urf_hdr(Bytestream& OutBts, const PrintParameters& Params, bool Verbos
   UrfPgHdr OutHdr;
 
   OutHdr.BitsPerPixel = 8*Params.colors;
-  OutHdr.ColorSpace = Params.colors==3 ? UrfPgHdr::sRGB : UrfPgHdr::sGray;
+  OutHdr.ColorSpace = Params.colors==4 ? UrfPgHdr::CMYK
+                    : Params.colors==3 ? UrfPgHdr::sRGB
+                    : UrfPgHdr::sGray;
   OutHdr.Duplex = Params.duplex ? (Params.tumble ? UrfPgHdr::ShortSide : UrfPgHdr::LongSide)
                          : UrfPgHdr::NoDuplex;
   OutHdr.Quality = (Params.quality == 3 ? UrfPgHdr::Draft

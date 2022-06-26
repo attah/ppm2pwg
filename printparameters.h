@@ -117,7 +117,15 @@ struct PrintParameters
 
   size_t getPaperSizeWInBytes() const
   {
-    return colors * getPaperSizeWInPixels() / (8 / bitsPerColor);
+    if(bitsPerColor == 1)
+    {
+      // Round up to whole bytes
+      return colors * ((getPaperSizeWInPixels() + 7) / 8);
+    }
+    else
+    {
+      return colors * (getPaperSizeWInPixels() / (8 / bitsPerColor));
+    }
   }
 
   size_t getPaperSizeInBytes() const

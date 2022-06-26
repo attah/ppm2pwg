@@ -38,6 +38,8 @@ int main(int argc, char** argv)
   Params.backHFlip = getenv_bool("BACK_HFLIP");
   Params.backVFlip = getenv_bool("BACK_VFLIP");
   Params.colors = getenv_int("COLORS", Params.colors);
+  Params.bitsPerColor = getenv_int("BPC", Params.bitsPerColor);
+  Params.black = getenv_bool("BLACK");
   Params.quality = getenv_int("QUALITY", Params.quality);
 
   std::string format = getenv_str("FORMAT", "pdf");

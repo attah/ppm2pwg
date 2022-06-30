@@ -25,6 +25,7 @@
                         + (RGB32_B(RGB)*B_RELATIVE_LUMINOSITY)))
 
 #define MAX3(A,B,C) std::max(std::max(A, B), C)
+#define SIXTEENTHS(parts, value) (parts*(value/16))
 
 #ifndef PDF_CREATOR
 #define PDF_CREATOR "pdf2printable"
@@ -237,24 +238,33 @@ void copy_raster_buffer(Bytestream& bmp_bts, uint32_t* dat, const PrintParameter
     size_t paperSizeWInPixels = Params.getPaperSizeWInPixels();
     size_t paperSizeWInBytes = Params.getPaperSizeWInBytes();
     size_t paperSizeHInPixels = Params.getPaperSizeHInPixels();
+    int next_debt, pixel, newpixel, debt;
+    int* debt_array = new int[paperSizeWInPixels+2];
+    memset(debt_array, 0, (paperSizeWInPixels+2)*sizeof(int));
     memset(tmp, Params.black ? 0 : 0xff, bmp_bts.size());
     for(size_t line=0; line < paperSizeHInPixels; line++)
     {
+      next_debt = 0; // Don't carry over forward debt from previous line
       for(size_t col=0; col < paperSizeWInPixels; col++)
-      {
-        if(RGB32_GRAY(dat[line*paperSizeWInPixels+col]) < 200)
+      { // Do Floyd-Steinberg dithering to keep grayscales readable in 1-bit
+        pixel = RGB32_GRAY(dat[line*paperSizeWInPixels+col]) + next_debt;
+        newpixel = pixel < 127 ? 0 : 255;
+        debt = pixel - newpixel;
+        next_debt = debt_array[col+2] + SIXTEENTHS(7, debt);
+        debt_array[col] += SIXTEENTHS(3, debt);
+        debt_array[col+1] += SIXTEENTHS(5, debt);
+        debt_array[col+2] = SIXTEENTHS(1, debt);
+        if(newpixel == 0 && Params.black)
         {
-          if(Params.black)
-          {
-            tmp[line*paperSizeWInBytes+col/8] |= (0x80 >> (col % 8));
-          }
-          else
-          {
-            tmp[line*paperSizeWInBytes+col/8] &= ~(0x80 >> (col % 8));
-          }
+          tmp[line*paperSizeWInBytes+col/8] |= (0x80 >> (col % 8));
+        }
+        else if(newpixel == 0)
+        {
+          tmp[line*paperSizeWInBytes+col/8] &= ~(0x80 >> (col % 8));
         }
       }
     }
+    delete[] debt_array;
   }
   else if(Params.colors == 1 && Params.bitsPerColor == 8)
   {

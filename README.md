@@ -4,15 +4,15 @@
 Available as rudimentary standalone applications, but mainly made for use in [SeaPrint](https://github.com/attah/harbour-seaprint).
 
 ## ppm2pwg
-Takes a pgm or ppm (P5 or P6 "raw") bitmap image and converts to PWG or URF printer raster format.
+Takes a pbm, pgm or ppm (P4, P5 or P6 "raw") Netpbm bitmap image and converts to PWG or URF printer raster format.
 
-...or a completely raw bitmap in the c++ api.
+...or a raw bitmap in the c++ api.
 
 ## pwg2ppm
-For debugging. Similar to [rasterview](https://github.com/michaelrsweet/rasterview), but without a GUI. Takes a PWG or URF printer raster and outputs a P5 or P6 pgm/ppm image.
+For debugging. Similar to [rasterview](https://github.com/michaelrsweet/rasterview), but without a GUI. Takes a PWG or URF printer raster and outputs a series of P4, P5 or P6 pgm/ppm images.
 
 ## pdf2printable
-Takes a pdf document and makes it suitable for printing, by:
+Takes a PDF document and makes it suitable for printing, by:
 - rotate and scale to fit as needed to a desired page size
 - convert to PDF 1.5, Postscript 2 or PWG/URF raster
 

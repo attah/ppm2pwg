@@ -32,8 +32,9 @@ int main(int argc, char** argv)
       PwgPgHdr PwgHdr;
       PwgHdr.decode_from(file);
       std::cerr << PwgHdr.describe() << std::endl;
-      raster_to_bmp(OutBts, file, PwgHdr.Width, PwgHdr.Height, PwgHdr.NumColors, false);
-      write_ppm(OutBts, PwgHdr.Width, PwgHdr.Height, PwgHdr.NumColors, outfile_prefix, pages);
+      raster_to_bmp(OutBts, file, PwgHdr.BytesPerLine, PwgHdr.Height, PwgHdr.NumColors, false);
+      write_ppm(OutBts, PwgHdr.Width, PwgHdr.Height, PwgHdr.NumColors, PwgHdr.BitsPerColor,
+                PwgHdr.ColorSpace == PwgPgHdr::Black, outfile_prefix, pages);
       OutBts.reset();
     }
     while (file.remaining());
@@ -50,8 +51,10 @@ int main(int argc, char** argv)
       UrfPgHdr UrfHdr;
       UrfHdr.decode_from(file);
       std::cerr << UrfHdr.describe() << std::endl;
-      raster_to_bmp(OutBts, file, UrfHdr.Width, UrfHdr.Height, UrfHdr.BitsPerPixel/8, true);
-      write_ppm(OutBts, UrfHdr.Width, UrfHdr.Height, UrfHdr.BitsPerPixel/8, outfile_prefix, pages);
+      size_t ByteWidth = UrfHdr.Width * (UrfHdr.BitsPerPixel/8);
+      raster_to_bmp(OutBts, file, ByteWidth, UrfHdr.Height, UrfHdr.BitsPerPixel/8, true);
+      write_ppm(OutBts, UrfHdr.Width, UrfHdr.Height, UrfHdr.BitsPerPixel/8, 8,
+                false, outfile_prefix, pages);
       OutBts.reset();
     }
     while (file.remaining());

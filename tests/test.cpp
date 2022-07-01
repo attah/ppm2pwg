@@ -463,7 +463,7 @@ void do_test_centering(const char* test_name, std::string filename, bool asymmet
   ASSERT(close_enough(height, asymmetric ? 7015 : 3507, 1));
 
   Bytestream bmp;
-  raster_to_bmp(bmp, pwg, width, height, colors, false);
+  raster_to_bmp(bmp, pwg, width*3, height, colors, false);
 
   size_t left_margin, right_margin, top_margin, bottom_margin;
 

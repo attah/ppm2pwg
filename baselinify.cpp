@@ -2,6 +2,8 @@
 #include <jpeglib.h>
 #include "madness.h"
 
+#define JPEG_APP1 (JPEG_APP0+1)
+
 struct bts_source_mgr: jpeg_source_mgr
 {
   bts_source_mgr(Bytestream& in) : bts(in)
@@ -93,16 +95,30 @@ void baselinify(Bytestream& InBts, Bytestream& OutBts)
   bts_source_mgr srcmgr(InBts);
   srcinfo.src = &srcmgr;
 
-  // TODO: consider copying or inserting exif header if applicable
+  // Preserve JFIF and EXIF data
+  jpeg_save_markers(&srcinfo, JPEG_APP0, 0xFFFF);
+  jpeg_save_markers(&srcinfo, JPEG_APP1, 0xFFFF);
 
   jpeg_read_header(&srcinfo, TRUE);
+
   coef_arrays = jpeg_read_coefficients(&srcinfo);
+
   jpeg_copy_critical_parameters(&srcinfo, &dstinfo);
+
+  // Don't write automatic JFIF data as it would be done twice
+  dstinfo.write_JFIF_header = FALSE;
+  dstinfo.write_Adobe_marker = FALSE;
 
   bts_destination_mgr dstmgr(OutBts);
   dstinfo.dest = &dstmgr;
 
   jpeg_write_coefficients(&dstinfo, coef_arrays);
+
+  for(jpeg_saved_marker_ptr marker = srcinfo.marker_list; marker != NULL; marker = marker->next)
+  {
+    jpeg_write_marker(&dstinfo, marker->marker, marker->data, marker->data_length);
+  }
+
   jpeg_finish_compress(&dstinfo);
   jpeg_destroy_compress(&dstinfo);
   jpeg_finish_decompress(&srcinfo);

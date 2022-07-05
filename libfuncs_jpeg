@@ -10,3 +10,5 @@ FUNC(jpeg, void, jpeg_destroy_decompress, j_decompress_ptr);
 FUNC(jpeg, void, jpeg_CreateCompress, j_compress_ptr, int, size_t);
 FUNC(jpeg, void, jpeg_CreateDecompress, j_decompress_ptr, int, size_t);
 FUNC(jpeg, struct jpeg_error_mgr*, jpeg_std_error, struct jpeg_error_mgr*);
+FUNC(jpeg, void, jpeg_save_markers, j_decompress_ptr, int, unsigned int);
+FUNC(jpeg, void, jpeg_write_marker, j_compress_ptr, int, const JOCTET*, unsigned int);

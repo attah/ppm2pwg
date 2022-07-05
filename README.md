@@ -9,7 +9,7 @@ Takes a pbm, pgm or ppm (P4, P5 or P6 "raw") Netpbm bitmap image and converts to
 ...or a raw bitmap in the c++ api.
 
 ## pwg2ppm
-For debugging. Similar to [rasterview](https://github.com/michaelrsweet/rasterview), but without a GUI. Takes a PWG or URF printer raster and outputs a series of P4, P5 or P6 pgm/ppm images.
+For debugging. Similar to [rasterview](https://github.com/michaelrsweet/rasterview), but without a GUI. Takes a PWG or URF printer raster and outputs a series of P4, P5 or P6 pbm/pgm/ppm images.
 
 ## pdf2printable
 Takes a PDF document and makes it suitable for printing, by:
@@ -17,7 +17,8 @@ Takes a PDF document and makes it suitable for printing, by:
 - convert to PDF 1.5, Postscript 2 or PWG/URF raster
 
 ## baselinify
-Takes a JPEG and losslessly repacks it to the baseline ecoding profile. Like jpegtran without any arguments, but reusable in C++.
+Takes a JPEG and losslessly repacks it to the baseline ecoding profile, keeping only JFIF and Exif headers.
+Sort of like jpegtran without any arguments, but reusable in C++.
 
 IPP-printers are only required to support baseline-encoded jpeg according to PWG5100.14.
 

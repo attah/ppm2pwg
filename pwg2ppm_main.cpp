@@ -51,7 +51,7 @@ int main(int argc, char** argv)
       UrfPgHdr UrfHdr;
       UrfHdr.decode_from(file);
       std::cerr << UrfHdr.describe() << std::endl;
-      size_t ByteWidth = UrfHdr.Width * (UrfHdr.BitsPerPixel/8);
+      uint32_t ByteWidth = UrfHdr.Width * (UrfHdr.BitsPerPixel/8);
       raster_to_bmp(OutBts, file, ByteWidth, UrfHdr.Height, UrfHdr.BitsPerPixel/8, true);
       write_ppm(OutBts, UrfHdr.Width, UrfHdr.Height, UrfHdr.BitsPerPixel/8, 8,
                 false, outfile_prefix, pages);

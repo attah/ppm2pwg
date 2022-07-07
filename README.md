@@ -23,3 +23,13 @@ Sort of like jpegtran without any arguments, but reusable in C++.
 IPP-printers are only required to support baseline-encoded jpeg according to PWG5100.14.
 
 Despite working with in-memory data, it only requires the libjpeg 62.2.0 and not 62.3.0/7.3+ API, so it works on conservative distros.
+
+## Building
+
+Install dependencies:
+
+`sudo apt install libpoppler-dev libpoppler-glib-dev  libcairo2-dev  libglib2.0-dev libjpeg-dev`
+
+Build:
+
+`make`

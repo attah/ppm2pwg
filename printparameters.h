@@ -15,7 +15,8 @@ struct PrintParameters
     PDF,
     Postscript,
     PWG,
-    URF
+    URF,
+    Invalid
   };
 
   Format format = PDF;

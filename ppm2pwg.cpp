@@ -197,7 +197,7 @@ void make_pwg_hdr(Bytestream& OutBts, const PrintParameters& Params, bool backsi
     std::cerr << OutHdr.describe() << std::endl;
   }
 
-  OutHdr.encode_into(OutBts);
+  OutHdr.encodeInto(OutBts);
 }
 
 void make_urf_hdr(Bytestream& OutBts, const PrintParameters& Params, bool Verbose)
@@ -228,5 +228,5 @@ void make_urf_hdr(Bytestream& OutBts, const PrintParameters& Params, bool Verbos
     std::cerr << OutHdr.describe() << std::endl;
   }
 
-  OutHdr.encode_into(OutBts);
+  OutHdr.encodeInto(OutBts);
 }

@@ -30,7 +30,7 @@ int main(int argc, char** argv)
     {
       std::cerr << "Page " << ++pages << std::endl;
       PwgPgHdr PwgHdr;
-      PwgHdr.decode_from(file);
+      PwgHdr.decodeFrom(file);
       std::cerr << PwgHdr.describe() << std::endl;
       raster_to_bmp(OutBts, file, PwgHdr.BytesPerLine, PwgHdr.Height, PwgHdr.NumColors, false);
       write_ppm(OutBts, PwgHdr.Width, PwgHdr.Height, PwgHdr.NumColors, PwgHdr.BitsPerColor,
@@ -49,7 +49,7 @@ int main(int argc, char** argv)
     {
       std::cerr << "Page " << ++pages << std::endl;
       UrfPgHdr UrfHdr;
-      UrfHdr.decode_from(file);
+      UrfHdr.decodeFrom(file);
       std::cerr << UrfHdr.describe() << std::endl;
       uint32_t ByteWidth = UrfHdr.Width * (UrfHdr.BitsPerPixel/8);
       raster_to_bmp(OutBts, file, ByteWidth, UrfHdr.Height, UrfHdr.BitsPerPixel/8, true);

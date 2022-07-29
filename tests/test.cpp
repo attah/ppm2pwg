@@ -159,7 +159,7 @@ TEST(ppm2pwg)
   PwgPgHdr hdr;
 
   ASSERT(pwg >>= "RaS2");
-  hdr.decode_from(pwg);
+  hdr.decodeFrom(pwg);
 
   Bytestream enc = RightSideUp();
 
@@ -190,11 +190,11 @@ TEST(duplex_normal)
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
-  hdr1.decode_from(pwg);
+  hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
   ASSERT(pwg >>= RightSideUp());
-  hdr2.decode_from(pwg);
+  hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == 1);
   ASSERT(hdr2.FeedTransform == 1);
   ASSERT(pwg >>= RightSideUp());
@@ -219,11 +219,11 @@ TEST(duplex_vflip)
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
-  hdr1.decode_from(pwg);
+  hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
   ASSERT(pwg >>= RightSideUp());
-  hdr2.decode_from(pwg);
+  hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == 1);
   ASSERT(hdr2.FeedTransform == -1);
   ASSERT(pwg >>= UpsideDown());
@@ -248,11 +248,11 @@ TEST(duplex_hflip)
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
-  hdr1.decode_from(pwg);
+  hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
   ASSERT(pwg >>= RightSideUp());
-  hdr2.decode_from(pwg);
+  hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == -1);
   ASSERT(hdr2.FeedTransform == 1);
   ASSERT(pwg >>= Flipped());
@@ -277,11 +277,11 @@ TEST(duplex_rotated)
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
-  hdr1.decode_from(pwg);
+  hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
   ASSERT(pwg >>= RightSideUp());
-  hdr2.decode_from(pwg);
+  hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == -1);
   ASSERT(hdr2.FeedTransform == -1);
   ASSERT(pwg >>= Rotated());
@@ -306,11 +306,11 @@ TEST(two_pages_no_duplex)
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
-  hdr1.decode_from(pwg);
+  hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
   ASSERT(pwg >>= RightSideUp());
-  hdr2.decode_from(pwg);
+  hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == 1);
   ASSERT(hdr2.FeedTransform == 1);
   ASSERT(pwg >>= RightSideUp());
@@ -331,7 +331,7 @@ TEST(bilevel)
 
   PwgPgHdr hdr1;
   ASSERT(pwg >>= "RaS2");
-  hdr1.decode_from(pwg);
+  hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
   ASSERT(pwg >>= BilevelPwg0101());
@@ -356,11 +356,11 @@ TEST(bilevel_vflip)
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
-  hdr1.decode_from(pwg);
+  hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
   ASSERT(pwg >>= BilevelPwg0101());
-  hdr2.decode_from(pwg);
+  hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == 1);
   ASSERT(hdr2.FeedTransform == -1);
   ASSERT(pwg >>= BilevelPwg0101_UpsideDown());
@@ -386,11 +386,11 @@ TEST(bilevel_hflip)
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
-  hdr1.decode_from(pwg);
+  hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
   ASSERT(pwg >>= BilevelPwg0101());
-  hdr2.decode_from(pwg);
+  hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == -1);
   ASSERT(hdr2.FeedTransform == 1);
 
@@ -417,11 +417,11 @@ TEST(bilevel_rotated)
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
-  hdr1.decode_from(pwg);
+  hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
   ASSERT(pwg >>= BilevelPwg0101());
-  hdr2.decode_from(pwg);
+  hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == -1);
   ASSERT(hdr2.FeedTransform == -1);
 
@@ -453,7 +453,7 @@ void do_test_centering(const char* test_name, std::string filename, bool asymmet
 
   ASSERT(pwg >>= "RaS2");
   PwgPgHdr PwgHdr;
-  PwgHdr.decode_from(pwg);
+  PwgHdr.decodeFrom(pwg);
 
   size_t width = PwgHdr.Width;
   size_t height = PwgHdr.Height;

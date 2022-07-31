@@ -96,9 +96,9 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
   }
 
   size_t pages = poppler_document_get_n_pages(doc);
+  PageRange range = Params.getPageRange(pages);
 
   size_t out_page_no = 0;
-  size_t total_pages = Params.getToPage(pages) - Params.getFromPage() + 1;
 
   if(raster)
   {
@@ -108,7 +108,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
     Bytestream FileHdr;
     if(Params.format == PrintParameters::URF)
     {
-      FileHdr = make_urf_file_hdr(total_pages);
+      FileHdr = make_urf_file_hdr(range.size());
     }
     else
     {
@@ -136,23 +136,12 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
     return 1;
   }
 
-  for(size_t page_index = 0; page_index < pages; page_index++)
+  for(PageRange::iterator page_it = range.begin(); page_it != range.end(); page_it++)
   {
-    if((page_index+1) < Params.getFromPage() ||
-       (page_index+1) > Params.getToPage(pages))
-    {
-      continue;
-    }
     out_page_no++;
-
-    PopplerPage* page = poppler_document_get_page(doc, page_index);
-    double page_width, page_height;
-    poppler_page_get_size(page, &page_width, &page_height);
 
     cairo_t* cr;
     cairo_status_t status;
-    cairo_matrix_t m;
-
     cr = cairo_create(surface);
 
     if(raster)
@@ -163,25 +152,33 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
       cairo_restore(cr);
     }
 
-    double x_scale = 0;
-    double y_scale = 0;
-    double x_offset = 0;
-    double y_offset = 0;
-    bool rotate = false;
-    fixup_scale(x_scale, y_scale, x_offset, y_offset, rotate,
-                page_width, page_height, Params);
+    if(*page_it != INVALID_PAGE)
+    { // If we are actually rendering a page and not just a blank...
+      PopplerPage* page = poppler_document_get_page(doc, (*page_it)-1);
+      double page_width, page_height;
+      poppler_page_get_size(page, &page_width, &page_height);
 
-    cairo_translate(cr, x_offset, y_offset);
-    cairo_scale(cr, x_scale, y_scale);
+      double x_scale = 0;
+      double y_scale = 0;
+      double x_offset = 0;
+      double y_offset = 0;
+      bool rotate = false;
+      fixup_scale(x_scale, y_scale, x_offset, y_offset, rotate,
+                  page_width, page_height, Params);
 
-    if (rotate)
-    { // Rotate to portrait
-      cairo_matrix_init(&m, 0, -1, 1, 0, 0, page_height);
-      cairo_transform(cr, &m);
+      cairo_translate(cr, x_offset, y_offset);
+      cairo_scale(cr, x_scale, y_scale);
+
+      cairo_matrix_t m;
+      if (rotate)
+      { // Rotate to portrait
+        cairo_matrix_init(&m, 0, -1, 1, 0, 0, page_height);
+        cairo_transform(cr, &m);
+      }
+
+      poppler_page_render_for_printing(page, cr);
+      g_object_unref(page);
     }
-
-    poppler_page_render_for_printing(page, cr);
-    g_object_unref(page);
 
     status = cairo_status(cr);
     if (status)
@@ -204,7 +201,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
 
     if(ProgressFun != nullptr)
     {
-      ProgressFun(out_page_no, total_pages);
+      ProgressFun(out_page_no, range.size());
     }
 
   }

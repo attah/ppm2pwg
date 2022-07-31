@@ -3,12 +3,21 @@
 
 #include <cmath>
 #include <string>
+#include <list>
+#include <vector>
 
 #define MM_PER_IN 25.4
 #define PTS_PER_IN 72.0
 
-struct PrintParameters
+#define INVALID_PAGE 0
+
+typedef std::vector<size_t> PageRange;
+
+class PrintParameters
 {
+public:
+
+  typedef std::list<std::pair<size_t, size_t>> PageRangeList;
 
   enum Format
   {
@@ -52,8 +61,10 @@ struct PrintParameters
   bool backHFlip = false;
   bool backVFlip = false;
 
-  size_t fromPage = 0; // Auto first
-  size_t toPage = 0; // Auto last
+  size_t documentCopies = 1;
+  size_t pageCopies = 1;
+
+  PageRangeList pageRangeList;
 
   size_t getPaperSizeWInPixels() const
   {
@@ -134,17 +145,75 @@ struct PrintParameters
     return getPaperSizeWInBytes() * getPaperSizeHInPixels();
   }
 
-  size_t getFromPage() const
+  PageRange getPageRange(size_t pages) const
   {
-    return fromPage == 0 ? 1 : fromPage;
-  }
+    PageRangeList tmp = pageRangeList.empty() ? PageRangeList {{0, 0}} : pageRangeList;
+    PageRange range;
 
-  size_t getToPage(size_t max) const
-  {
-    return (toPage == 0 || toPage > max) ? max : toPage;
+    if(tmp.size() == 1)
+    {
+      std::pair<size_t, size_t> pair = *(tmp.begin());
+      if(pair.first == 0)
+      {
+        pair.first = 1;
+      }
+      if(pair.second == 0)
+      {
+        pair.second = pages;
+      }
+      tmp = {pair};
+    }
+
+    for(const std::pair<size_t, size_t> r : tmp)
+    {
+      for(size_t p = r.first; p <= r.second; p++)
+      {
+        range.push_back(p);
+      }
+    }
+    if(duplex && (documentCopies > 1 || pageCopies > 1) && ((range.size() % 2) == 1))
+    {
+      range.push_back(INVALID_PAGE);
+    }
+
+    if(pageCopies > 1)
+    {
+      PageRange copy;
+      for(PageRange::iterator it = range.begin(); it != range.end(); it++)
+      {
+        if(duplex)
+        {
+          for(size_t pc = pageCopies; pc > 0; pc--)
+          {
+            copy.push_back(*it);
+            copy.push_back(*(it+1));
+          }
+          it++;
+        }
+        else
+        {
+          for(size_t pc = pageCopies; pc > 0; pc--)
+          {
+            copy.push_back(*it);
+          }
+        }
+      }
+      range = copy;
+    }
+
+    if(documentCopies > 1)
+    {
+      PageRange copy = range;
+      for(size_t dc = documentCopies; dc > 1; dc--)
+      {
+        range.insert(range.end(), copy.begin(), copy.end());
+      }
+    }
+    return range;
   }
 
 private:
+
   double round2(double d) const
   {
     return round(d*100)/100;

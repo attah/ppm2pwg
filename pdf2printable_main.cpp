@@ -30,8 +30,12 @@ int main(int argc, char** argv)
   Params.paperSizeW = PaperSize.first;
   Params.paperSizeH = PaperSize.second;
 
-  Params.fromPage = getenv_int("FROM_PAGE", Params.fromPage);
-  Params.toPage = getenv_int("TO_PAGE", Params.toPage);
+  int fromPage = getenv_int("FROM_PAGE", 0);
+  int toPage = getenv_int("TO_PAGE", 0);
+  if(fromPage != 0 || toPage != 0)
+  {
+    Params.pageRangeList = {{fromPage, toPage}};
+  }
 
   Params.duplex = getenv_bool("DUPLEX");
   Params.tumble = getenv_bool("TUMBLE");
@@ -41,6 +45,8 @@ int main(int argc, char** argv)
   Params.bitsPerColor = getenv_int("BPC", Params.bitsPerColor);
   Params.black = getenv_bool("BLACK");
   Params.quality = getenv_int("QUALITY", Params.quality);
+  Params.documentCopies = getenv_int("COPIES", Params.documentCopies);
+  Params.pageCopies = getenv_int("PAGE_COPIES", Params.pageCopies);
 
   std::string format = getenv_str("FORMAT", "pdf");
   if(format == "ps" || format == "postscript")

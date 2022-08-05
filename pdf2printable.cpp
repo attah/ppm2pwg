@@ -60,18 +60,19 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
                      progress_fun ProgressFun, bool Verbose)
 {
   int res = 0;
+  bool raster = Params.format == PrintParameters::PWG ||
+                Params.format == PrintParameters::URF;
+
+  cairo_surface_t* surface;
+  cairo_t* cr;
+  cairo_status_t status;
+  Bytestream bmp_bts;
+  Bytestream OutBts;
 
   if(Params.format == PrintParameters::URF && (Params.hwResW != Params.hwResH))
   { // URF must have a symmetric resolution
     return 1;
   }
-
-  bool raster = Params.format == PrintParameters::PWG ||
-                Params.format == PrintParameters::URF;
-
-  cairo_surface_t* surface;
-  Bytestream bmp_bts;
-  Bytestream OutBts;
 
   #if MADNESS
   #include "libfuncs"
@@ -139,9 +140,6 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
   for(size_t page_no : seq)
   {
     out_page_no++;
-
-    cairo_t* cr;
-    cairo_status_t status;
     cr = cairo_create(surface);
 
     if(raster)
@@ -153,25 +151,22 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
     }
 
     if(page_no != INVALID_PAGE)
-    { // If we are actually rendering a page and not just a blank...
+    { // We are actually rendering a page and not just a blank...
       PopplerPage* page = poppler_document_get_page(doc, page_no-1);
       double page_width, page_height;
-      poppler_page_get_size(page, &page_width, &page_height);
-
-      double x_scale = 0;
-      double y_scale = 0;
-      double x_offset = 0;
-      double y_offset = 0;
+      double x_scale, y_scale, x_offset, y_offset;
       bool rotate = false;
+
+      poppler_page_get_size(page, &page_width, &page_height);
       fixup_scale(x_scale, y_scale, x_offset, y_offset, rotate,
                   page_width, page_height, Params);
 
       cairo_translate(cr, x_offset, y_offset);
       cairo_scale(cr, x_scale, y_scale);
 
-      cairo_matrix_t m;
       if (rotate)
       { // Rotate to portrait
+        cairo_matrix_t m;
         cairo_matrix_init(&m, 0, -1, 1, 0, 0, page_height);
         cairo_transform(cr, &m);
       }

@@ -3,7 +3,6 @@
 
 #include <cmath>
 #include <string>
-#include <list>
 #include <vector>
 
 #define MM_PER_IN 25.4
@@ -11,13 +10,12 @@
 
 #define INVALID_PAGE 0
 
-typedef std::vector<size_t> PageRange;
+typedef std::vector<size_t> PageSequence;
+typedef std::vector<std::pair<size_t, size_t>> PageRangeList;
 
 class PrintParameters
 {
 public:
-
-  typedef std::list<std::pair<size_t, size_t>> PageRangeList;
 
   enum Format
   {
@@ -145,14 +143,15 @@ public:
     return getPaperSizeWInBytes() * getPaperSizeHInPixels();
   }
 
-  PageRange getPageRange(size_t pages) const
+  PageSequence getPageSequence(size_t pages) const
   {
-    PageRangeList tmp = pageRangeList.empty() ? PageRangeList {{0, 0}} : pageRangeList;
-    PageRange range;
+    PageRangeList tmp = pageRangeList.empty() ? PageRangeList {{0, 0}}
+                                              : pageRangeList;
+    PageSequence seq;
 
     if(tmp.size() == 1)
     {
-      std::pair<size_t, size_t> pair = *(tmp.begin());
+      std::pair<size_t, size_t> pair = tmp[0];
       if(pair.first == 0)
       {
         pair.first = 1;
@@ -168,18 +167,18 @@ public:
     {
       for(size_t p = r.first; p <= r.second; p++)
       {
-        range.push_back(p);
+        seq.push_back(p);
       }
     }
-    if(duplex && (documentCopies > 1 || pageCopies > 1) && ((range.size() % 2) == 1))
+    if(duplex && (documentCopies > 1 || pageCopies > 1) && ((seq.size() % 2) == 1))
     {
-      range.push_back(INVALID_PAGE);
+      seq.push_back(INVALID_PAGE);
     }
 
     if(pageCopies > 1)
     {
-      PageRange copy;
-      for(PageRange::iterator it = range.begin(); it != range.end(); it++)
+      PageSequence copy;
+      for(PageSequence::iterator it = seq.begin(); it != seq.end(); it++)
       {
         if(duplex)
         {
@@ -198,18 +197,18 @@ public:
           }
         }
       }
-      range = copy;
+      seq = copy;
     }
 
     if(documentCopies > 1)
     {
-      PageRange copy = range;
+      PageSequence copy = seq;
       for(size_t dc = documentCopies; dc > 1; dc--)
       {
-        range.insert(range.end(), copy.begin(), copy.end());
+        seq.insert(seq.end(), copy.begin(), copy.end());
       }
     }
-    return range;
+    return seq;
   }
 
 private:

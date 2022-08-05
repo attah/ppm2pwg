@@ -96,7 +96,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
   }
 
   size_t pages = poppler_document_get_n_pages(doc);
-  PageRange range = Params.getPageRange(pages);
+  PageSequence seq = Params.getPageSequence(pages);
 
   size_t out_page_no = 0;
 
@@ -108,7 +108,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
     Bytestream FileHdr;
     if(Params.format == PrintParameters::URF)
     {
-      FileHdr = make_urf_file_hdr(range.size());
+      FileHdr = make_urf_file_hdr(seq.size());
     }
     else
     {
@@ -136,7 +136,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
     return 1;
   }
 
-  for(PageRange::iterator page_it = range.begin(); page_it != range.end(); page_it++)
+  for(size_t page_no : seq)
   {
     out_page_no++;
 
@@ -152,9 +152,9 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
       cairo_restore(cr);
     }
 
-    if(*page_it != INVALID_PAGE)
+    if(page_no != INVALID_PAGE)
     { // If we are actually rendering a page and not just a blank...
-      PopplerPage* page = poppler_document_get_page(doc, (*page_it)-1);
+      PopplerPage* page = poppler_document_get_page(doc, page_no-1);
       double page_width, page_height;
       poppler_page_get_size(page, &page_width, &page_height);
 
@@ -201,7 +201,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
 
     if(ProgressFun != nullptr)
     {
-      ProgressFun(out_page_no, range.size());
+      ProgressFun(out_page_no, seq.size());
     }
 
   }

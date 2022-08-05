@@ -690,180 +690,180 @@ TEST(printparameters)
 TEST(pagerange)
 {
   PrintParameters params;
-  PageRange range;
-  range = params.getPageRange(100);
-  ASSERT(range.size() == 100);
+  PageSequence seq;
+  seq = params.getPageSequence(100);
+  ASSERT(seq.size() == 100);
 
   params.pageRangeList = {{4, 7}};
-  range = params.getPageRange(100);
-  ASSERT(range.size() == 4);
-  ASSERT((range == PageRange {4, 5, 6, 7}));
+  seq = params.getPageSequence(100);
+  ASSERT(seq.size() == 4);
+  ASSERT((seq == PageSequence {4, 5, 6, 7}));
 
   params.documentCopies = 2;
   params.format = PrintParameters::PWG;
   params.pageRangeList = {{4, 7}};
-  range = params.getPageRange(100);
-  ASSERT(range.size() == 8);
-  ASSERT((range == PageRange {4, 5, 6, 7,
-                              4, 5, 6, 7}));
+  seq = params.getPageSequence(100);
+  ASSERT(seq.size() == 8);
+  ASSERT((seq == PageSequence {4, 5, 6, 7,
+                               4, 5, 6, 7}));
 
   params.duplex = false;
   params.documentCopies = 2;
   params.format = PrintParameters::PWG;
   params.pageRangeList = {{4, 6}};
-  range = params.getPageRange(100);
-  ASSERT(range.size() == 6);
-  ASSERT((range == PageRange {4, 5, 6,
-                              4, 5, 6}));
+  seq = params.getPageSequence(100);
+  ASSERT(seq.size() == 6);
+  ASSERT((seq == PageSequence {4, 5, 6,
+                               4, 5, 6}));
 
   params.duplex = false;
   params.documentCopies = 3;
   params.pageRangeList = {{4, 6}};
-  range = params.getPageRange(100);
-  ASSERT(range.size() == 9);
-  ASSERT((range == PageRange {4, 5, 6,
-                              4, 5, 6,
-                              4, 5, 6}));
+  seq = params.getPageSequence(100);
+  ASSERT(seq.size() == 9);
+  ASSERT((seq == PageSequence {4, 5, 6,
+                               4, 5, 6,
+                               4, 5, 6}));
 
   params.duplex = true;
   params.documentCopies = 2;
   params.format = PrintParameters::PWG;
   params.pageRangeList = {{4, 6}};
-  range = params.getPageRange(100);
-  ASSERT(range.size() == 8);
-  ASSERT((range == PageRange {4, 5, 6, INVALID_PAGE,
-                              4, 5, 6, INVALID_PAGE}));
+  seq = params.getPageSequence(100);
+  ASSERT(seq.size() == 8);
+  ASSERT((seq == PageSequence {4, 5, 6, INVALID_PAGE,
+                               4, 5, 6, INVALID_PAGE}));
 
   params.duplex = true;
   params.documentCopies = 3;
   params.pageRangeList = {{4, 6}};
-  range = params.getPageRange(100);
-  ASSERT(range.size() == 12);
-  ASSERT((range == PageRange {4, 5, 6, INVALID_PAGE,
-                              4, 5, 6, INVALID_PAGE,
-                              4, 5, 6, INVALID_PAGE}));
+  seq = params.getPageSequence(100);
+  ASSERT(seq.size() == 12);
+  ASSERT((seq == PageSequence {4, 5, 6, INVALID_PAGE,
+                               4, 5, 6, INVALID_PAGE,
+                               4, 5, 6, INVALID_PAGE}));
 
   params.duplex = false;
   params.documentCopies = 1;
   params.pageCopies = 2;
   params.pageRangeList = {{4, 7}};
-  range = params.getPageRange(100);
-  ASSERT(range.size() == 8);
-  ASSERT((range == PageRange {4, 4,
-                              5, 5,
-                              6, 6,
-                              7, 7}));
+  seq = params.getPageSequence(100);
+  ASSERT(seq.size() == 8);
+  ASSERT((seq == PageSequence {4, 4,
+                               5, 5,
+                               6, 6,
+                               7, 7}));
 
   params.duplex = true;
   params.documentCopies = 1;
   params.pageCopies = 2;
   params.pageRangeList = {{4, 7}};
-  range = params.getPageRange(100);
-  ASSERT(range.size() == 8);
-  ASSERT((range == PageRange {4, 5,
-                              4, 5,
-                              6, 7,
-                              6, 7}));
+  seq = params.getPageSequence(100);
+  ASSERT(seq.size() == 8);
+  ASSERT((seq == PageSequence {4, 5,
+                               4, 5,
+                               6, 7,
+                               6, 7}));
 
   params.duplex = false;
   params.documentCopies = 3;
   params.pageCopies = 1;
   params.pageRangeList = {{1, 2}, {5, 7}};
-  range = params.getPageRange(100);
-  ASSERT(range.size() == 15);
-  ASSERT((range == PageRange {1, 2, 5, 6, 7,
-                              1, 2, 5, 6, 7,
-                              1, 2, 5, 6, 7}));
+  seq = params.getPageSequence(100);
+  ASSERT(seq.size() == 15);
+  ASSERT((seq == PageSequence {1, 2, 5, 6, 7,
+                               1, 2, 5, 6, 7,
+                               1, 2, 5, 6, 7}));
 
   params.duplex = true;
   params.documentCopies = 3;
   params.pageCopies = 1;
   params.pageRangeList = {{1, 2}, {5, 7}};
-  range = params.getPageRange(100);
-  ASSERT(range.size() == 18);
-  ASSERT((range == PageRange {1, 2, 5, 6, 7, INVALID_PAGE,
-                              1, 2, 5, 6, 7, INVALID_PAGE,
-                              1, 2, 5, 6, 7, INVALID_PAGE}));
+  seq = params.getPageSequence(100);
+  ASSERT(seq.size() == 18);
+  ASSERT((seq == PageSequence {1, 2, 5, 6, 7, INVALID_PAGE,
+                               1, 2, 5, 6, 7, INVALID_PAGE,
+                               1, 2, 5, 6, 7, INVALID_PAGE}));
 
   params.duplex = true;
   params.documentCopies = 3;
   params.pageCopies = 1;
   params.pageRangeList = {{1, 2}, {6, 7}};
-  range = params.getPageRange(100);
-  ASSERT(range.size() == 12);
-  ASSERT((range == PageRange {1, 2, 6, 7,
-                              1, 2, 6, 7,
-                              1, 2, 6, 7}));
+  seq = params.getPageSequence(100);
+  ASSERT(seq.size() == 12);
+  ASSERT((seq == PageSequence {1, 2, 6, 7,
+                               1, 2, 6, 7,
+                               1, 2, 6, 7}));
 
   params.duplex = false;
   params.documentCopies = 1;
   params.pageCopies = 2;
   params.pageRangeList = {{1, 2}, {5, 7}};
-  range = params.getPageRange(100);
-  ASSERT(range.size() == 10);
-  ASSERT((range == PageRange {1, 1,
-                              2, 2,
-                              5, 5,
-                              6, 6,
-                              7, 7}));
+  seq = params.getPageSequence(100);
+  ASSERT(seq.size() == 10);
+  ASSERT((seq == PageSequence {1, 1,
+                               2, 2,
+                               5, 5,
+                               6, 6,
+                               7, 7}));
 
   params.duplex = true;
   params.documentCopies = 1;
   params.pageCopies = 2;
   params.pageRangeList = {{1, 2}, {5, 7}};
-  range = params.getPageRange(100);
-  ASSERT(range.size() == 12);
-  ASSERT((range == PageRange {1, 2,
-                              1, 2,
-                              5, 6,
-                              5, 6,
-                              7, INVALID_PAGE,
-                              7, INVALID_PAGE}));
+  seq = params.getPageSequence(100);
+  ASSERT(seq.size() == 12);
+  ASSERT((seq == PageSequence {1, 2,
+                               1, 2,
+                               5, 6,
+                               5, 6,
+                               7, INVALID_PAGE,
+                               7, INVALID_PAGE}));
 
   params.duplex = false;
   params.documentCopies = 1;
   params.pageCopies = 1;
   params.pageRangeList = {};
-  range = params.getPageRange(3);
-  ASSERT(range.size() == 3);
-  ASSERT((range == PageRange {1, 2, 3}));
+  seq = params.getPageSequence(3);
+  ASSERT(seq.size() == 3);
+  ASSERT((seq == PageSequence {1, 2, 3}));
 
   params.duplex = false;
   params.documentCopies = 2;
   params.pageCopies = 1;
   params.pageRangeList = {};
-  range = params.getPageRange(3);
-  ASSERT(range.size() == 6);
-  ASSERT((range == PageRange {1, 2, 3,
-                              1, 2, 3}));
+  seq = params.getPageSequence(3);
+  ASSERT(seq.size() == 6);
+  ASSERT((seq == PageSequence {1, 2, 3,
+                               1, 2, 3}));
 
   params.duplex = false;
   params.documentCopies = 1;
   params.pageCopies = 2;
   params.pageRangeList = {};
-  range = params.getPageRange(3);
-  ASSERT(range.size() == 6);
-  ASSERT((range == PageRange {1, 1,
-                              2, 2,
-                              3, 3}));
+  seq = params.getPageSequence(3);
+  ASSERT(seq.size() == 6);
+  ASSERT((seq == PageSequence {1, 1,
+                               2, 2,
+                               3, 3}));
 
   params.duplex = true;
   params.documentCopies = 2;
   params.pageCopies = 1;
   params.pageRangeList = {};
-  range = params.getPageRange(3);
-  ASSERT(range.size() == 8);
-  ASSERT((range == PageRange {1, 2, 3, INVALID_PAGE,
-                              1, 2, 3, INVALID_PAGE}));
+  seq = params.getPageSequence(3);
+  ASSERT(seq.size() == 8);
+  ASSERT((seq == PageSequence {1, 2, 3, INVALID_PAGE,
+                               1, 2, 3, INVALID_PAGE}));
 
   params.duplex = true;
   params.documentCopies = 1;
   params.pageCopies = 2;
   params.pageRangeList = {};
-  range = params.getPageRange(3);
-  ASSERT(range.size() == 8);
-  ASSERT((range == PageRange {1, 2,
-                              1, 2,
-                              3, INVALID_PAGE,
-                              3, INVALID_PAGE}));
+  seq = params.getPageSequence(3);
+  ASSERT(seq.size() == 8);
+  ASSERT((seq == PageSequence {1, 2,
+                               1, 2,
+                               3, INVALID_PAGE,
+                               3, INVALID_PAGE}));
 }

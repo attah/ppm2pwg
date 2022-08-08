@@ -163,7 +163,7 @@ public:
       tmp = {pair};
     }
 
-    for(const std::pair<size_t, size_t> r : tmp)
+    for(const std::pair<size_t, size_t>& r : tmp)
     {
       for(size_t p = r.first; p <= r.second; p++)
       {

@@ -4,6 +4,7 @@
 #include <cmath>
 #include <string>
 #include <vector>
+#include <regex>
 
 #define MM_PER_IN 25.4
 #define PTS_PER_IN 72.0
@@ -209,6 +210,49 @@ public:
       }
     }
     return seq;
+  }
+
+  bool setPageRange(const std::string& rangeStr)
+  {
+    PageRangeList rangeList;
+    const std::regex single("^([0-9]+)$");
+    const std::regex range("^([0-9]+)-([0-9]+)$");
+    std::smatch match;
+
+    size_t pos = 0;
+    while(pos <= rangeStr.length())
+    {
+      size_t found = std::min(rangeStr.length(), rangeStr.find(",", pos));
+      std::string tmp(rangeStr, pos, (found-pos));
+
+      if(std::regex_match(tmp, match, single))
+      {
+        size_t tmp = stol(match[1]);
+        rangeList.push_back({tmp, tmp});
+      }
+      else if(std::regex_match(tmp, match, range))
+      {
+        size_t tmp_from = stol(match[1]);
+        size_t tmp_to = stol(match[2]);
+        if(tmp_to < tmp_from)
+        {
+          return false;
+        }
+        rangeList.push_back({tmp_from, tmp_to});
+      }
+      else
+      {
+        return false;
+      }
+      pos = found+1;
+    }
+
+    if(!rangeList.empty())
+    {
+      pageRangeList = rangeList;
+      return true;
+    }
+    return false;
   }
 
 private:

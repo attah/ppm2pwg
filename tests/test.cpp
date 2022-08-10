@@ -867,3 +867,38 @@ TEST(pagerange)
                                3, INVALID_PAGE,
                                3, INVALID_PAGE}));
 }
+
+TEST(parse_pagerange)
+{
+  PrintParameters params;
+  ASSERT(params.setPageRange("1"));
+  ASSERT((params.pageRangeList == PageRangeList {{1,1}}));
+  ASSERT(params.setPageRange("1-1"));
+  ASSERT((params.pageRangeList == PageRangeList {{1,1}}));
+  ASSERT(params.setPageRange("1,2,3"));
+  ASSERT((params.pageRangeList == PageRangeList {{1,1},{2,2},{3,3}}));
+  ASSERT(params.setPageRange("1-3,5"));
+  ASSERT((params.pageRangeList == PageRangeList {{1,3},{5,5}}));
+  ASSERT(params.setPageRange("1-3,5,6,17-42"));
+  ASSERT((params.pageRangeList == PageRangeList {{1,3},{5,5},{6,6},{17,42}}));
+
+  params.pageRangeList = {};
+  ASSERT_FALSE(params.setPageRange("1,"));
+  ASSERT(params.pageRangeList.empty());
+  ASSERT_FALSE(params.setPageRange(""));
+  ASSERT(params.pageRangeList.empty());
+  ASSERT_FALSE(params.setPageRange(","));
+  ASSERT(params.pageRangeList.empty());
+  ASSERT_FALSE(params.setPageRange("-,-"));
+  ASSERT(params.pageRangeList.empty());
+  ASSERT_FALSE(params.setPageRange("fail"));
+  ASSERT(params.pageRangeList.empty());
+  ASSERT_FALSE(params.setPageRange("fail1"));
+  ASSERT(params.pageRangeList.empty());
+  ASSERT_FALSE(params.setPageRange("fail,1-2"));
+  ASSERT(params.pageRangeList.empty());
+  ASSERT_FALSE(params.setPageRange("1-2,fail"));
+  ASSERT(params.pageRangeList.empty());
+  ASSERT_FALSE(params.setPageRange("1-0"));
+  ASSERT(params.pageRangeList.empty());
+}

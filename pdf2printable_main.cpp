@@ -7,7 +7,7 @@
 
 bool getenv_bool(std::string VarName);
 int getenv_int(std::string VarName, int Default);
-std::string getenv_str(std::string VarName, std::string Default);
+std::string getenv_str(std::string VarName, std::string Default="");
 
 int main(int argc, char** argv)
 {
@@ -30,11 +30,23 @@ int main(int argc, char** argv)
   Params.paperSizeW = PaperSize.first;
   Params.paperSizeH = PaperSize.second;
 
-  int fromPage = getenv_int("FROM_PAGE", 0);
-  int toPage = getenv_int("TO_PAGE", 0);
-  if(fromPage != 0 || toPage != 0)
+  std::string rangeStr = getenv_str("PAGES");
+
+  if(!rangeStr.empty())
   {
-    Params.pageRangeList = {{fromPage, toPage}};
+    if(!Params.setPageRange(rangeStr))
+    {
+      return 1;
+    }
+  }
+  else
+  {
+    int fromPage = getenv_int("FROM_PAGE", 0);
+    int toPage = getenv_int("TO_PAGE", 0);
+    if(fromPage != 0 || toPage != 0)
+    {
+      Params.pageRangeList = {{fromPage, toPage}};
+    }
   }
 
   Params.duplex = getenv_bool("DUPLEX");

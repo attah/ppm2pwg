@@ -24,11 +24,10 @@ int main(int argc, char** argv)
 
   Params.hwResW = getenv_int("HWRES_X", getenv_int("HWRES", Params.hwResW));
   Params.hwResH = getenv_int("HWRES_Y", getenv_int("HWRES", Params.hwResH));
-  Params.paperSizeName = getenv_str("PAPER_SIZE", Params.paperSizeName);
-
-  std::pair<float, float> PaperSize = PwgPaperSizes.at(Params.paperSizeName);
-  Params.paperSizeW = PaperSize.first;
-  Params.paperSizeH = PaperSize.second;
+  if(!Params.setPaperSize(getenv_str("PAPER_SIZE", Params.paperSizeName)))
+  {
+    return 1;
+  }
 
   std::string rangeStr = getenv_str("PAGES");
 

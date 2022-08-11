@@ -255,6 +255,28 @@ public:
     return false;
   }
 
+  bool setPaperSize(const std::string& sizeStr)
+  {
+    const std::regex nameRegex("^[0-9a-z_-]+_(([0-9]+[.])?[0-9]+)x(([0-9]+[.])?[0-9]+)(mm|in)$");
+    std::smatch match;
+
+    if(std::regex_match(sizeStr, match, nameRegex))
+    {
+      paperSizeW = stof(match[1]);
+      paperSizeH = stof(match[3]);
+      if(match[5] == "in")
+      {
+        paperSizeUnits = Inches;
+      }
+      else
+      {
+        paperSizeUnits = Millimeters;
+      }
+      return true;
+    }
+    return false;
+  }
+
 private:
 
   double round2(double d) const

@@ -902,3 +902,36 @@ TEST(parse_pagerange)
   ASSERT_FALSE(params.setPageRange("1-0"));
   ASSERT(params.pageRangeList.empty());
 }
+
+TEST(parse_page_size)
+{
+  PrintParameters params;
+  ASSERT(params.setPaperSize("iso_a4_210x297mm"));
+  ASSERT(params.paperSizeW == 210);
+  ASSERT(params.paperSizeH == 297);
+  ASSERT(params.paperSizeUnits == PrintParameters::Millimeters);
+
+  ASSERT(params.setPaperSize("na_letter_8.5x11in"));
+  ASSERT(params.paperSizeW == 8.5f);
+  ASSERT(params.paperSizeH == 11);
+  ASSERT(params.paperSizeUnits == PrintParameters::Inches);
+
+  ASSERT(params.setPaperSize("jpn_chou2_111.1x146mm"));
+  ASSERT(params.paperSizeW == 111.1f);
+  ASSERT(params.paperSizeH == 146);
+  ASSERT(params.paperSizeUnits == PrintParameters::Millimeters);
+
+  ASSERT_FALSE(params.setPaperSize(""));
+  ASSERT_FALSE(params.setPaperSize("_1x1mm"));
+  ASSERT(params.setPaperSize("a_1x1mm"));
+  ASSERT(params.paperSizeW == 1);
+  ASSERT(params.paperSizeH == 1);
+  ASSERT(params.paperSizeUnits == PrintParameters::Millimeters);
+  ASSERT_FALSE(params.setPaperSize("a_1x1km"));
+  ASSERT_FALSE(params.setPaperSize("a_11mm"));
+  ASSERT_FALSE(params.setPaperSize("a_a1x1mm"));
+  ASSERT_FALSE(params.setPaperSize("1.1x1.2mm"));
+  ASSERT(params.paperSizeW == 1);
+  ASSERT(params.paperSizeH == 1);
+  ASSERT(params.paperSizeUnits == PrintParameters::Millimeters);
+}

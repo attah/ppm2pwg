@@ -2,7 +2,6 @@
 #include <fstream>
 #include <cstring>
 
-#include "pwgpapersizes.h"
 #include "pdf2printable.h"
 
 bool getenv_bool(std::string VarName);

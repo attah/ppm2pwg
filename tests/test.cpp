@@ -901,6 +901,8 @@ TEST(parse_pagerange)
   ASSERT(params.pageRangeList.empty());
   ASSERT_FALSE(params.setPageRange("1-0"));
   ASSERT(params.pageRangeList.empty());
+  ASSERT_FALSE(params.setPageRange("1,2-"));
+  ASSERT(params.pageRangeList.empty());
 }
 
 TEST(parse_page_size)

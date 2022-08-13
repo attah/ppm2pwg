@@ -978,3 +978,20 @@ TEST(parse_page_size)
   ASSERT(params.paperSizeH == 1);
   ASSERT(params.paperSizeUnits == PrintParameters::Millimeters);
 }
+
+TEST(silly_locale_parse_page_size)
+{
+  const std::string locale = std::setlocale(LC_ALL, nullptr);
+  std::setlocale(LC_ALL, "sv_SE.utf8");
+
+  PrintParameters params;
+
+  ASSERT(params.setPaperSize("fuuuuu_13.37x42.69mm"));
+  ASSERT(params.paperSizeName == "fuuuuu_13.37x42.69mm");
+  ASSERT(params.paperSizeW == 13.37f);
+  ASSERT(params.paperSizeH == 42.69f);
+  ASSERT(params.paperSizeUnits == PrintParameters::Millimeters);
+
+  std::setlocale(LC_ALL, locale.c_str());
+
+}

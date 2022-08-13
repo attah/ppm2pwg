@@ -290,6 +290,8 @@ public:
 
     if(std::regex_match(sizeStr, match, nameRegex))
     {
+      const std::string locale = std::setlocale(LC_NUMERIC, nullptr);
+      std::setlocale(LC_NUMERIC, "C");
       paperSizeName = sizeStr;
       paperSizeW = stof(match[1]);
       paperSizeH = stof(match[3]);
@@ -301,6 +303,7 @@ public:
       {
         paperSizeUnits = Millimeters;
       }
+      std::setlocale(LC_NUMERIC, locale.c_str());
       return true;
     }
     return false;

@@ -72,7 +72,7 @@ public:
       case Pixels:
         return paperSizeW;
       case Millimeters:
-        return paperSizeW * (hwResW / MM_PER_IN);
+        return round(paperSizeW * hwResW / MM_PER_IN);
       case Inches:
         return paperSizeW * hwResW;
     }
@@ -86,7 +86,7 @@ public:
       case Pixels:
         return paperSizeH;
       case Millimeters:
-        return round(paperSizeH * (hwResH / MM_PER_IN));
+        return round(paperSizeH * hwResH / MM_PER_IN);
       case Inches:
         return paperSizeH * hwResH;
     }
@@ -96,6 +96,34 @@ public:
   size_t getPaperSizeInPixels() const
   {
     return getPaperSizeWInPixels() * getPaperSizeHInPixels();
+  }
+
+  float getPaperSizeWInMillimeters() const
+  {
+    switch(paperSizeUnits)
+    {
+      case Pixels:
+        return round2((paperSizeW / hwResW) * MM_PER_IN);
+      case Millimeters:
+        return paperSizeW;
+      case Inches:
+        return round2(paperSizeW * MM_PER_IN);
+    }
+    return 0;
+  }
+
+  float getPaperSizeHInMillimeters() const
+  {
+    switch(paperSizeUnits)
+    {
+      case Pixels:
+        return round2((paperSizeH / hwResH) * MM_PER_IN);
+      case Millimeters:
+        return paperSizeH;
+      case Inches:
+        return round2(paperSizeH * MM_PER_IN);
+    }
+    return 0;
   }
 
   float getPaperSizeWInPoints() const

@@ -262,6 +262,7 @@ public:
 
     if(std::regex_match(sizeStr, match, nameRegex))
     {
+      paperSizeName = sizeStr;
       paperSizeW = stof(match[1]);
       paperSizeH = stof(match[3]);
       if(match[5] == "in")

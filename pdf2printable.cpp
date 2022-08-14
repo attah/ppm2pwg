@@ -144,6 +144,15 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
 
     if(raster)
     {
+      if(!Params.antiAlias)
+      {
+        cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
+        cairo_font_options_t *font_options = cairo_font_options_create();
+        cairo_get_font_options(cr, font_options);
+        cairo_font_options_set_antialias(font_options, CAIRO_ANTIALIAS_NONE);
+        cairo_set_font_options(cr, font_options);
+        cairo_font_options_destroy(font_options);
+      }
       cairo_save(cr);
       cairo_set_source_rgb(cr, 1, 1, 1);
       cairo_paint(cr);

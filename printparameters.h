@@ -35,6 +35,7 @@ public:
   // False for regular modes like sRGB and sGray.
   bool black = false;
   size_t quality = 0; // Default
+  bool antiAlias = false;
   std::string paperSizeName = "iso_a4_210x297mm";
 
   size_t hwResW = 300;

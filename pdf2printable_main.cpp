@@ -55,6 +55,7 @@ int main(int argc, char** argv)
   Params.bitsPerColor = getenv_int("BPC", Params.bitsPerColor);
   Params.black = getenv_bool("BLACK");
   Params.quality = getenv_int("QUALITY", Params.quality);
+  Params.antiAlias = getenv_bool("AA");
   Params.documentCopies = getenv_int("COPIES", Params.documentCopies);
   Params.pageCopies = getenv_int("PAGE_COPIES", Params.pageCopies);
 

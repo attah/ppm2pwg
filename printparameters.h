@@ -194,7 +194,7 @@ public:
 
     for(const std::pair<size_t, size_t>& r : tmp)
     {
-      for(size_t p = r.first; p <= r.second; p++)
+      for(size_t p = r.first; p <= std::min(r.second, pages); p++)
       {
         seq.push_back(p);
       }

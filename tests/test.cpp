@@ -902,6 +902,22 @@ TEST(pagerange)
                                1, 2,
                                3, INVALID_PAGE,
                                3, INVALID_PAGE}));
+
+  params.duplex = false;
+  params.documentCopies = 1;
+  params.pageCopies = 1;
+  params.pageRangeList = {{17,42}};
+  seq = params.getPageSequence(42);
+  ASSERT(seq.size() == 26);
+  seq = params.getPageSequence(32);
+  ASSERT(seq.size() == 16);
+
+  params.pageRangeList = {{1,2},{17,42}};
+  seq = params.getPageSequence(42);
+  ASSERT(seq.size() == 28);
+  seq = params.getPageSequence(32);
+  ASSERT(seq.size() == 18);
+
 }
 
 TEST(parse_pagerange)

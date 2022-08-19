@@ -287,15 +287,14 @@ public:
   bool setPaperSize(const std::string& sizeStr)
   {
     const std::regex nameRegex("^[0-9a-z_-]+_(([0-9]+[.])?[0-9]+)x(([0-9]+[.])?[0-9]+)(mm|in)$");
-    std::smatch match;
+    std::cmatch match;
+    locale_t c_locale = newlocale(LC_ALL_MASK, "C", NULL);
 
-    if(std::regex_match(sizeStr, match, nameRegex))
+    if(std::regex_match(sizeStr.c_str(), match, nameRegex))
     {
-      const std::string locale = std::setlocale(LC_NUMERIC, nullptr);
-      std::setlocale(LC_NUMERIC, "C");
       paperSizeName = sizeStr;
-      paperSizeW = stof(match[1]);
-      paperSizeH = stof(match[3]);
+      paperSizeW = strtof_l(match[1].first, nullptr, c_locale);
+      paperSizeH = strtof_l(match[3].first, nullptr, c_locale);
       if(match[5] == "in")
       {
         paperSizeUnits = Inches;
@@ -304,7 +303,6 @@ public:
       {
         paperSizeUnits = Millimeters;
       }
-      std::setlocale(LC_NUMERIC, locale.c_str());
       return true;
     }
     return false;

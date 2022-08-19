@@ -1,5 +1,5 @@
 CXXFLAGS = -std=c++11 -O3 -pedantic -Wall -Wextra -Werror -I. -Ibytestream \
-$(shell pkg-config --cflags glib-2.0) $(shell pkg-config --cflags cairo)
+$(shell pkg-config --cflags poppler-glib)
 
 VPATH = bytestream
 

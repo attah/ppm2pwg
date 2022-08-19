@@ -1,5 +1,5 @@
-#include <poppler/glib/poppler.h>
-#include <poppler/glib/poppler-document.h>
+#include <poppler.h>
+#include <poppler-document.h>
 
 #include <cairo.h>
 #include <cairo-ps.h>

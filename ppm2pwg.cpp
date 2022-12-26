@@ -4,7 +4,6 @@
 #include "ppm2pwg.h"
 #include "PwgPgHdr.h"
 #include "UrfPgHdr.h"
-#include "reversebytes.h"
 
 Bytestream make_pwg_file_hdr()
 {
@@ -71,7 +70,8 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts,
       {
         for(size_t i = 0; i < bytesPerLine; i++)
         {
-          tmp_line[i] = reverse_bytes[this_line[bytesPerLine-1-i]];
+          // https://graphics.stanford.edu/~seander/bithacks.html#ReverseByteWith64Bits
+          tmp_line[i] = ((this_line[bytesPerLine-1-i] * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >> 32;
         }
       }
       else

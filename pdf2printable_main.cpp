@@ -3,63 +3,61 @@
 #include <cstring>
 
 #include "pdf2printable.h"
-
-bool getenv_bool(std::string VarName);
-int getenv_int(std::string VarName, int Default);
-std::string getenv_str(std::string VarName, std::string Default="");
+#include "argget.h"
 
 int main(int argc, char** argv)
 {
-  if(argc != 3)
-  {
-    std::cerr << "Usage: pdf2printable <PDF-file> <outfile>" << std::endl;
-    return 1;
-  }
-
-  std::string Infile(argv[1]);
-  std::string Outfile(argv[2]);
-
   PrintParameters Params;
+  bool help = false;
+  std::string format;
+  std::string pages;
+  std::string paperSize = Params.paperSizeName;
+  int hwRes = 0;
+  int hwResX = 0;
+  int hwResY = 0;
+  std::string Infile;
+  std::string Outfile;
 
-  Params.hwResW = getenv_int("HWRES_X", getenv_int("HWRES", Params.hwResW));
-  Params.hwResH = getenv_int("HWRES_Y", getenv_int("HWRES", Params.hwResH));
-  if(!Params.setPaperSize(getenv_str("PAPER_SIZE", Params.paperSizeName)))
+  SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
+  SwitchArg<std::string> formatOpt(format, {"-f", "--format"}, "Format to output (pdf/postscript/pwg/urf)");
+  SwitchArg<std::string> pagesOpt(pages, {"--pages"}, "What pages to process, e.g.: 1,17-42");
+  SwitchArg<std::string> paperSizeOpt(paperSize, {"--paper-size"}, "Paper size to output, e.g.: iso_a4_210x297mm");
+  SwitchArg<int> resolutionOpt(hwRes, {"-r", "--resolution"}, "Resolution (in DPI) for rasterization");
+  SwitchArg<int> resolutionXOpt(hwResX, {"-rx", "--resolution-x"}, "Resolution (in DPI) for rasterization, x-axis");
+  SwitchArg<int> resolutionYOpt(hwResY, {"-ry", "--resolution-y"}, "Resolution (in DPI) for rasterization, y-axis");
+  SwitchArg<bool> duplexOpt(Params.duplex, {"-d", "--duplex"}, "Process for duplex printing");
+  SwitchArg<bool> tumbleOpt(Params.duplex, {"-t", "--tumble"}, "Set tumble indicator in raster header");
+  SwitchArg<bool> hFlipOpt(Params.backHFlip, {"-hf", "--hflip"}, "Flip backsides horizontally for duplex");
+  SwitchArg<bool> vFlipOpt(Params.backVFlip, {"-vf", "--vflip"}, "Flip backsides vertically for duplex");
+  SwitchArg<size_t> colorOpt(Params.colors, {"-c", "--colors"}, "Number of colors. 1:greyscale/mono 3:RGB 4:CMYK");
+  SwitchArg<size_t> bitsPerColorOpt(Params.bitsPerColor, {"-bpc", "--bits-per-color"}, "Number of bits per color (1 or 8)");
+  SwitchArg<bool> blackOpt(Params.black, {"-b", "--black"}, "Use more-color-is-black for raster format");
+  SwitchArg<size_t> qualityOpt(Params.quality, {"-q", "--quality"}, "Quality setting in raster header (3,4,5)");
+  SwitchArg<bool> antiAliasOpt(Params.antiAlias, {"-aa", "--antaialias"}, "Use antialiasing for raster conversion");
+  SwitchArg<size_t> copiesOpt(Params.documentCopies, {"--copies"}, "Number of copies to output");
+  SwitchArg<size_t> pageCopiesOpt(Params.pageCopies, {"--page-copies"}, "Number of copies to output for each page");
+
+  PosArg pdfArg(Infile, "PDF-file");
+  PosArg outArg(Outfile, "out-file");
+
+  ArgGet args({&helpOpt, &formatOpt, &pagesOpt, &paperSizeOpt, &resolutionOpt,
+               &resolutionXOpt, &resolutionYOpt, &duplexOpt, &tumbleOpt,
+               &hFlipOpt, &vFlipOpt, &colorOpt, &bitsPerColorOpt, &blackOpt,
+               &qualityOpt, &antiAliasOpt, &copiesOpt, &pageCopiesOpt},
+              {&pdfArg, &outArg});
+
+  bool correctArgs = args.get_args(argc, argv);
+  if(help)
   {
+    std::cout << args.arghelp() << std::endl;
+    return 0;
+  }
+  else if(!correctArgs)
+  {
+    std::cerr << args.errmsg() << std::endl << std::endl << args.arghelp() << std::endl;
     return 1;
   }
 
-  std::string rangeStr = getenv_str("PAGES");
-
-  if(!rangeStr.empty())
-  {
-    if(!Params.setPageRange(rangeStr))
-    {
-      return 1;
-    }
-  }
-  else
-  {
-    int fromPage = getenv_int("FROM_PAGE", 0);
-    int toPage = getenv_int("TO_PAGE", 0);
-    if(fromPage != 0 || toPage != 0)
-    {
-      Params.pageRangeList = {{fromPage, toPage}};
-    }
-  }
-
-  Params.duplex = getenv_bool("DUPLEX");
-  Params.tumble = getenv_bool("TUMBLE");
-  Params.backHFlip = getenv_bool("BACK_HFLIP");
-  Params.backVFlip = getenv_bool("BACK_VFLIP");
-  Params.colors = getenv_int("COLORS", Params.colors);
-  Params.bitsPerColor = getenv_int("BPC", Params.bitsPerColor);
-  Params.black = getenv_bool("BLACK");
-  Params.quality = getenv_int("QUALITY", Params.quality);
-  Params.antiAlias = getenv_bool("AA");
-  Params.documentCopies = getenv_int("COPIES", Params.documentCopies);
-  Params.pageCopies = getenv_int("PAGE_COPIES", Params.pageCopies);
-
-  std::string format = getenv_str("FORMAT", "pdf");
   if(format == "ps" || format == "postscript")
   {
     Params.format = PrintParameters::Postscript;
@@ -72,9 +70,43 @@ int main(int argc, char** argv)
   {
     Params.format = PrintParameters::URF;
   }
-  else if(format != "pdf")
+  else if(format != "" && format != "pdf")
   {
+    std::cerr << "Unrecognized target format" << std::endl;
     return 1;
+  }
+
+  if(!pages.empty())
+  {
+    if(!Params.setPageRange(pages))
+    {
+      std::cerr << "Malformed page selection" << std::endl;
+      return 1;
+    }
+  }
+
+  if(!Params.setPaperSize(paperSize))
+  {
+    std::cerr << "Malformed paper size" << std::endl;
+    return 1;
+  }
+
+  if(hwResX != 0)
+  {
+    Params.hwResW = hwResX;
+  }
+  else if(hwRes != 0)
+  {
+    Params.hwResW = hwRes;
+  }
+
+  if(hwResY != 0)
+  {
+    Params.hwResH = hwResY;
+  }
+  else if(hwRes != 0)
+  {
+    Params.hwResH = hwRes;
   }
 
   std::ofstream of = std::ofstream(Outfile, std::ofstream::out);
@@ -90,22 +122,4 @@ int main(int argc, char** argv)
             });
 
   return pdf_to_printable(Infile, WriteFun, Params, ProgressFun, true);
-}
-
-bool getenv_bool(std::string VarName)
-{
-  char* tmp = getenv(VarName.c_str());
-  return (tmp && strcmp(tmp,"0")!=0 && strcmp(tmp,"false")!=0);
-}
-
-int getenv_int(std::string VarName, int Default)
-{
-  char* tmp = getenv(VarName.c_str());
-  return tmp ? atoi(tmp) : Default;
-}
-
-std::string getenv_str(std::string VarName, std::string Default)
-{
-  char* tmp = getenv(VarName.c_str());
-  return tmp ? tmp : Default;
 }

@@ -46,12 +46,11 @@ int PPM2PWG_MAIN(int argc, char** argv)
   SwitchArg<bool> tumbleOpt(Params.duplex, {"-t", "--tumble"}, "Set tumble indicator in raster header");
   SwitchArg<bool> hFlipOpt(Params.backHFlip, {"-hf", "--hflip"}, "Flip backsides horizontally for duplex");
   SwitchArg<bool> vFlipOpt(Params.backVFlip, {"-vf", "--vflip"}, "Flip backsides vertically for duplex");
-  SwitchArg<bool> blackOpt(Params.black, {"-b", "--black"}, "Use more-color-is-black for raster format");
   SwitchArg<size_t> qualityOpt(Params.quality, {"-q", "--quality"}, "Quality setting in raster header (3,4,5)");
 
   ArgGet args({&helpOpt, &urfOpt, &paperSizeOpt,
                &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
-               &duplexOpt, &tumbleOpt, &hFlipOpt, &vFlipOpt, &blackOpt, &qualityOpt});
+               &duplexOpt, &tumbleOpt, &hFlipOpt, &vFlipOpt, &qualityOpt});
 
   bool correctArgs = args.get_args(argc, argv);
   if(help)
@@ -140,6 +139,7 @@ int PPM2PWG_MAIN(int argc, char** argv)
       r = "1";
       Params.colors = 1;
       Params.bitsPerColor = 1;
+      Params.black = true;
       size_t x = stoi(xs);
       if(x % 8 != 0)
       {

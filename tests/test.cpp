@@ -4,6 +4,7 @@
 #include "PwgPgHdr.h"
 #include "pwg2ppm.h"
 #include "printparameters.h"
+#include "argget.h"
 #include <cstring>
 using namespace std;
 
@@ -206,10 +207,7 @@ TEST(duplex_vflip)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  setenv("DUPLEX", "true", true);
-  setenv("BACK_VFLIP", "true", true);
-  setenv("BACK_HFLIP", "false", true);
-  subprocess::popen ppm2pwg("../ppm2pwg", {});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--vflip"});
   ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
   ppm2pwg.close();
 
@@ -235,10 +233,7 @@ TEST(duplex_hflip)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  setenv("DUPLEX", "true", true);
-  setenv("BACK_VFLIP", "false", true);
-  setenv("BACK_HFLIP", "true", true);
-  subprocess::popen ppm2pwg("../ppm2pwg", {});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip"});
   ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
   ppm2pwg.close();
 
@@ -264,10 +259,7 @@ TEST(duplex_rotated)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  setenv("DUPLEX", "true", true);
-  setenv("BACK_VFLIP", "true", true);
-  setenv("BACK_HFLIP", "true", true);
-  subprocess::popen ppm2pwg("../ppm2pwg", {});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip", "--vflip"});
   ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
   ppm2pwg.close();
 
@@ -293,10 +285,7 @@ TEST(two_pages_no_duplex)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  setenv("DUPLEX", "false", true);
-  setenv("BACK_VFLIP", "true", true);
-  setenv("BACK_HFLIP", "true", true);
-  subprocess::popen ppm2pwg("../ppm2pwg", {});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"--hflip", "--vflip"});
   ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
   ppm2pwg.close();
 
@@ -342,11 +331,7 @@ TEST(bilevel_vflip)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
-  setenv("DUPLEX", "true", true);
-  setenv("BACK_VFLIP", "true", true);
-  setenv("BACK_HFLIP", "false", true);
-
-  subprocess::popen ppm2pwg("../ppm2pwg", {});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--vflip"});
   ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
   ppm2pwg.close();
 
@@ -372,11 +357,7 @@ TEST(bilevel_hflip)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
-  setenv("DUPLEX", "true", true);
-  setenv("BACK_VFLIP", "false", true);
-  setenv("BACK_HFLIP", "true", true);
-
-  subprocess::popen ppm2pwg("../ppm2pwg", {});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip"});
   ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
   ppm2pwg.close();
 
@@ -403,11 +384,7 @@ TEST(bilevel_rotated)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
-  setenv("DUPLEX", "true", true);
-  setenv("BACK_VFLIP", "true", true);
-  setenv("BACK_HFLIP", "true", true);
-
-  subprocess::popen ppm2pwg("../ppm2pwg", {});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip", "--vflip"});
   ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
   ppm2pwg.close();
 
@@ -438,11 +415,11 @@ bool close_enough(size_t a, size_t b, size_t precision)
 
 void do_test_centering(const char* test_name, std::string filename, bool asymmetric)
 {
-  setenv("FORMAT", "pwg", true);
-  setenv("HWRES_X", "300", true);
-  setenv("HWRES_Y", asymmetric ? "600" : "300", true);
-
-  subprocess::popen pdf2printable("../pdf2printable", {filename, test_name});
+  subprocess::popen pdf2printable("../pdf2printable",
+                                  {"--format", "pwg",
+                                   "-rx", "300",
+                                   "-ry", asymmetric ? "600" : "300",
+                                   filename, test_name});
   pdf2printable.close();
   ASSERT(pdf2printable.wait() == 0);
 
@@ -1009,5 +986,81 @@ TEST(silly_locale_parse_page_size)
   ASSERT(params.paperSizeUnits == PrintParameters::Millimeters);
 
   std::setlocale(LC_ALL, locale.c_str());
+
+}
+
+TEST(argget)
+{
+  bool b = false;
+  SwitchArg<bool> boolopt(b, {"-b", "--bool"}, "A bool option");
+  std::list<std::string> list1 {"-b"};
+  ASSERT(boolopt.parse(list1));
+  ASSERT(b == true);
+
+  std::string s;
+  SwitchArg<string> stringopt(s, {"-s", "--string"}, "A string option");
+  std::list<std::string> list2 {"-s", "mystring"};
+  ASSERT(stringopt.parse(list2));
+  ASSERT(s == "mystring");
+
+  int i = 0;
+  SwitchArg<int> intopt(i, {"-i", "--integer"}, "An integer option");
+  std::list<std::string> list3 {"-i", "123"};
+  ASSERT(intopt.parse(list3));
+  ASSERT(i == 123);
+
+  b = false;
+
+  ArgGet get({&boolopt, &stringopt, &intopt});
+  char* argv[6] = {(char*)"myprog",
+                   (char*)"-b",
+                   (char*)"-s", (char*)"something",
+                   (char*)"-i", (char*)"456"};
+  ASSERT(get.get_args(6, argv));
+  ASSERT(b == true);
+  ASSERT(s == "something");
+  ASSERT(i == 456);
+
+  char* argv2[3] = {(char*)"myprog",
+                    (char*)"-i", (char*)"NaN"};
+  ASSERT(!get.get_args(3, argv2));
+  ASSERT(get.errmsg().find("Bad value") != std::string::npos);
+  ASSERT(get.errmsg().find("-i, --integer") != std::string::npos);
+  ASSERT(get.errmsg().find("NaN") != std::string::npos);
+
+  char* argv3[5] = {(char*)"myprog",
+                    (char*)"-i", (char*)"666",
+                    (char*)"-n", (char*)"777"};
+  ASSERT(!get.get_args(5, argv3));
+
+  std::string a1;
+  std::string a2;
+  PosArg arg1(a1, "arg1");
+  PosArg arg2(a2, "arg2", true);
+
+  ArgGet get2({&boolopt, &stringopt, &intopt}, {&arg1, &arg2});
+
+  b = false;
+
+  char* argv4[8] = {(char*)"myprog",
+                    (char*)"-b",
+                    (char*)"-s", (char*)"something_else",
+                    (char*)"-i", (char*)"789",
+                    (char*)"apa", (char*)"bpa"};
+
+  ASSERT(get2.get_args(8, argv4));
+  ASSERT(b == true);
+  ASSERT(s == "something_else");
+  ASSERT(i == 789);
+  ASSERT(a1 == "apa");
+  ASSERT(a2 == "bpa");
+
+  // It still succeeds even without the last optional argument
+  ASSERT(get2.get_args(7, argv4));
+  ASSERT(get2.errmsg() == "");
+  // But fails with missing mandatory argument
+  ASSERT(!get2.get_args(6, argv4));
+  ASSERT(get2.errmsg().find("Missing positional argument") != std::string::npos);
+  ASSERT(get2.errmsg().find("arg1") != std::string::npos);
 
 }

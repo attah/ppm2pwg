@@ -6,10 +6,7 @@
 #include <string.h>
 
 #include "ppm2pwg.h"
-
-bool getenv_bool(std::string VarName);
-int getenv_int(std::string VarName, int Default);
-std::string getenv_str(std::string VarName, std::string Default);
+#include "argget.h"
 
 void ignore_comments()
 {
@@ -27,12 +24,48 @@ void ignore_comments()
   #define PPM2PWG_MAIN main
 #endif
 
-int PPM2PWG_MAIN(int, char**)
+int PPM2PWG_MAIN(int argc, char** argv)
 {
   PrintParameters Params;
   Params.paperSizeUnits = PrintParameters::Pixels;
+  bool help = false;
+  bool urf = false;
+  int pages = 0;
+  int hwRes = 0;
+  int hwResX = 0;
+  int hwResY = 0;
 
-  if(getenv_bool("URF"))
+  SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
+  SwitchArg<bool> urfOpt(urf, {"-u", "--urf"}, "Output URF format (default is PWG)");
+  SwitchArg<int> pagesOpt(pages, {"--num-pages"}, "Number of pages to expect (for URF header)");
+  SwitchArg<std::string> paperSizeOpt(Params.paperSizeName, {"--paper-size"}, "Paper size name to set in header, e.g.: iso_a4_210x297mm");
+  SwitchArg<int> resolutionOpt(hwRes, {"-r", "--resolution"}, "Resolution (in DPI) to set in header");
+  SwitchArg<int> resolutionXOpt(hwResX, {"-rx", "--resolution-x"}, "Resolution (in DPI) to set in header");
+  SwitchArg<int> resolutionYOpt(hwResY, {"-ry", "--resolution-y"}, "Resolution (in DPI) to set in header");
+  SwitchArg<bool> duplexOpt(Params.duplex, {"-d", "--duplex"}, "Process for duplex printing");
+  SwitchArg<bool> tumbleOpt(Params.duplex, {"-t", "--tumble"}, "Set tumble indicator in raster header");
+  SwitchArg<bool> hFlipOpt(Params.backHFlip, {"-hf", "--hflip"}, "Flip backsides horizontally for duplex");
+  SwitchArg<bool> vFlipOpt(Params.backVFlip, {"-vf", "--vflip"}, "Flip backsides vertically for duplex");
+  SwitchArg<bool> blackOpt(Params.black, {"-b", "--black"}, "Use more-color-is-black for raster format");
+  SwitchArg<size_t> qualityOpt(Params.quality, {"-q", "--quality"}, "Quality setting in raster header (3,4,5)");
+
+  ArgGet args({&helpOpt, &urfOpt, &paperSizeOpt,
+               &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
+               &duplexOpt, &tumbleOpt, &hFlipOpt, &vFlipOpt, &blackOpt, &qualityOpt});
+
+  bool correctArgs = args.get_args(argc, argv);
+  if(help)
+  {
+    std::cout << args.arghelp() << std::endl;
+    return 0;
+  }
+  else if(!correctArgs)
+  {
+    std::cerr << args.errmsg() << std::endl << std::endl << args.arghelp() << std::endl;
+    return 1;
+  }
+
+  if(urf)
   {
     Params.format = PrintParameters::URF;
   }
@@ -40,24 +73,29 @@ int PPM2PWG_MAIN(int, char**)
   {
     Params.format = PrintParameters::PWG;
   }
-  Params.duplex = getenv_bool("DUPLEX");
-  Params.tumble = getenv_bool("TUMBLE");
 
-  Params.hwResW = getenv_int("HWRES_X", getenv_int("HWRES", Params.hwResW));
-  Params.hwResH = getenv_int("HWRES_Y", getenv_int("HWRES", Params.hwResH));
-  Params.quality = getenv_int("QUALITY", Params.quality);
-  Params.black = getenv_bool("BLACK");
+  if(hwResX != 0)
+  {
+    Params.hwResW = hwResX;
+  }
+  else if(hwRes != 0)
+  {
+    Params.hwResW = hwRes;
+  }
 
-  Params.backVFlip = getenv_bool("BACK_VFLIP");
-  Params.backHFlip = getenv_bool("BACK_HFLIP");
-
-  Params.paperSizeName = getenv_str("PAGE_SIZE_NAME", Params.paperSizeName);
+  if(hwResY != 0)
+  {
+    Params.hwResH = hwResY;
+  }
+  else if(hwRes != 0)
+  {
+    Params.hwResH = hwRes;
+  }
 
   Bytestream FileHdr;
 
   if(Params.format == PrintParameters::URF)
   {
-    uint32_t pages = getenv_int("PAGES", 1);
     FileHdr = make_urf_file_hdr(pages);
   }
   else
@@ -131,22 +169,4 @@ int PPM2PWG_MAIN(int, char**)
     std::cin.peek(); // maybe trigger eof
   }
   return 0;
-}
-
-bool getenv_bool(std::string VarName)
-{
-  char* tmp = getenv(VarName.c_str());
-  return (tmp && strcmp(tmp,"0")!=0 && strcmp(tmp,"false")!=0);
-}
-
-int getenv_int(std::string VarName, int Default)
-{
-  char* tmp = getenv(VarName.c_str());
-  return tmp ? atoi(tmp) : Default;
-}
-
-std::string getenv_str(std::string VarName, std::string Default)
-{
-  char* tmp = getenv(VarName.c_str());
-  return tmp ? tmp : Default;
 }

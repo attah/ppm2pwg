@@ -71,6 +71,7 @@ int pdf_to_printable(std::string Infile, write_fun WriteFun, const PrintParamete
 
   if(Params.format == PrintParameters::URF && (Params.hwResW != Params.hwResH))
   { // URF must have a symmetric resolution
+    std::cerr << "URF must have a symmetric resolution." << std::endl;
     return 1;
   }
 

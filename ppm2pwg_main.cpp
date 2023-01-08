@@ -29,6 +29,7 @@ int PPM2PWG_MAIN(int argc, char** argv)
   PrintParameters Params;
   Params.paperSizeUnits = PrintParameters::Pixels;
   bool help = false;
+  bool verbose = false;
   bool urf = false;
   int pages = 0;
   int hwRes = 0;
@@ -36,6 +37,7 @@ int PPM2PWG_MAIN(int argc, char** argv)
   int hwResY = 0;
 
   SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
+  SwitchArg<bool> verboseOpt(verbose, {"-v", "--verbose"}, "Be verbose, print headers");
   SwitchArg<bool> urfOpt(urf, {"-u", "--urf"}, "Output URF format (default is PWG)");
   SwitchArg<int> pagesOpt(pages, {"--num-pages"}, "Number of pages to expect (for URF header)");
   SwitchArg<std::string> paperSizeOpt(Params.paperSizeName, {"--paper-size"}, "Paper size name to set in header, e.g.: iso_a4_210x297mm");
@@ -48,7 +50,7 @@ int PPM2PWG_MAIN(int argc, char** argv)
   SwitchArg<bool> vFlipOpt(Params.backVFlip, {"-vf", "--vflip"}, "Flip backsides vertically for duplex");
   SwitchArg<size_t> qualityOpt(Params.quality, {"-q", "--quality"}, "Quality setting in raster header (3,4,5)");
 
-  ArgGet args({&helpOpt, &urfOpt, &paperSizeOpt,
+  ArgGet args({&helpOpt, &verboseOpt, &urfOpt, &paperSizeOpt,
                &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
                &duplexOpt, &tumbleOpt, &hFlipOpt, &vFlipOpt, &qualityOpt});
 
@@ -155,7 +157,10 @@ int PPM2PWG_MAIN(int argc, char** argv)
 
     ignore_comments();
 
-    std::cerr << p << " " << xs << "x" << ys << " " << r << std::endl;
+    if(verbose)
+    {
+      std::cerr << "Found: " << p << " " << xs << "x" << ys << " " << r << std::endl;
+    }
 
     Params.paperSizeW = stoi(xs);
     Params.paperSizeH = stoi(ys);
@@ -163,7 +168,7 @@ int PPM2PWG_MAIN(int argc, char** argv)
     size_t size = Params.paperSizeH*Params.getPaperSizeWInBytes();
     bmp_bts.initFrom(std::cin, size);
 
-    bmp_to_pwg(bmp_bts, OutBts, page, Params, true);
+    bmp_to_pwg(bmp_bts, OutBts, page, Params, verbose);
 
     std::cout << OutBts;
     std::cin.peek(); // maybe trigger eof

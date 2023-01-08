@@ -9,6 +9,7 @@ int main(int argc, char** argv)
 {
   PrintParameters Params;
   bool help = false;
+  bool verbose = false;
   std::string format;
   std::string pages;
   std::string paperSize = Params.paperSizeName;
@@ -19,6 +20,7 @@ int main(int argc, char** argv)
   std::string Outfile;
 
   SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
+  SwitchArg<bool> verboseOpt(verbose, {"-v", "--verbose"}, "Be verbose, print headers and progress");
   SwitchArg<std::string> formatOpt(format, {"-f", "--format"}, "Format to output (pdf/postscript/pwg/urf)");
   SwitchArg<std::string> pagesOpt(pages, {"--pages"}, "What pages to process, e.g.: 1,17-42");
   SwitchArg<std::string> paperSizeOpt(paperSize, {"--paper-size"}, "Paper size to output, e.g.: iso_a4_210x297mm");
@@ -40,8 +42,8 @@ int main(int argc, char** argv)
   PosArg pdfArg(Infile, "PDF-file");
   PosArg outArg(Outfile, "out-file");
 
-  ArgGet args({&helpOpt, &formatOpt, &pagesOpt, &paperSizeOpt, &resolutionOpt,
-               &resolutionXOpt, &resolutionYOpt, &duplexOpt, &tumbleOpt,
+  ArgGet args({&helpOpt, &verboseOpt, &formatOpt, &pagesOpt, &paperSizeOpt,
+               &resolutionOpt, &resolutionXOpt, &resolutionYOpt, &duplexOpt, &tumbleOpt,
                &hFlipOpt, &vFlipOpt, &colorOpt, &bitsPerColorOpt, &blackOpt,
                &qualityOpt, &antiAliasOpt, &copiesOpt, &pageCopiesOpt},
               {&pdfArg, &outArg});
@@ -116,10 +118,17 @@ int main(int argc, char** argv)
               return of.exceptions() == std::ostream::goodbit;
             });
 
-  progress_fun ProgressFun([](size_t page, size_t total) -> void
-            {
-              std::cerr << "Progress: " << page << "/" << total << "\n\n";
-            });
+  if(verbose)
+  {
+    progress_fun ProgressFun([](size_t page, size_t total) -> void
+                 {
+                   std::cerr << "Progress: " << page << "/" << total << "\n\n";
+                 });
+    return pdf_to_printable(Infile, WriteFun, Params, ProgressFun, true);
+  }
+  else
+  {
+    return pdf_to_printable(Infile, WriteFun, Params);
+  }
 
-  return pdf_to_printable(Infile, WriteFun, Params, ProgressFun, true);
 }

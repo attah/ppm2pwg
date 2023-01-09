@@ -23,6 +23,8 @@ int main(int argc, char** argv)
   SwitchArg<bool> verboseOpt(verbose, {"-v", "--verbose"}, "Be verbose, print headers and progress");
   SwitchArg<std::string> formatOpt(format, {"-f", "--format"}, "Format to output (pdf/postscript/pwg/urf)");
   SwitchArg<std::string> pagesOpt(pages, {"--pages"}, "What pages to process, e.g.: 1,17-42");
+  SwitchArg<size_t> copiesOpt(Params.documentCopies, {"--copies"}, "Number of copies to output");
+  SwitchArg<size_t> pageCopiesOpt(Params.pageCopies, {"--page-copies"}, "Number of copies to output for each page");
   SwitchArg<std::string> paperSizeOpt(paperSize, {"--paper-size"}, "Paper size to output, e.g.: iso_a4_210x297mm");
   SwitchArg<int> resolutionOpt(hwRes, {"-r", "--resolution"}, "Resolution (in DPI) for rasterization");
   SwitchArg<int> resolutionXOpt(hwResX, {"-rx", "--resolution-x"}, "Resolution (in DPI) for rasterization, x-axis");
@@ -33,25 +35,25 @@ int main(int argc, char** argv)
   SwitchArg<bool> vFlipOpt(Params.backVFlip, {"-vf", "--vflip"}, "Flip backsides vertically for duplex");
   SwitchArg<size_t> colorOpt(Params.colors, {"-c", "--colors"}, "Number of colors. 1:greyscale/mono 3:RGB 4:CMYK");
   SwitchArg<size_t> bitsPerColorOpt(Params.bitsPerColor, {"-bpc", "--bits-per-color"}, "Number of bits per color (1 or 8)");
-  SwitchArg<bool> blackOpt(Params.black, {"-b", "--black"}, "Use more-color-is-black for raster format");
+  SwitchArg<bool> blackOpt(Params.black, {"-b", "--black"}, "For 1-color, use more-color-is-black representation");
   SwitchArg<size_t> qualityOpt(Params.quality, {"-q", "--quality"}, "Quality setting in raster header (3,4,5)");
-  SwitchArg<bool> antiAliasOpt(Params.antiAlias, {"-aa", "--antaialias"}, "Use antialiasing for raster conversion");
-  SwitchArg<size_t> copiesOpt(Params.documentCopies, {"--copies"}, "Number of copies to output");
-  SwitchArg<size_t> pageCopiesOpt(Params.pageCopies, {"--page-copies"}, "Number of copies to output for each page");
+  SwitchArg<bool> antiAliasOpt(Params.antiAlias, {"-aa", "--antaialias"}, "Enable antialiasing in rasterization");
 
   PosArg pdfArg(Infile, "PDF-file");
   PosArg outArg(Outfile, "out-file");
 
-  ArgGet args({&helpOpt, &verboseOpt, &formatOpt, &pagesOpt, &paperSizeOpt,
-               &resolutionOpt, &resolutionXOpt, &resolutionYOpt, &duplexOpt, &tumbleOpt,
+  ArgGet args({&helpOpt, &verboseOpt, &formatOpt, &pagesOpt,
+               &copiesOpt, &pageCopiesOpt, &paperSizeOpt, &resolutionOpt,
+               &resolutionXOpt, &resolutionYOpt, &duplexOpt, &tumbleOpt,
                &hFlipOpt, &vFlipOpt, &colorOpt, &bitsPerColorOpt, &blackOpt,
-               &qualityOpt, &antiAliasOpt, &copiesOpt, &pageCopiesOpt},
+               &qualityOpt, &antiAliasOpt},
               {&pdfArg, &outArg});
 
   bool correctArgs = args.get_args(argc, argv);
   if(help)
   {
-    std::cout << args.arghelp() << std::endl;
+    std::cout << args.arghelp() << std::endl
+              << "Options from 'resolution' and onwards only affect raster output formats." << std::endl;
     return 0;
   }
   else if(!correctArgs)

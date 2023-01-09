@@ -5,6 +5,13 @@
 #include "pdf2printable.h"
 #include "argget.h"
 
+#define HELPTEXT "Options from 'resolution' and onwards only affect raster output formats."
+
+void print_error(std::string hint, std::string arghelp)
+{
+  std::cerr << hint << std::endl << std::endl << arghelp << std::endl << HELPTEXT << std::endl;
+}
+
 int main(int argc, char** argv)
 {
   PrintParameters Params;
@@ -13,6 +20,7 @@ int main(int argc, char** argv)
   std::string format;
   std::string pages;
   std::string paperSize = Params.paperSizeName;
+  std::string colorMode;
   int hwRes = 0;
   int hwResX = 0;
   int hwResY = 0;
@@ -33,9 +41,7 @@ int main(int argc, char** argv)
   SwitchArg<bool> tumbleOpt(Params.duplex, {"-t", "--tumble"}, "Set tumble indicator in raster header");
   SwitchArg<bool> hFlipOpt(Params.backHFlip, {"-hf", "--hflip"}, "Flip backsides horizontally for duplex");
   SwitchArg<bool> vFlipOpt(Params.backVFlip, {"-vf", "--vflip"}, "Flip backsides vertically for duplex");
-  SwitchArg<size_t> colorOpt(Params.colors, {"-c", "--colors"}, "Number of colors. 1:greyscale/mono 3:RGB 4:CMYK");
-  SwitchArg<size_t> bitsPerColorOpt(Params.bitsPerColor, {"-bpc", "--bits-per-color"}, "Number of bits per color (1 or 8)");
-  SwitchArg<bool> blackOpt(Params.black, {"-b", "--black"}, "For 1-color, use more-color-is-black representation");
+  SwitchArg<std::string> colorModeOpt(colorMode, {"-c", "--color-mode"}, "Color mode (srgb24/cmyk32/gray8/black8/gray1/black1)");
   SwitchArg<size_t> qualityOpt(Params.quality, {"-q", "--quality"}, "Quality setting in raster header (3,4,5)");
   SwitchArg<bool> antiAliasOpt(Params.antiAlias, {"-aa", "--antaialias"}, "Enable antialiasing in rasterization");
 
@@ -45,20 +51,18 @@ int main(int argc, char** argv)
   ArgGet args({&helpOpt, &verboseOpt, &formatOpt, &pagesOpt,
                &copiesOpt, &pageCopiesOpt, &paperSizeOpt, &resolutionOpt,
                &resolutionXOpt, &resolutionYOpt, &duplexOpt, &tumbleOpt,
-               &hFlipOpt, &vFlipOpt, &colorOpt, &bitsPerColorOpt, &blackOpt,
-               &qualityOpt, &antiAliasOpt},
+               &hFlipOpt, &vFlipOpt, &colorModeOpt, &qualityOpt, &antiAliasOpt},
               {&pdfArg, &outArg});
 
   bool correctArgs = args.get_args(argc, argv);
   if(help)
   {
-    std::cout << args.arghelp() << std::endl
-              << "Options from 'resolution' and onwards only affect raster output formats." << std::endl;
+    std::cout << args.arghelp() << std::endl << HELPTEXT << std::endl;
     return 0;
   }
   else if(!correctArgs)
   {
-    std::cerr << args.errmsg() << std::endl << std::endl << args.arghelp() << std::endl;
+    print_error(args.errmsg(), args.arghelp());
     return 1;
   }
 
@@ -76,7 +80,7 @@ int main(int argc, char** argv)
   }
   else if(format != "" && format != "pdf")
   {
-    std::cerr << "Unrecognized target format" << std::endl;
+    print_error("Unrecognized target format", args.arghelp());
     return 1;
   }
 
@@ -84,14 +88,14 @@ int main(int argc, char** argv)
   {
     if(!Params.setPageRange(pages))
     {
-      std::cerr << "Malformed page selection" << std::endl;
+      print_error("Malformed page selection", args.arghelp());
       return 1;
     }
   }
 
   if(!Params.setPaperSize(paperSize))
   {
-    std::cerr << "Malformed paper size" << std::endl;
+    print_error("Malformed paper size", args.arghelp());
     return 1;
   }
 
@@ -111,6 +115,17 @@ int main(int argc, char** argv)
   else if(hwRes != 0)
   {
     Params.hwResH = hwRes;
+  }
+
+  if(colorMode != "" && !Params.setColorMode(colorMode))
+  {
+    print_error("Unrecognized color mode", args.arghelp());
+  }
+
+  if(Params.format == PrintParameters::URF && (Params.bitsPerColor == 1 || Params.black))
+  {
+    print_error("URF does not support black or 1-bit color modes", args.arghelp());
+    return 1;
   }
 
   std::ofstream of = std::ofstream(Outfile, std::ofstream::out);

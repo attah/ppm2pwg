@@ -989,6 +989,42 @@ TEST(silly_locale_parse_page_size)
 
 }
 
+TEST(color_mode)
+{
+  PrintParameters params;
+  ASSERT(params.setColorMode("srgb24"));
+  ASSERT(params.colors == 3);
+  ASSERT(params.bitsPerColor == 8);
+  ASSERT(params.black == false);
+  params = PrintParameters();
+  ASSERT(params.setColorMode("cmyk32"));
+  ASSERT(params.colors == 4);
+  ASSERT(params.bitsPerColor == 8);
+  ASSERT(params.black == false);
+  params = PrintParameters();
+  ASSERT(params.setColorMode("gray8"));
+  ASSERT(params.colors == 1);
+  ASSERT(params.bitsPerColor == 8);
+  ASSERT(params.black == false);
+  params = PrintParameters();
+  ASSERT(params.setColorMode("black8"));
+  ASSERT(params.colors == 1);
+  ASSERT(params.bitsPerColor == 8);
+  ASSERT(params.black == true);
+  params = PrintParameters();
+  ASSERT(params.setColorMode("gray1"));
+  ASSERT(params.colors == 1);
+  ASSERT(params.bitsPerColor == 1);
+  ASSERT(params.black == false);
+  params = PrintParameters();
+  ASSERT(params.setColorMode("black1"));
+  ASSERT(params.colors == 1);
+  ASSERT(params.bitsPerColor == 1);
+  ASSERT(params.black == true);
+
+  ASSERT(!params.setColorMode("blackjack"));
+}
+
 TEST(argget)
 {
   bool b = false;

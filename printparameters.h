@@ -308,6 +308,53 @@ public:
     return false;
   }
 
+  bool setColorMode(std::string colorMode)
+  {
+    if(colorMode == "srgb24")
+    {
+      colors = 3;
+      bitsPerColor = 8;
+      black = false;
+      return true;
+    }
+    else if(colorMode == "cmyk32")
+    {
+      colors = 4;
+      bitsPerColor = 8;
+      black = false;
+      return true;
+    }
+    else if(colorMode == "gray8")
+    {
+      colors = 1;
+      bitsPerColor = 8;
+      black = false;
+      return true;
+    }
+    else if(colorMode == "black8")
+    {
+      colors = 1;
+      bitsPerColor = 8;
+      black = true;
+      return true;
+    }
+    else if(colorMode == "gray1")
+    {
+      colors = 1;
+      bitsPerColor = 1;
+      black = false;
+      return true;
+    }
+    else if(colorMode == "black1")
+    {
+      colors = 1;
+      bitsPerColor = 1;
+      black = true;
+      return true;
+    }
+    return false;
+  }
+
 private:
 
   double round2(double d) const

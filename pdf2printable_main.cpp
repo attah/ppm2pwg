@@ -12,6 +12,15 @@ void print_error(std::string hint, std::string arghelp)
   std::cerr << hint << std::endl << std::endl << arghelp << std::endl << HELPTEXT << std::endl;
 }
 
+bool ends_with(std::string s, std::string ending)
+{
+  if(ending.length() <= s.length())
+  {
+    return s.substr(s.length()-ending.length(), ending.length()) == ending;
+  }
+  return false;
+}
+
 int main(int argc, char** argv)
 {
   PrintParameters Params;
@@ -66,19 +75,23 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  if(format == "ps" || format == "postscript")
+  if(format == "ps" || format == "postscript" || (format == "" && ends_with(Outfile, ".ps")))
   {
     Params.format = PrintParameters::Postscript;
   }
-  else if(format == "pwg")
+  else if(format == "pwg" || (format == "" && ends_with(Outfile, ".pwg")))
   {
     Params.format = PrintParameters::PWG;
   }
-  else if(format == "urf")
+  else if(format == "urf" || (format == "" && ends_with(Outfile, ".urf")))
   {
     Params.format = PrintParameters::URF;
   }
-  else if(format != "" && format != "pdf")
+  else if(format == "pdf" || (format == "" && ends_with(Outfile, ".pdf")))
+  {
+    Params.format = PrintParameters::PDF;
+  }
+  else if(format != "")
   {
     print_error("Unrecognized target format", args.arghelp());
     return 1;

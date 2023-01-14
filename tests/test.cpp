@@ -151,7 +151,6 @@ TEST(ppm2pwg)
   ASSERT(ppm == expected_ppm);
 
   subprocess::popen ppm2pwg("../ppm2pwg", {"pacman.ppm", "-"});
-  ppm2pwg.stdin() << ppm;
   ppm2pwg.close();
 
   ASSERT(ppm2pwg.wait() == 0);

@@ -141,7 +141,7 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  std::ofstream of = std::ofstream(Outfile, std::ofstream::out);
+  std::ofstream of = std::ofstream(Outfile, std::ofstream::out | std::ios::binary);
   write_fun WriteFun([&of](unsigned char const* buf, unsigned int len) -> bool
             {
               of.write((char*)buf, len);

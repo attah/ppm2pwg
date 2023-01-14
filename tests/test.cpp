@@ -150,8 +150,8 @@ TEST(ppm2pwg)
   Bytestream expected_ppm(ppm_ifs);
   ASSERT(ppm == expected_ppm);
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {});
-  ppm2pwg.stdin().write((char*)ppm.raw(), ppm.size());
+  subprocess::popen ppm2pwg("../ppm2pwg", {"pacman.ppm", "-"});
+  ppm2pwg.stdin() << ppm;
   ppm2pwg.close();
 
   ASSERT(ppm2pwg.wait() == 0);
@@ -181,8 +181,8 @@ TEST(duplex_normal)
   twoSided << PacmanPpm() << PacmanPpm();
 
   setenv("DUPLEX", "true", true);
-  subprocess::popen ppm2pwg("../ppm2pwg", {});
-  ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-", "-"});
+  ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
   ASSERT(ppm2pwg.wait() == 0);
@@ -207,8 +207,8 @@ TEST(duplex_vflip)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--vflip"});
-  ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--vflip", "-", "-"});
+  ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
   ASSERT(ppm2pwg.wait() == 0);
@@ -233,8 +233,8 @@ TEST(duplex_hflip)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip"});
-  ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip", "-", "-"});
+  ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
   ASSERT(ppm2pwg.wait() == 0);
@@ -259,8 +259,8 @@ TEST(duplex_rotated)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip", "--vflip"});
-  ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip", "--vflip", "-", "-"});
+  ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
   ASSERT(ppm2pwg.wait() == 0);
@@ -285,8 +285,8 @@ TEST(two_pages_no_duplex)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"--hflip", "--vflip"});
-  ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
+  subprocess::popen ppm2pwg("../ppm2pwg", {"--hflip", "--vflip", "-", "-"});
+  ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
   ASSERT(ppm2pwg.wait() == 0);
@@ -310,8 +310,8 @@ TEST(bilevel)
 {
   Bytestream P4 = P4_0101();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {});
-  ppm2pwg.stdin().write((char*)P4.raw(), P4.size());
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-", "-"});
+  ppm2pwg.stdin() << P4;
   ppm2pwg.close();
 
   ASSERT(ppm2pwg.wait() == 0);
@@ -331,8 +331,8 @@ TEST(bilevel_vflip)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--vflip"});
-  ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--vflip", "-", "-"});
+  ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
   ASSERT(ppm2pwg.wait() == 0);
@@ -357,8 +357,8 @@ TEST(bilevel_hflip)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip"});
-  ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip", "-", "-"});
+  ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
   ASSERT(ppm2pwg.wait() == 0);
@@ -384,8 +384,8 @@ TEST(bilevel_rotated)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip", "--vflip"});
-  ppm2pwg.stdin().write((char*)twoSided.raw(), twoSided.size());
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip", "--vflip", "-", "-"});
+  ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
   ASSERT(ppm2pwg.wait() == 0);

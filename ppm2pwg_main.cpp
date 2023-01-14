@@ -8,15 +8,15 @@
 #include "ppm2pwg.h"
 #include "argget.h"
 
-void ignore_comments()
+void ignore_comments(std::istream* in)
 {
-  if(std::cin.peek() == '\n')
+  if(in->peek() == '\n')
   {
-    std::cin.ignore(1);
+    in->ignore(1);
   }
-  while(std::cin.peek() == '#')
+  while(in->peek() == '#')
   {
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    in->ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
 }
 
@@ -35,6 +35,8 @@ int PPM2PWG_MAIN(int argc, char** argv)
   int hwRes = 0;
   int hwResX = 0;
   int hwResY = 0;
+  std::string InFile;
+  std::string OutFile;
 
   SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
   SwitchArg<bool> verboseOpt(verbose, {"-v", "--verbose"}, "Be verbose, print headers");
@@ -50,14 +52,19 @@ int PPM2PWG_MAIN(int argc, char** argv)
   SwitchArg<bool> vFlipOpt(Params.backVFlip, {"-vf", "--vflip"}, "Flip backsides vertically for duplex");
   SwitchArg<size_t> qualityOpt(Params.quality, {"-q", "--quality"}, "Quality setting in raster header (3,4,5)");
 
+  PosArg inArg(InFile, "in-file");
+  PosArg outArg(OutFile, "out-file");
+
   ArgGet args({&helpOpt, &verboseOpt, &urfOpt, &pagesOpt, &paperSizeOpt,
                &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
-               &duplexOpt, &tumbleOpt, &hFlipOpt, &vFlipOpt, &qualityOpt});
+               &duplexOpt, &tumbleOpt, &hFlipOpt, &vFlipOpt, &qualityOpt},
+              {&inArg, &outArg});
 
   bool correctArgs = args.get_args(argc, argv);
   if(help)
   {
-    std::cout << args.arghelp() << std::endl;
+    std::cout << args.arghelp() << std::endl
+              << "Use \"-\" as filename for stdin/stdout" << std::endl;
     return 0;
   }
   else if(!correctArgs)
@@ -104,35 +111,60 @@ int PPM2PWG_MAIN(int argc, char** argv)
     FileHdr = make_pwg_file_hdr();
   }
 
-  std::cout << FileHdr;
-
   size_t page = 0;
 
   Bytestream rotate_tmp;
   Bytestream OutBts;
   Bytestream bmp_bts;
 
-  while(!std::cin.eof())
+  std::ifstream ifs;
+  std::istream* in;
+  std::ofstream ofs;
+  std::ostream* out;
+
+  if(InFile == "-")
+  {
+    in = &std::cin;
+  }
+  else
+  {
+    ifs = std::ifstream(InFile, std::ios::in | std::ios::binary);
+    in = &ifs;
+  }
+
+  if(OutFile == "-")
+  {
+    out = &std::cout;
+  }
+  else
+  {
+    ofs = std::ofstream(OutFile, std::ios::out | std::ios::binary);
+    out = &ofs;
+  }
+
+  *out << FileHdr;
+
+  while(!in->eof())
   {
     OutBts.reset();
     page++;
 
     std::string p, xs, ys, r;
-    std::cin >> p;
+    *in >> p;
 
-    ignore_comments();
+    ignore_comments(in);
 
-    std::cin >> xs >> ys;
+    *in >> xs >> ys;
 
     if(p == "P6")
     {
-      std::cin >> r;
+      *in >> r;
       Params.colors = 3;
       Params.bitsPerColor = 8;
     }
     else if(p == "P5")
     {
-      std::cin >> r;
+      *in >> r;
       Params.colors = 1;
       Params.bitsPerColor = 8;
     }
@@ -155,7 +187,7 @@ int PPM2PWG_MAIN(int argc, char** argv)
       return 1;
     }
 
-    ignore_comments();
+    ignore_comments(in);
 
     if(verbose)
     {
@@ -166,12 +198,12 @@ int PPM2PWG_MAIN(int argc, char** argv)
     Params.paperSizeH = stoi(ys);
 
     size_t size = Params.paperSizeH*Params.getPaperSizeWInBytes();
-    bmp_bts.initFrom(std::cin, size);
+    bmp_bts.initFrom(*in, size);
 
     bmp_to_pwg(bmp_bts, OutBts, page, Params, verbose);
 
-    std::cout << OutBts;
-    std::cin.peek(); // maybe trigger eof
+    *out << OutBts;
+    in->peek(); // maybe trigger eof
   }
   return 0;
 }

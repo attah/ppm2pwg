@@ -4,15 +4,26 @@
 
 int main(int argc, char** argv)
 {
-  if(argc != 2)
+  if(argc > 2)
   {
-    std::cerr << "Usage: hexdump <file>" << std::endl;
+    std::cerr << "Usage: hexdump [file]" << std::endl;
     return 1;
   }
 
-  std::string filename(argv[1]);
+  std::ifstream ifs;
+  std::istream* in;
 
-  std::ifstream ifs(filename, std::ios::in | std::ios::binary);
-  Bytestream file(ifs);
+  if(argc == 2)
+  {
+    ifs = std::ifstream(argv[1], std::ios::in | std::ios::binary);
+    in = &ifs;
+  }
+  else
+  {
+    in = &std::cin;
+    std::ios_base::sync_with_stdio(false);
+  }
+
+  Bytestream file(*in);
   std::cout << file.hexdump(file.size());
 }

@@ -131,6 +131,7 @@ private:
   void convert(int& res, std::string s) {res = std::stoi(s);}
   void convert(long& res, std::string s) {res = std::stol(s);}
   void convert(long long& res, std::string s) {res = std::stoll(s);}
+  void convert(unsigned int& res, std::string s) {res = std::stoul(s);} // Silly C++ has no stou
   void convert(unsigned long& res, std::string s) {res = std::stoul(s);}
   void convert(unsigned long long& res, std::string s) {res = std::stoull(s);}
 

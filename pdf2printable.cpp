@@ -13,6 +13,7 @@
 #include <bytestream.h>
 #include "ppm2pwg.h"
 #include "pdf2printable.h"
+#include "array.h"
 
 #define R_RELATIVE_LUMINOSITY 0.299
 #define G_RELATIVE_LUMINOSITY 0.587
@@ -241,7 +242,7 @@ void copy_raster_buffer(Bytestream& bmp_bts, uint32_t* dat, const PrintParameter
     size_t paperSizeWInBytes = Params.getPaperSizeWInBytes();
     size_t paperSizeHInPixels = Params.getPaperSizeHInPixels();
     int next_debt, pixel, newpixel, debt;
-    int* debt_array = new int[paperSizeWInPixels+2];
+    Array<int> debt_array(paperSizeWInPixels+2);
     memset(debt_array, 0, (paperSizeWInPixels+2)*sizeof(int));
     memset(tmp, Params.black ? 0 : 0xff, bmp_bts.size());
     for(size_t line=0; line < paperSizeHInPixels; line++)
@@ -266,7 +267,6 @@ void copy_raster_buffer(Bytestream& bmp_bts, uint32_t* dat, const PrintParameter
         }
       }
     }
-    delete[] debt_array;
   }
   else if(Params.colors == 1 && Params.bitsPerColor == 8)
   {

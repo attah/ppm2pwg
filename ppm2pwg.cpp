@@ -4,6 +4,7 @@
 #include "ppm2pwg.h"
 #include "PwgPgHdr.h"
 #include "UrfPgHdr.h"
+#include "array.h"
 
 Bytestream make_pwg_file_hdr()
 {
@@ -43,7 +44,7 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts,
   size_t bytesPerLine = Params.getPaperSizeWInBytes();
   int step = backside&&Params.backVFlip ? -bytesPerLine : bytesPerLine;
   uint8_t* row0 = backside&&Params.backVFlip ? raw+(ResY-1)*bytesPerLine : raw;
-  uint8_t* tmp_line = new uint8_t[bytesPerLine];
+  Array<uint8_t> tmp_line(bytesPerLine);
 
   for(size_t y=0; y<ResY; y++)
   {
@@ -88,7 +89,6 @@ void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts,
       compress_line(this_line, bytesPerLine, OutBts, Params.colors);
     }
   }
-  delete[] tmp_line;
 }
 
 void compress_line(uint8_t* raw, size_t len, Bytestream& OutBts, int Colors)

@@ -11,9 +11,9 @@
 #include "madness.h"
 
 #include <bytestream.h>
+#include <array.h>
 #include "ppm2pwg.h"
 #include "pdf2printable.h"
-#include "array.h"
 
 #define R_RELATIVE_LUMINOSITY 0.299
 #define G_RELATIVE_LUMINOSITY 0.587

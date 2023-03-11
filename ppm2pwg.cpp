@@ -1,10 +1,10 @@
 #include <iostream>
 #include <string.h>
 
+#include <array.h>
 #include "ppm2pwg.h"
 #include "PwgPgHdr.h"
 #include "UrfPgHdr.h"
-#include "array.h"
 
 Bytestream make_pwg_file_hdr()
 {

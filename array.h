@@ -14,6 +14,7 @@ public:
     delete[] _array;
   }
   Array(const Array&) = delete;
+  Array& operator= (const Array&) = delete;
   operator T*()
   {
     return _array;

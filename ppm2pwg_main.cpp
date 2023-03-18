@@ -26,8 +26,8 @@ void ignore_comments(std::istream* in)
 
 int PPM2PWG_MAIN(int argc, char** argv)
 {
-  PrintParameters Params;
-  Params.paperSizeUnits = PrintParameters::Pixels;
+  PrintParameters params;
+  params.paperSizeUnits = PrintParameters::Pixels;
   bool help = false;
   bool verbose = false;
   bool urf = false;
@@ -35,25 +35,25 @@ int PPM2PWG_MAIN(int argc, char** argv)
   int hwRes = 0;
   int hwResX = 0;
   int hwResY = 0;
-  std::string InFile;
-  std::string OutFile;
+  std::string inFile;
+  std::string outFile;
 
   SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
   SwitchArg<bool> verboseOpt(verbose, {"-v", "--verbose"}, "Be verbose, print headers");
   SwitchArg<bool> urfOpt(urf, {"-u", "--urf"}, "Output URF format (default is PWG)");
   SwitchArg<int> pagesOpt(pages, {"--num-pages"}, "Number of pages to expect (for URF header)");
-  SwitchArg<std::string> paperSizeOpt(Params.paperSizeName, {"--paper-size"}, "Paper size name to set in header, e.g.: iso_a4_210x297mm");
+  SwitchArg<std::string> paperSizeOpt(params.paperSizeName, {"--paper-size"}, "Paper size name to set in header, e.g.: iso_a4_210x297mm");
   SwitchArg<int> resolutionOpt(hwRes, {"-r", "--resolution"}, "Resolution (in DPI) to set in header");
   SwitchArg<int> resolutionXOpt(hwResX, {"-rx", "--resolution-x"}, "Resolution (in DPI) to set in header, x-axis");
   SwitchArg<int> resolutionYOpt(hwResY, {"-ry", "--resolution-y"}, "Resolution (in DPI) to set in header, y-axis");
-  SwitchArg<bool> duplexOpt(Params.duplex, {"-d", "--duplex"}, "Process for duplex printing");
-  SwitchArg<bool> tumbleOpt(Params.duplex, {"-t", "--tumble"}, "Set tumble indicator in raster header");
-  SwitchArg<bool> hFlipOpt(Params.backHFlip, {"-hf", "--hflip"}, "Flip backsides horizontally for duplex");
-  SwitchArg<bool> vFlipOpt(Params.backVFlip, {"-vf", "--vflip"}, "Flip backsides vertically for duplex");
-  SwitchArg<size_t> qualityOpt(Params.quality, {"-q", "--quality"}, "Quality setting in raster header (3,4,5)");
+  SwitchArg<bool> duplexOpt(params.duplex, {"-d", "--duplex"}, "Process for duplex printing");
+  SwitchArg<bool> tumbleOpt(params.duplex, {"-t", "--tumble"}, "Set tumble indicator in raster header");
+  SwitchArg<bool> hFlipOpt(params.backHFlip, {"-hf", "--hflip"}, "Flip backsides horizontally for duplex");
+  SwitchArg<bool> vFlipOpt(params.backVFlip, {"-vf", "--vflip"}, "Flip backsides vertically for duplex");
+  SwitchArg<size_t> qualityOpt(params.quality, {"-q", "--quality"}, "Quality setting in raster header (3,4,5)");
 
-  PosArg inArg(InFile, "in-file");
-  PosArg outArg(OutFile, "out-file");
+  PosArg inArg(inFile, "in-file");
+  PosArg outArg(outFile, "out-file");
 
   ArgGet args({&helpOpt, &verboseOpt, &urfOpt, &pagesOpt, &paperSizeOpt,
                &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
@@ -63,90 +63,89 @@ int PPM2PWG_MAIN(int argc, char** argv)
   bool correctArgs = args.get_args(argc, argv);
   if(help)
   {
-    std::cout << args.arghelp() << std::endl
+    std::cout << args.argHelp() << std::endl
               << "Use \"-\" as filename for stdin/stdout" << std::endl;
     return 0;
   }
   else if(!correctArgs)
   {
-    std::cerr << args.errmsg() << std::endl << std::endl << args.arghelp() << std::endl;
+    std::cerr << args.errmsg() << std::endl << std::endl << args.argHelp() << std::endl;
     return 1;
   }
 
   if(urf)
   {
-    Params.format = PrintParameters::URF;
+    params.format = PrintParameters::URF;
   }
   else
   {
-    Params.format = PrintParameters::PWG;
+    params.format = PrintParameters::PWG;
   }
 
   if(hwResX != 0)
   {
-    Params.hwResW = hwResX;
+    params.hwResW = hwResX;
   }
   else if(hwRes != 0)
   {
-    Params.hwResW = hwRes;
+    params.hwResW = hwRes;
   }
 
   if(hwResY != 0)
   {
-    Params.hwResH = hwResY;
+    params.hwResH = hwResY;
   }
   else if(hwRes != 0)
   {
-    Params.hwResH = hwRes;
+    params.hwResH = hwRes;
   }
 
-  Bytestream FileHdr;
+  Bytestream fileHdr;
 
-  if(Params.format == PrintParameters::URF)
+  if(params.format == PrintParameters::URF)
   {
-    FileHdr = make_urf_file_hdr(pages);
+    fileHdr = make_urf_file_hdr(pages);
   }
   else
   {
-    FileHdr = make_pwg_file_hdr();
+    fileHdr = make_pwg_file_hdr();
   }
 
   size_t page = 0;
 
-  Bytestream rotate_tmp;
-  Bytestream OutBts;
-  Bytestream bmp_bts;
+  Bytestream outBts;
+  Bytestream bmpBts;
 
   std::ifstream ifs;
   std::istream* in;
   std::ofstream ofs;
   std::ostream* out;
 
-  if(InFile == "-")
+  if(inFile == "-")
   {
     in = &std::cin;
   }
   else
   {
-    ifs = std::ifstream(InFile, std::ios::in | std::ios::binary);
+    ifs = std::ifstream(inFile, std::ios::in | std::ios::binary);
     in = &ifs;
   }
 
-  if(OutFile == "-")
+  if(outFile == "-")
   {
     out = &std::cout;
   }
   else
   {
-    ofs = std::ofstream(OutFile, std::ios::out | std::ios::binary);
+    ofs = std::ofstream(outFile, std::ios::out | std::ios::binary);
     out = &ofs;
   }
 
-  *out << FileHdr;
+  *out << fileHdr;
 
   while(!in->eof())
   {
-    OutBts.reset();
+    outBts.reset();
     page++;
 
     std::string p, xs, ys, r;
@@ -159,21 +158,21 @@ int PPM2PWG_MAIN(int argc, char** argv)
     if(p == "P6")
     {
       *in >> r;
-      Params.colors = 3;
-      Params.bitsPerColor = 8;
+      params.colors = 3;
+      params.bitsPerColor = 8;
     }
     else if(p == "P5")
     {
       *in >> r;
-      Params.colors = 1;
-      Params.bitsPerColor = 8;
+      params.colors = 1;
+      params.bitsPerColor = 8;
     }
     else if(p == "P4")
     {
       r = "1";
-      Params.colors = 1;
-      Params.bitsPerColor = 1;
-      Params.black = true;
+      params.colors = 1;
+      params.bitsPerColor = 1;
+      params.black = true;
       size_t x = stoi(xs);
       if(x % 8 != 0)
       {
@@ -194,15 +193,15 @@ int PPM2PWG_MAIN(int argc, char** argv)
       std::cerr << "Found: " << p << " " << xs << "x" << ys << " " << r << std::endl;
     }
 
-    Params.paperSizeW = stoi(xs);
-    Params.paperSizeH = stoi(ys);
+    params.paperSizeW = stoi(xs);
+    params.paperSizeH = stoi(ys);
 
-    size_t size = Params.paperSizeH*Params.getPaperSizeWInBytes();
-    bmp_bts.initFrom(*in, size);
+    size_t size = params.paperSizeH*params.getPaperSizeWInBytes();
+    bmpBts.initFrom(*in, size);
 
-    bmp_to_pwg(bmp_bts, OutBts, page, Params, verbose);
+    bmp_to_pwg(bmpBts, outBts, page, params, verbose);
 
-    *out << OutBts;
+    *out << outBts;
     in->peek(); // maybe trigger eof
   }
   return 0;

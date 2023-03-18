@@ -3,6 +3,6 @@
 
 #include <bytestream.h>
 
-void baselinify(Bytestream& InBts, Bytestream& OutBts);
+void baselinify(Bytestream& inBts, Bytestream& outBts);
 
 #endif //BASELINIFY_H

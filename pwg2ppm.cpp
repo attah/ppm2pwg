@@ -2,30 +2,30 @@
 #include <fstream>
 #include <iostream>
 
-void raster_to_bmp(Bytestream& OutBts, Bytestream& file,
-                   size_t byte_width, size_t height, size_t colors, bool urf)
+void raster_to_bmp(Bytestream& outBts, Bytestream& file,
+                   size_t byteWidth, size_t height, size_t colors, bool urf)
 {
-  Bytestream Grey8White {(uint8_t)0};
+  Bytestream grey8White {(uint8_t)0};
   Bytestream RGBWhite {(uint8_t)0xff, (uint8_t)0xff, (uint8_t)0xff};
   Bytestream CMYKWhite {(uint8_t)0x00, (uint8_t)0x00, (uint8_t)0x00, (uint8_t)0x00};
-  Bytestream White = (colors == 1 ? Grey8White : colors == 4 ? CMYKWhite : RGBWhite);
+  Bytestream white = (colors == 1 ? grey8White : colors == 4 ? CMYKWhite : RGBWhite);
 
   while(height)
   {
     Bytestream line;
-    uint8_t line_repeat;
-    file >> line_repeat;
+    uint8_t lineRepeat;
+    file >> lineRepeat;
 
-    while(line.size() != byte_width)
+    while(line.size() != byteWidth)
     {
       uint8_t count;
       file >> count;
 
       if(urf && count==128)
       { // URF special case: 128 means fill line with white
-        while(line.size() != byte_width)
+        while(line.size() != byteWidth)
         {
-          line << White;
+          line << white;
         }
       }
       else if (count < 128)
@@ -47,37 +47,35 @@ void raster_to_bmp(Bytestream& OutBts, Bytestream& file,
       }
     }
 
-    OutBts << line;
+    outBts << line;
     height--;
-    for(size_t i=0; i < line_repeat; i++)
+    for(size_t i=0; i < lineRepeat; i++)
     {
-      OutBts << line;
+      outBts << line;
     }
-    height-=line_repeat;
+    height-=lineRepeat;
   }
 }
 
-void write_ppm(Bytestream& OutBts, size_t width, size_t height,
+void write_ppm(Bytestream& outBts, size_t width, size_t height,
                size_t colors, size_t bits, bool black,
-               std::string outfile_prefix, int page)
+               std::string outfilePrefix, int page)
 {
   if(bits == 1 && !black)
   {
-    invert(OutBts);
+    invert(outBts);
   }
   else if(colors == 4)
   {
-    cmyk2rgb(OutBts);
+    cmyk2rgb(outBts);
   }
-  std::string outfile_name = outfile_prefix+std::to_string(page)
-                                           +(colors > 2 ? ".ppm"
-                                                        : bits == 8 ? ".pgm"
-                                                                    : ".pbm");
-  std::ofstream outfile(outfile_name, std::ofstream::out);
-  outfile << (colors > 2 ? "P6" : (bits == 8 ? "P5" : "P4"))
+  std::string outFileSuffix = (colors > 2 ? ".ppm" : bits == 8 ? ".pgm" : ".pbm");
+  std::string outFileName = outfilePrefix+std::to_string(page) + outFileSuffix;
+  std::ofstream outFile(outFileName, std::ofstream::out);
+  outFile << (colors > 2 ? "P6" : (bits == 8 ? "P5" : "P4"))
           << '\n' << width << ' ' << height << '\n' << 255 << '\n';
 
-  outfile << OutBts;
+  outFile << outBts;
 }
 
 void invert(Bytestream& bts)

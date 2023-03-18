@@ -5,12 +5,12 @@
 class LibLoader
 {
 public:
-  LibLoader(std::string LibName)
+  LibLoader(std::string libName)
   {
-    handle = dlopen(LibName.c_str(), RTLD_LAZY);
+    handle = dlopen(libName.c_str(), RTLD_LAZY);
     if(handle == nullptr)
     {
-      throw std::runtime_error("failed to load library:"+LibName);
+      throw std::runtime_error("failed to load library:"+libName);
     }
   }
   ~LibLoader()
@@ -26,10 +26,10 @@ private:
 };
 
 #define LIB(name, filename) \
-        LibLoader name(filename)
+        LibLoader lib##name(filename)
 
-#define FUNC(lib, ret, name, ...) \
+#define FUNC(libLoader, ret, name, ...) \
           typedef ret (*name##_p)(__VA_ARGS__); \
-          name##_p name = (name##_p)dlsym(lib.handle, #name)
+          name##_p name = (name##_p)dlsym(lib##libLoader.handle, #name)
 
 #endif // MADNESS_H

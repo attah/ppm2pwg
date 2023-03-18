@@ -10,39 +10,39 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  std::string InFile(argv[1]);
-  std::string OutFile(argv[2]);
+  std::string inFile(argv[1]);
+  std::string outFile(argv[2]);
 
   std::ifstream ifs;
   std::istream* in;
   std::ofstream ofs;
   std::ostream* out;
 
-  if(InFile == "-")
+  if(inFile == "-")
   {
     in = &std::cin;
     std::ios_base::sync_with_stdio(false);
   }
   else
   {
-    ifs = std::ifstream(InFile, std::ios::in | std::ios::binary);
+    ifs = std::ifstream(inFile, std::ios::in | std::ios::binary);
     in = &ifs;
   }
 
-  if(OutFile == "-")
+  if(outFile == "-")
   {
     out = &std::cout;
   }
   else
   {
-    ofs = std::ofstream(OutFile, std::ios::out | std::ios::binary);
+    ofs = std::ofstream(outFile, std::ios::out | std::ios::binary);
     out = &ofs;
   }
 
-  Bytestream InBts(*in);
-  Bytestream OutBts;
+  Bytestream inBts(*in);
+  Bytestream outBts;
 
-  baselinify(InBts, OutBts);
+  baselinify(inBts, outBts);
 
-  *out << OutBts;
+  *out << outBts;
 }

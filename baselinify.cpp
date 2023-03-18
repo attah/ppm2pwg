@@ -29,11 +29,11 @@ struct bts_source_mgr: jpeg_source_mgr
     return TRUE;
   }
 
-  static void skip_input_data(j_decompress_ptr cinfo, long num_bytes)
+  static void skip_input_data(j_decompress_ptr cinfo, long numBytes)
   {
     bts_source_mgr* src = (bts_source_mgr*)cinfo->src;
-    src->next_input_byte += (size_t)num_bytes;
-    src->bytes_in_buffer -= (size_t)num_bytes;
+    src->next_input_byte += (size_t)numBytes;
+    src->bytes_in_buffer -= (size_t)numBytes;
   }
 
   static void term_source(j_decompress_ptr) {}
@@ -75,52 +75,52 @@ struct bts_destination_mgr: jpeg_destination_mgr
   Bytestream& bts;
 };
 
-void baselinify(Bytestream& InBts, Bytestream& OutBts)
+void baselinify(Bytestream& inBts, Bytestream& outBts)
 {
-  struct jpeg_decompress_struct srcinfo;
-  struct jpeg_compress_struct dstinfo;
-  struct jpeg_error_mgr jsrcerr, jdsterr;
-  jvirt_barray_ptr* coef_arrays;
+  struct jpeg_decompress_struct srcInfo;
+  struct jpeg_compress_struct dstInfo;
+  struct jpeg_error_mgr jSrcErr, jDstErr;
+  jvirt_barray_ptr* coefArrays;
 
   #if MADNESS
   #include "libfuncs_jpeg"
   #endif
 
-  srcinfo.err = jpeg_std_error(&jsrcerr);
-  jpeg_create_decompress(&srcinfo);
+  srcInfo.err = jpeg_std_error(&jSrcErr);
+  jpeg_create_decompress(&srcInfo);
 
-  dstinfo.err = jpeg_std_error(&jdsterr);
-  jpeg_create_compress(&dstinfo);
+  dstInfo.err = jpeg_std_error(&jDstErr);
+  jpeg_create_compress(&dstInfo);
 
-  bts_source_mgr srcmgr(InBts);
-  srcinfo.src = &srcmgr;
+  bts_source_mgr srcMgr(inBts);
+  srcInfo.src = &srcMgr;
 
   // Preserve JFIF and EXIF data
-  jpeg_save_markers(&srcinfo, JPEG_APP0, 0xFFFF);
-  jpeg_save_markers(&srcinfo, JPEG_APP1, 0xFFFF);
+  jpeg_save_markers(&srcInfo, JPEG_APP0, 0xFFFF);
+  jpeg_save_markers(&srcInfo, JPEG_APP1, 0xFFFF);
 
-  jpeg_read_header(&srcinfo, TRUE);
+  jpeg_read_header(&srcInfo, TRUE);
 
-  coef_arrays = jpeg_read_coefficients(&srcinfo);
+  coefArrays = jpeg_read_coefficients(&srcInfo);
 
-  jpeg_copy_critical_parameters(&srcinfo, &dstinfo);
+  jpeg_copy_critical_parameters(&srcInfo, &dstInfo);
 
   // Don't write automatic JFIF data as it would be done twice
-  dstinfo.write_JFIF_header = FALSE;
-  dstinfo.write_Adobe_marker = FALSE;
+  dstInfo.write_JFIF_header = FALSE;
+  dstInfo.write_Adobe_marker = FALSE;
 
-  bts_destination_mgr dstmgr(OutBts);
-  dstinfo.dest = &dstmgr;
+  bts_destination_mgr dstMgr(outBts);
+  dstInfo.dest = &dstMgr;
 
-  jpeg_write_coefficients(&dstinfo, coef_arrays);
+  jpeg_write_coefficients(&dstInfo, coefArrays);
 
-  for(jpeg_saved_marker_ptr marker = srcinfo.marker_list; marker != NULL; marker = marker->next)
+  for(jpeg_saved_marker_ptr marker = srcInfo.marker_list; marker != NULL; marker = marker->next)
   {
-    jpeg_write_marker(&dstinfo, marker->marker, marker->data, marker->data_length);
+    jpeg_write_marker(&dstInfo, marker->marker, marker->data, marker->data_length);
   }
 
-  jpeg_finish_compress(&dstinfo);
-  jpeg_destroy_compress(&dstinfo);
-  jpeg_finish_decompress(&srcinfo);
-  jpeg_destroy_decompress(&srcinfo);
+  jpeg_finish_compress(&dstInfo);
+  jpeg_destroy_compress(&dstInfo);
+  jpeg_finish_decompress(&srcInfo);
+  jpeg_destroy_decompress(&srcInfo);
 }

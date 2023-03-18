@@ -14,7 +14,7 @@ public:
 
   virtual bool parse(std::list<std::string>&) = 0;
 
-  virtual std::string docname() const = 0;
+  virtual std::string docName() const = 0;
   virtual std::string doc() const = 0;
 
 private:
@@ -44,7 +44,7 @@ public:
     {
       if(!get_value(_value, argv))
       {
-        throw std::invalid_argument("foo");
+        throw std::invalid_argument("");
       }
       return true;
     }
@@ -64,19 +64,19 @@ public:
     return false;
   }
 
-  std::string docname() const
+  std::string docName() const
   {
-    std::stringstream docname;
+    std::stringstream docName;
     std::string sep = ", ";
     std::list<std::string>::const_iterator it = _names.cbegin();
-    docname << *it;
+    docName << *it;
     it++;
     for(; it != _names.cend(); it++)
     {
-      docname << sep << *it;
+      docName << sep << *it;
     }
-    docname << hint();
-    return docname.str();
+    docName << hint();
+    return docName.str();
   }
 
   std::string doc() const
@@ -162,7 +162,7 @@ public:
     return _optional;
   }
 
-  std::string docname() const
+  std::string docName() const
   {
     return _optional ? "["+_name+"]" : "<"+_name+">";
   }
@@ -185,15 +185,15 @@ public:
   ArgGet(const ArgGet&) = delete;
   ArgGet& operator=(const ArgGet&) = delete;
 
-  ArgGet(std::initializer_list<ArgBase*> argdefs,
-         std::initializer_list<PosArg*> posargdefs = {})
-  : _argdefs(argdefs), _posargdefs(posargdefs)
+  ArgGet(std::initializer_list<ArgBase*> argDefs,
+         std::initializer_list<PosArg*> posArgDefs = {})
+  : _argDefs(argDefs), _posArgDefs(posArgDefs)
   {}
 
   bool get_args(int argc, char** argv)
   {
-    std::list<std::string> arglist;
-    _errmsg = std::stringstream();
+    std::list<std::string> argList;
+    _errMsg = std::stringstream();
 
     if(argc < 1)
     {
@@ -203,18 +203,18 @@ public:
 
     for(int i = 1; i < argc; i++)
     {
-      arglist.push_back(argv[i]);;
+      argList.push_back(argv[i]);;
     }
 
     bool progress = true;
-    while(progress && arglist.size() != 0)
+    while(progress && argList.size() != 0)
     {
       progress = false;
-      for(ArgBase* argdef : _argdefs)
+      for(ArgBase* argDef : _argDefs)
       {
         try
         {
-          if(argdef->parse(arglist))
+          if(argDef->parse(argList))
           {
             progress = true;
             break;
@@ -222,60 +222,60 @@ public:
         }
         catch(std::exception& e)
         {
-          if(arglist.size() == 0)
+          if(argList.size() == 0)
           {
-            _errmsg << "Missing value for " << argdef->docname();
+            _errMsg << "Missing value for " << argDef->docName();
           }
           else
           {
-            _errmsg << "Bad value for " << argdef->docname()
-                    << " (" << arglist.front() << ")";
+            _errMsg << "Bad value for " << argDef->docName()
+                    << " (" << argList.front() << ")";
           }
           return false;
         }
       }
     }
 
-    for(PosArg* posarg : _posargdefs)
+    for(PosArg* posArg : _posArgDefs)
     {
-      if(!posarg->parse(arglist))
+      if(!posArg->parse(argList))
       {
-        _errmsg << "Missing positional argument " << (posarg->docname());
+        _errMsg << "Missing positional argument " << (posArg->docName());
         return false;
       }
     }
 
-    if(arglist.empty())
+    if(argList.empty())
     {
       return true;
     }
     else
     {
-      _errmsg << "Unknown argument: " << arglist.front();
+      _errMsg << "Unknown argument: " << argList.front();
       return false;
     }
   }
 
-  std::string arghelp()
+  std::string argHelp()
   {
     std::stringstream help;
     size_t w = 0;
 
     help << "Usage: " << _name << " [options]";
-    for(PosArg* posarg : _posargdefs)
+    for(PosArg* posArg : _posArgDefs)
     {
-      help << " " << posarg->docname();
+      help << " " << posArg->docName();
     }
     help << std::endl;
 
-    for(ArgBase* argdef : _argdefs)
+    for(ArgBase* argDef : _argDefs)
     {
-      w = std::max(w, argdef->docname().length());
+      w = std::max(w, argDef->docName().length());
     }
-    for(ArgBase* argdef : _argdefs)
+    for(ArgBase* argDef : _argDefs)
     {
-      help << "  " << std::left << std::setw(w) << argdef->docname() << "    "
-           << argdef->doc() << std::endl;
+      help << "  " << std::left << std::setw(w) << argDef->docName() << "    "
+           << argDef->doc() << std::endl;
     }
     return help.str();
   }
@@ -287,14 +287,14 @@ public:
 
   std::string errmsg()
   {
-    return _errmsg.str();
+    return _errMsg.str();
   }
 
 private:
   std::string _name;
-  std::list<ArgBase*> _argdefs;
-  std::list<PosArg*> _posargdefs;
-  std::stringstream _errmsg;
+  std::list<ArgBase*> _argDefs;
+  std::list<PosArg*> _posArgDefs;
+  std::stringstream _errMsg;
 };
 
 #endif //ARGGET_H

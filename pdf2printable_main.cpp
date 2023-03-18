@@ -7,9 +7,9 @@
 
 #define HELPTEXT "Options from 'resolution' and onwards only affect raster output formats."
 
-void print_error(std::string hint, std::string arghelp)
+void print_error(std::string hint, std::string argHelp)
 {
-  std::cerr << hint << std::endl << std::endl << arghelp << std::endl << HELPTEXT << std::endl;
+  std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
 }
 
 bool ends_with(std::string s, std::string ending)
@@ -23,39 +23,39 @@ bool ends_with(std::string s, std::string ending)
 
 int main(int argc, char** argv)
 {
-  PrintParameters Params;
+  PrintParameters params;
   bool help = false;
   bool verbose = false;
   std::string format;
   std::string pages;
-  std::string paperSize = Params.paperSizeName;
+  std::string paperSize = params.paperSizeName;
   std::string colorMode;
   int hwRes = 0;
   int hwResX = 0;
   int hwResY = 0;
-  std::string Infile;
-  std::string Outfile;
+  std::string infile;
+  std::string outfile;
 
   SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
   SwitchArg<bool> verboseOpt(verbose, {"-v", "--verbose"}, "Be verbose, print headers and progress");
   SwitchArg<std::string> formatOpt(format, {"-f", "--format"}, "Format to output (pdf/postscript/pwg/urf)");
   SwitchArg<std::string> pagesOpt(pages, {"--pages"}, "What pages to process, e.g.: 1,17-42");
-  SwitchArg<size_t> copiesOpt(Params.documentCopies, {"--copies"}, "Number of copies to output");
-  SwitchArg<size_t> pageCopiesOpt(Params.pageCopies, {"--page-copies"}, "Number of copies to output for each page");
+  SwitchArg<size_t> copiesOpt(params.documentCopies, {"--copies"}, "Number of copies to output");
+  SwitchArg<size_t> pageCopiesOpt(params.pageCopies, {"--page-copies"}, "Number of copies to output for each page");
   SwitchArg<std::string> paperSizeOpt(paperSize, {"--paper-size"}, "Paper size to output, e.g.: iso_a4_210x297mm");
   SwitchArg<int> resolutionOpt(hwRes, {"-r", "--resolution"}, "Resolution (in DPI) for rasterization");
   SwitchArg<int> resolutionXOpt(hwResX, {"-rx", "--resolution-x"}, "Resolution (in DPI) for rasterization, x-axis");
   SwitchArg<int> resolutionYOpt(hwResY, {"-ry", "--resolution-y"}, "Resolution (in DPI) for rasterization, y-axis");
-  SwitchArg<bool> duplexOpt(Params.duplex, {"-d", "--duplex"}, "Process for duplex printing");
-  SwitchArg<bool> tumbleOpt(Params.duplex, {"-t", "--tumble"}, "Set tumble indicator in raster header");
-  SwitchArg<bool> hFlipOpt(Params.backHFlip, {"-hf", "--hflip"}, "Flip backsides horizontally for duplex");
-  SwitchArg<bool> vFlipOpt(Params.backVFlip, {"-vf", "--vflip"}, "Flip backsides vertically for duplex");
+  SwitchArg<bool> duplexOpt(params.duplex, {"-d", "--duplex"}, "Process for duplex printing");
+  SwitchArg<bool> tumbleOpt(params.duplex, {"-t", "--tumble"}, "Set tumble indicator in raster header");
+  SwitchArg<bool> hFlipOpt(params.backHFlip, {"-hf", "--hflip"}, "Flip backsides horizontally for duplex");
+  SwitchArg<bool> vFlipOpt(params.backVFlip, {"-vf", "--vflip"}, "Flip backsides vertically for duplex");
   SwitchArg<std::string> colorModeOpt(colorMode, {"-c", "--color-mode"}, "Color mode (srgb24/cmyk32/gray8/black8/gray1/black1)");
-  SwitchArg<size_t> qualityOpt(Params.quality, {"-q", "--quality"}, "Quality setting in raster header (3,4,5)");
-  SwitchArg<bool> antiAliasOpt(Params.antiAlias, {"-aa", "--antaialias"}, "Enable antialiasing in rasterization");
+  SwitchArg<size_t> qualityOpt(params.quality, {"-q", "--quality"}, "Quality setting in raster header (3,4,5)");
+  SwitchArg<bool> antiAliasOpt(params.antiAlias, {"-aa", "--antaialias"}, "Enable antialiasing in rasterization");
 
-  PosArg pdfArg(Infile, "PDF-file");
-  PosArg outArg(Outfile, "out-file");
+  PosArg pdfArg(infile, "PDF-file");
+  PosArg outArg(outfile, "out-file");
 
   ArgGet args({&helpOpt, &verboseOpt, &formatOpt, &pagesOpt,
                &copiesOpt, &pageCopiesOpt, &paperSizeOpt, &resolutionOpt,
@@ -66,99 +66,99 @@ int main(int argc, char** argv)
   bool correctArgs = args.get_args(argc, argv);
   if(help)
   {
-    std::cout << args.arghelp() << std::endl << HELPTEXT << std::endl;
+    std::cout << args.argHelp() << std::endl << HELPTEXT << std::endl;
     return 0;
   }
   else if(!correctArgs)
   {
-    print_error(args.errmsg(), args.arghelp());
+    print_error(args.errmsg(), args.argHelp());
     return 1;
   }
 
-  if(format == "ps" || format == "postscript" || (format == "" && ends_with(Outfile, ".ps")))
+  if(format == "ps" || format == "postscript" || (format == "" && ends_with(outfile, ".ps")))
   {
-    Params.format = PrintParameters::Postscript;
+    params.format = PrintParameters::Postscript;
   }
-  else if(format == "pwg" || (format == "" && ends_with(Outfile, ".pwg")))
+  else if(format == "pwg" || (format == "" && ends_with(outfile, ".pwg")))
   {
-    Params.format = PrintParameters::PWG;
+    params.format = PrintParameters::PWG;
   }
-  else if(format == "urf" || (format == "" && ends_with(Outfile, ".urf")))
+  else if(format == "urf" || (format == "" && ends_with(outfile, ".urf")))
   {
-    Params.format = PrintParameters::URF;
+    params.format = PrintParameters::URF;
   }
-  else if(format == "pdf" || (format == "" && ends_with(Outfile, ".pdf")))
+  else if(format == "pdf" || (format == "" && ends_with(outfile, ".pdf")))
   {
-    Params.format = PrintParameters::PDF;
+    params.format = PrintParameters::PDF;
   }
   else if(format != "")
   {
-    print_error("Unrecognized target format", args.arghelp());
+    print_error("Unrecognized target format", args.argHelp());
     return 1;
   }
 
   if(!pages.empty())
   {
-    if(!Params.setPageRange(pages))
+    if(!params.setPageRange(pages))
     {
-      print_error("Malformed page selection", args.arghelp());
+      print_error("Malformed page selection", args.argHelp());
       return 1;
     }
   }
 
-  if(!Params.setPaperSize(paperSize))
+  if(!params.setPaperSize(paperSize))
   {
-    print_error("Malformed paper size", args.arghelp());
+    print_error("Malformed paper size", args.argHelp());
     return 1;
   }
 
   if(hwResX != 0)
   {
-    Params.hwResW = hwResX;
+    params.hwResW = hwResX;
   }
   else if(hwRes != 0)
   {
-    Params.hwResW = hwRes;
+    params.hwResW = hwRes;
   }
 
   if(hwResY != 0)
   {
-    Params.hwResH = hwResY;
+    params.hwResH = hwResY;
   }
   else if(hwRes != 0)
   {
-    Params.hwResH = hwRes;
+    params.hwResH = hwRes;
   }
 
-  if(colorMode != "" && !Params.setColorMode(colorMode))
+  if(colorMode != "" && !params.setColorMode(colorMode))
   {
-    print_error("Unrecognized color mode", args.arghelp());
+    print_error("Unrecognized color mode", args.argHelp());
   }
 
-  if(Params.format == PrintParameters::URF && (Params.bitsPerColor == 1 || Params.black))
+  if(params.format == PrintParameters::URF && (params.bitsPerColor == 1 || params.black))
   {
-    print_error("URF does not support black or 1-bit color modes", args.arghelp());
+    print_error("URF does not support black or 1-bit color modes", args.argHelp());
     return 1;
   }
 
-  std::ofstream of = std::ofstream(Outfile, std::ofstream::out | std::ios::binary);
-  write_fun WriteFun([&of](unsigned char const* buf, unsigned int len) -> bool
-            {
-              of.write((char*)buf, len);
-              return of.exceptions() == std::ostream::goodbit;
-            });
+  std::ofstream of = std::ofstream(outfile, std::ofstream::out | std::ios::binary);
+  WriteFun writeFun([&of](unsigned char const* buf, unsigned int len) -> bool
+           {
+             of.write((char*)buf, len);
+             return of.exceptions() == std::ostream::goodbit;
+           });
 
   if(verbose)
   {
-    progress_fun ProgressFun([](size_t page, size_t total) -> void
-                 {
-                   std::cerr << "Progress: " << page << "/" << total << "\n\n";
-                 });
-    return pdf_to_printable(Infile, WriteFun, Params, ProgressFun, true);
+    ProgressFun progressFun([](size_t page, size_t total) -> void
+                {
+                  std::cerr << "Progress: " << page << "/" << total << "\n\n";
+                });
+    return pdf_to_printable(infile, writeFun, params, progressFun, true);
   }
   else
   {
-    return pdf_to_printable(Infile, WriteFun, Params);
+    return pdf_to_printable(infile, writeFun, params);
   }
 
 }

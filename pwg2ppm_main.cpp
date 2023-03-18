@@ -12,15 +12,15 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  std::string filename(argv[1]);
-  std::string outfile_prefix(argv[2]);
+  std::string fileName(argv[1]);
+  std::string outfilePrefix(argv[2]);
 
-  std::ifstream ifs(filename, std::ios::in | std::ios::binary);
+  std::ifstream ifs(fileName, std::ios::in | std::ios::binary);
   Bytestream file(ifs);
   std::cerr << "File is " << file.size() << " long" << std::endl;
 
   size_t pages = 0;
-  Bytestream OutBts;
+  Bytestream outBts;
 
   if(file >>= "RaS2")
   {
@@ -29,33 +29,33 @@ int main(int argc, char** argv)
     do
     {
       std::cerr << "Page " << ++pages << std::endl;
-      PwgPgHdr PwgHdr;
-      PwgHdr.decodeFrom(file);
-      std::cerr << PwgHdr.describe() << std::endl;
-      raster_to_bmp(OutBts, file, PwgHdr.BytesPerLine, PwgHdr.Height, PwgHdr.NumColors, false);
-      write_ppm(OutBts, PwgHdr.Width, PwgHdr.Height, PwgHdr.NumColors, PwgHdr.BitsPerColor,
-                PwgHdr.ColorSpace == PwgPgHdr::Black, outfile_prefix, pages);
-      OutBts.reset();
+      PwgPgHdr pwgHdr;
+      pwgHdr.decodeFrom(file);
+      std::cerr << pwgHdr.describe() << std::endl;
+      raster_to_bmp(outBts, file, pwgHdr.BytesPerLine, pwgHdr.Height, pwgHdr.NumColors, false);
+      write_ppm(outBts, pwgHdr.Width, pwgHdr.Height, pwgHdr.NumColors, pwgHdr.BitsPerColor,
+                pwgHdr.ColorSpace == PwgPgHdr::Black, outfilePrefix, pages);
+      outBts.reset();
     }
     while (file.remaining());
   }
   else if(file >>= "UNIRAST")
   {
-    uint32_t PageCount;
-    file >> (uint8_t)0 >> PageCount;
+    uint32_t pageCount;
+    file >> (uint8_t)0 >> pageCount;
     std::cerr << "Smells like URF Raster, with "
-              << PageCount << " pages" << std::endl;
+              << pageCount << " pages" << std::endl;
     do
     {
       std::cerr << "Page " << ++pages << std::endl;
-      UrfPgHdr UrfHdr;
-      UrfHdr.decodeFrom(file);
-      std::cerr << UrfHdr.describe() << std::endl;
-      uint32_t ByteWidth = UrfHdr.Width * (UrfHdr.BitsPerPixel/8);
-      raster_to_bmp(OutBts, file, ByteWidth, UrfHdr.Height, UrfHdr.BitsPerPixel/8, true);
-      write_ppm(OutBts, UrfHdr.Width, UrfHdr.Height, UrfHdr.BitsPerPixel/8, 8,
-                false, outfile_prefix, pages);
-      OutBts.reset();
+      UrfPgHdr urfHdr;
+      urfHdr.decodeFrom(file);
+      std::cerr << urfHdr.describe() << std::endl;
+      uint32_t byteWidth = urfHdr.Width * (urfHdr.BitsPerPixel/8);
+      raster_to_bmp(outBts, file, byteWidth, urfHdr.Height, urfHdr.BitsPerPixel/8, true);
+      write_ppm(outBts, urfHdr.Width, urfHdr.Height, urfHdr.BitsPerPixel/8, 8,
+                false, outfilePrefix, pages);
+      outBts.reset();
     }
     while (file.remaining());
   }

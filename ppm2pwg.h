@@ -8,16 +8,16 @@ Bytestream make_pwg_file_hdr();
 
 Bytestream make_urf_file_hdr(uint32_t pages);
 
-void make_pwg_hdr(Bytestream& OutBts, const PrintParameters& Params, bool Backside, bool Verbose);
-void make_urf_hdr(Bytestream& OutBts, const PrintParameters& Params, bool Verbose);
+void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backside, bool verbose);
+void make_urf_hdr(Bytestream& outBts, const PrintParameters& params, bool verbose);
 
 
-void bmp_to_pwg(Bytestream& bmp_bts, Bytestream& OutBts, size_t page,
-                const PrintParameters& params, bool Verbose = false);
+void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts, size_t page,
+                const PrintParameters& params, bool verbose = false);
 
-void compress_lines(Bytestream& bmp_bts, Bytestream& OutBts,
-                    const PrintParameters& Params, bool backside);
+void compress_lines(Bytestream& bmpBts, Bytestream& outBts,
+                    const PrintParameters& params, bool backside);
 
-void compress_line(uint8_t* raw, size_t len, Bytestream& OutBts, int Colors);
+void compress_line(uint8_t* raw, size_t len, Bytestream& outBts, int Colors);
 
 #endif //PPM2PWG_H

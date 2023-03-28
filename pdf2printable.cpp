@@ -12,6 +12,7 @@
 
 #include <bytestream.h>
 #include <array.h>
+#include <pointer.h>
 #include "ppm2pwg.h"
 #include "pdf2printable.h"
 
@@ -32,7 +33,7 @@
 #define PDF_CREATOR "pdf2printable"
 #endif
 
-#define CHECK(call) if(!(call)) {res = 1; goto error;}
+#define CHECK(call) if(!(call)) {return 1;}
 
 void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameters& params);
 
@@ -60,16 +61,6 @@ double round2(double d)
 int pdf_to_printable(std::string infile, WriteFun writeFun, const PrintParameters& params,
                      ProgressFun progressFun, bool verbose)
 {
-  int res = 0;
-  bool raster = params.format == PrintParameters::PWG ||
-                params.format == PrintParameters::URF;
-
-  cairo_surface_t* surface;
-  cairo_t* cairo;
-  cairo_status_t status;
-  Bytestream bmpBts;
-  Bytestream outBts;
-
   if(params.format == PrintParameters::URF && (params.hwResW != params.hwResH))
   { // URF must have a symmetric resolution
     std::cerr << "URF must have a symmetric resolution." << std::endl;
@@ -80,6 +71,15 @@ int pdf_to_printable(std::string infile, WriteFun writeFun, const PrintParameter
   #include "libfuncs"
   #endif
 
+  bool raster = params.format == PrintParameters::PWG ||
+                params.format == PrintParameters::URF;
+
+  Pointer<cairo_surface_t> surface(nullptr, cairo_surface_destroy);
+  Pointer<cairo_t> cairo(nullptr, cairo_destroy);
+  cairo_status_t status;
+  Bytestream bmpBts;
+  Bytestream outBts;
+
   if (!g_path_is_absolute(infile.c_str()))
   {
       std::string dir = free_cstr(g_get_current_dir());
@@ -89,12 +89,13 @@ int pdf_to_printable(std::string infile, WriteFun writeFun, const PrintParameter
   std::string url("file://");
   url.append(infile);
   GError* error = nullptr;
-  PopplerDocument* doc = poppler_document_new_from_file(url.c_str(), nullptr, &error);
+  Pointer<PopplerDocument> doc(poppler_document_new_from_file(url.c_str(), nullptr, &error),
+                               g_object_unref);
 
-  if(doc == NULL)
+  if(doc == nullptr)
   {
-    std::cerr << "Failed to open PDF: " << error->message
-              << " (" << url << ")" << std::endl;
+    std::cerr << "Failed to open PDF: " << error->message << " (" << url << ")" << std::endl;
+    g_error_free(error);
     return 1;
   }
 
@@ -135,13 +136,13 @@ int pdf_to_printable(std::string infile, WriteFun writeFun, const PrintParameter
   }
   else
   {
-    g_object_unref(doc);
     return 1;
   }
 
   for(size_t pageNo : seq)
   {
     outPageNo++;
+
     cairo = cairo_create(surface);
 
     if(raster)
@@ -149,11 +150,11 @@ int pdf_to_printable(std::string infile, WriteFun writeFun, const PrintParameter
       if(!params.antiAlias)
       {
         cairo_set_antialias(cairo, CAIRO_ANTIALIAS_NONE);
-        cairo_font_options_t *fontOptions = cairo_font_options_create();
+        Pointer<cairo_font_options_t> fontOptions(cairo_font_options_create(),
+                                                  cairo_font_options_destroy);
         cairo_get_font_options(cairo, fontOptions);
         cairo_font_options_set_antialias(fontOptions, CAIRO_ANTIALIAS_NONE);
         cairo_set_font_options(cairo, fontOptions);
-        cairo_font_options_destroy(fontOptions);
       }
       cairo_save(cairo);
       cairo_set_source_rgb(cairo, 1, 1, 1);
@@ -163,7 +164,7 @@ int pdf_to_printable(std::string infile, WriteFun writeFun, const PrintParameter
 
     if(pageNo != INVALID_PAGE)
     { // We are actually rendering a page and not just a blank...
-      PopplerPage* page = poppler_document_get_page(doc, pageNo-1);
+      Pointer<PopplerPage> page(poppler_document_get_page(doc, pageNo-1), g_object_unref);
       double pageWidth, pageHeight;
       double xScale, yScale, xOffset, yOffset;
       bool rotate = false;
@@ -183,15 +184,14 @@ int pdf_to_printable(std::string infile, WriteFun writeFun, const PrintParameter
       }
 
       poppler_page_render_for_printing(page, cairo);
-      g_object_unref(page);
     }
 
     status = cairo_status(cairo);
     if (status)
     {
       std::cerr << "cairo error: " << cairo_status_to_string(status) << std::endl;
+      return 1;
     }
-    cairo_destroy(cairo);
     cairo_surface_show_page(surface);
 
     if(raster)
@@ -219,10 +219,7 @@ int pdf_to_printable(std::string infile, WriteFun writeFun, const PrintParameter
     CHECK(writeFun(outBts.raw(), outBts.size()));
   }
 
-error:
-  cairo_surface_destroy(surface);
-  g_object_unref(doc);
-  return res;
+  return 0;
 }
 
 void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameters& params)

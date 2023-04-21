@@ -190,22 +190,22 @@ bool PrintParameters::setPageRange(const std::string& rangeStr)
   while(pos <= rangeStr.length())
   {
     size_t found = std::min(rangeStr.length(), rangeStr.find(",", pos));
-    std::string tmp(rangeStr, pos, (found-pos));
+    std::string substr(rangeStr, pos, (found-pos));
 
-    if(std::regex_match(tmp, match, single))
+    if(std::regex_match(substr, match, single))
     {
-      size_t tmp = stol(match[1]);
-      rangeList.push_back({tmp, tmp});
+      size_t single_value = stol(match[1]);
+      rangeList.push_back({single_value, single_value});
     }
-    else if(std::regex_match(tmp, match, range))
+    else if(std::regex_match(substr, match, range))
     {
-      size_t tmp_from = stol(match[1]);
-      size_t tmp_to = stol(match[2]);
-      if(tmp_to < tmp_from)
+      size_t from = stol(match[1]);
+      size_t to = stol(match[2]);
+      if(to < from)
       {
         return false;
       }
-      rangeList.push_back({tmp_from, tmp_to});
+      rangeList.push_back({from, to});
     }
     else
     {
@@ -226,7 +226,7 @@ bool PrintParameters::setPaperSize(const std::string& sizeStr)
 {
   const std::regex nameRegex("^[0-9a-z_-]+_(([0-9]+[.])?[0-9]+)x(([0-9]+[.])?[0-9]+)(mm|in)$");
   std::cmatch match;
-  locale_t c_locale = newlocale(LC_ALL_MASK, "C", NULL);
+  locale_t c_locale = newlocale(LC_ALL_MASK, "C", nullptr);
 
   if(std::regex_match(sizeStr.c_str(), match, nameRegex))
   {

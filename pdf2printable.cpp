@@ -40,25 +40,25 @@ void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameter
 void fixup_scale(double& xScale, double& yScale, double& xOffset, double& yOffset,
                  bool& rotate, double& wIn, double& hIn, const PrintParameters& params);
 
-std::string free_cstr(char* CStr)
+inline std::string free_cstr(char* CStr)
 {
   std::string tmp(CStr);
   free(CStr);
   return tmp;
 }
 
-cairo_status_t bytestream_writer(void* bts, const unsigned char* data, unsigned int length)
+inline cairo_status_t bytestream_writer(void* bts, const unsigned char* data, unsigned int length)
 {
   ((Bytestream*)bts)->putBytes(data, length);
   return CAIRO_STATUS_SUCCESS;
 }
 
-double round2(double d)
+inline double round2(double d)
 {
   return round(d*100)/100;
 }
 
-int pdf_to_printable(std::string infile, WriteFun writeFun, const PrintParameters& params,
+int pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParameters& params,
                      ProgressFun progressFun, bool verbose)
 {
   if(params.format == PrintParameters::URF && (params.hwResW != params.hwResH))
@@ -80,14 +80,14 @@ int pdf_to_printable(std::string infile, WriteFun writeFun, const PrintParameter
   Bytestream bmpBts;
   Bytestream outBts;
 
-  if (!g_path_is_absolute(infile.c_str()))
+  if (!g_path_is_absolute(inFile.c_str()))
   {
       std::string dir = free_cstr(g_get_current_dir());
-      infile = free_cstr(g_build_filename(dir.c_str(), infile.c_str(), NULL));
+      inFile = free_cstr(g_build_filename(dir.c_str(), inFile.c_str(), nullptr));
   }
 
   std::string url("file://");
-  url.append(infile);
+  url.append(inFile);
   GError* error = nullptr;
   Pointer<PopplerDocument> doc(poppler_document_new_from_file(url.c_str(), nullptr, &error),
                                g_object_unref);

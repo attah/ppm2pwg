@@ -7,12 +7,12 @@
 
 #define HELPTEXT "Options from 'resolution' and onwards only affect raster output formats."
 
-void print_error(std::string hint, std::string argHelp)
+inline void print_error(std::string hint, std::string argHelp)
 {
   std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
 }
 
-bool ends_with(std::string s, std::string ending)
+inline bool ends_with(std::string s, std::string ending)
 {
   if(ending.length() <= s.length())
   {
@@ -144,7 +144,7 @@ int main(int argc, char** argv)
   std::ofstream of = std::ofstream(outfile, std::ofstream::out | std::ios::binary);
   WriteFun writeFun([&of](unsigned char const* buf, unsigned int len) -> bool
            {
-             of.write((char*)buf, len);
+             of.write((const char*)buf, len);
              return of.exceptions() == std::ostream::goodbit;
            });
 

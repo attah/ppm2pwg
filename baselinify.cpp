@@ -1,4 +1,4 @@
-#include <bytestream.h>
+#include "baselinify.h"
 #include <jpeglib.h>
 #include "madness.h"
 
@@ -114,7 +114,7 @@ void baselinify(Bytestream& inBts, Bytestream& outBts)
 
   jpeg_write_coefficients(&dstInfo, coefArrays);
 
-  for(jpeg_saved_marker_ptr marker = srcInfo.marker_list; marker != NULL; marker = marker->next)
+  for(jpeg_saved_marker_ptr marker = srcInfo.marker_list; marker != nullptr; marker = marker->next)
   {
     jpeg_write_marker(&dstInfo, marker->marker, marker->data, marker->data_length);
   }

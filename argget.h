@@ -203,7 +203,7 @@ public:
 
     for(int i = 1; i < argc; i++)
     {
-      argList.push_back(argv[i]);;
+      argList.push_back(argv[i]);
     }
 
     bool progress = true;
@@ -220,7 +220,7 @@ public:
             break;
           }
         }
-        catch(std::exception& e)
+        catch(const std::exception&)
         {
           if(argList.size() == 0)
           {

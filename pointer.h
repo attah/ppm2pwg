@@ -9,7 +9,7 @@ class Pointer : public std::unique_ptr<T, D>
 {
 public:
   Pointer(T* ptr, D deleter)
-  : std::unique_ptr<T, D>(ptr, [deleter](T* ptr){if(ptr) deleter(ptr);})
+  : std::unique_ptr<T, D>(ptr, [deleter](T* p){if(p) deleter(p);})
   {}
   Pointer<T, D>& operator=(T* Ptr)
   {

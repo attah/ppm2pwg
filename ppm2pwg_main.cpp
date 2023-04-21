@@ -8,7 +8,7 @@
 #include "ppm2pwg.h"
 #include "argget.h"
 
-void ignore_comments(std::istream* in)
+inline void ignore_comments(std::istream* in)
 {
   if(in->peek() == '\n')
   {

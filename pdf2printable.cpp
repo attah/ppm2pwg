@@ -80,17 +80,50 @@ int pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParameter
   Bytestream bmpBts;
   Bytestream outBts;
 
-  if (!g_path_is_absolute(inFile.c_str()))
+  if (inFile != "-" && !g_path_is_absolute(inFile.c_str()))
   {
       std::string dir = free_cstr(g_get_current_dir());
       inFile = free_cstr(g_build_filename(dir.c_str(), inFile.c_str(), nullptr));
   }
 
   std::string url("file://");
-  url.append(inFile);
-  GError* error = nullptr;
-  Pointer<PopplerDocument> doc(poppler_document_new_from_file(url.c_str(), nullptr, &error),
-                               g_object_unref);
+  GError *error = nullptr;
+  std::vector<char> buffer;
+
+  if (inFile != "-")
+  {
+      url.append(inFile);
+      std::ifstream file(inFile, std::ios::binary | std::ios::ate);
+
+      if (!file)
+      {
+          std::cerr << "Failed to open file: " << inFile << std::endl;
+          return 1;
+      }
+
+      std::streamsize size = file.tellg();
+      file.seekg(0, std::ios::beg);
+      buffer.resize(size);
+
+      if (!file.read(buffer.data(), size))
+      {
+          std::cerr << "Failed to read file: " << inFile << std::endl;
+          return 1;
+      }
+  }
+  else
+  {
+      url.append("stdin");
+      char ch;
+      while (std::cin.get(ch))
+      {
+          buffer.push_back(ch);
+      }
+  }
+
+  GBytes *bytes = g_bytes_new(buffer.data(), buffer.size());
+  Pointer<PopplerDocument> doc(poppler_document_new_from_bytes(bytes, nullptr, &error), g_object_unref);
+  g_bytes_unref(bytes);
 
   if(doc == nullptr)
   {

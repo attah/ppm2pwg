@@ -1,11 +1,17 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <memory>
 
 #include "pdf2printable.h"
 #include "argget.h"
 
 #define HELPTEXT "Options from 'resolution' and onwards only affect raster output formats."
+
+struct NullDeleter
+{
+  void operator()(std::ostream *) const {}
+};
 
 inline void print_error(std::string hint, std::string argHelp)
 {
@@ -55,7 +61,7 @@ int main(int argc, char** argv)
   SwitchArg<bool> antiAliasOpt(params.antiAlias, {"-aa", "--antaialias"}, "Enable antialiasing in rasterization");
 
   PosArg pdfArg(infile, "PDF-file");
-  PosArg outArg(outfile, "out-file");
+  PosArg outArg(outfile, "out-file", true);
 
   ArgGet args({&helpOpt, &verboseOpt, &formatOpt, &pagesOpt,
                &copiesOpt, &pageCopiesOpt, &paperSizeOpt, &resolutionOpt,
@@ -141,11 +147,21 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  std::ofstream of = std::ofstream(outfile, std::ofstream::out | std::ios::binary);
-  WriteFun writeFun([&of](unsigned char const* buf, unsigned int len) -> bool
+  std::shared_ptr<std::ostream> of;
+
+  if (outfile == "-")
+  {
+    of = std::shared_ptr<std::ostream>(&std::cout, NullDeleter());
+  }
+  else
+  {
+    of = std::make_shared<std::ofstream>(outfile, std::ofstream::out | std::ios::binary);
+  }
+
+  WriteFun writeFun([of](unsigned char const *buf, unsigned int len) -> bool
            {
-             of.write((const char*)buf, len);
-             return of.exceptions() == std::ostream::goodbit;
+             of->write((char*)buf, len);
+             return of->exceptions() == std::ostream::goodbit;
            });
 
   if(verbose)

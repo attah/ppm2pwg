@@ -5,7 +5,8 @@
 #include "pdf2printable.h"
 #include "argget.h"
 
-#define HELPTEXT "Options from 'resolution' and onwards only affect raster output formats."
+#define HELPTEXT "Options from 'resolution' and onwards only affect raster output formats.\n" \
+                 "Use \"-\" as filename for stdout."
 
 inline void print_error(std::string hint, std::string argHelp)
 {
@@ -141,11 +142,23 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  std::ofstream of = std::ofstream(outfile, std::ofstream::out | std::ios::binary);
-  WriteFun writeFun([&of](unsigned char const* buf, unsigned int len) -> bool
+  std::ofstream ofs;
+  std::ostream* out;
+
+  if(outfile == "-")
+  {
+    out = &std::cout;
+  }
+  else
+  {
+    ofs = std::ofstream(outfile, std::ios::out | std::ios::binary);
+    out = &ofs;
+  }
+
+  WriteFun writeFun([out](unsigned char const* buf, unsigned int len) -> bool
            {
-             of.write((const char*)buf, len);
-             return of.exceptions() == std::ostream::goodbit;
+             out->write((const char*)buf, len);
+             return out->exceptions() == std::ostream::goodbit;
            });
 
   if(verbose)

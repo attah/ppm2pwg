@@ -6,7 +6,7 @@
 #include "argget.h"
 
 #define HELPTEXT "Options from 'resolution' and onwards only affect raster output formats.\n" \
-                 "Use \"-\" as filename for stdout."
+                 "Use \"-\" as filename for stdin/stdout."
 
 inline void print_error(std::string hint, std::string argHelp)
 {

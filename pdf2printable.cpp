@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <math.h>
+#include <unistd.h>
 #include "madness.h"
 
 #include <bytestream.h>
@@ -80,21 +81,29 @@ int pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParameter
   Bytestream bmpBts;
   Bytestream outBts;
 
-  if (!g_path_is_absolute(inFile.c_str()))
+  Pointer<PopplerDocument> doc(nullptr, g_object_unref);
+  GError* error = nullptr;
+
+  if(inFile == "-")
   {
+    doc = poppler_document_new_from_fd(STDIN_FILENO, nullptr, &error);
+  }
+  else
+  {
+    if (!g_path_is_absolute(inFile.c_str()))
+    {
       std::string dir = free_cstr(g_get_current_dir());
       inFile = free_cstr(g_build_filename(dir.c_str(), inFile.c_str(), nullptr));
-  }
+    }
 
-  std::string url("file://");
-  url.append(inFile);
-  GError* error = nullptr;
-  Pointer<PopplerDocument> doc(poppler_document_new_from_file(url.c_str(), nullptr, &error),
-                               g_object_unref);
+    std::string url("file://");
+    url.append(inFile);
+    doc = poppler_document_new_from_file(url.c_str(), nullptr, &error);
+  }
 
   if(doc == nullptr)
   {
-    std::cerr << "Failed to open PDF: " << error->message << " (" << url << ")" << std::endl;
+    std::cerr << "Failed to open PDF: " << error->message << " (" << inFile << ")" << std::endl;
     g_error_free(error);
     return 1;
   }

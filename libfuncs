@@ -1,5 +1,6 @@
 LIB(poppler, "libpoppler-glib.so.8");
 FUNC(poppler, PopplerDocument*, poppler_document_new_from_file, const char*, const char*, GError**);
+FUNC(poppler, PopplerDocument*, poppler_document_new_from_fd, int, const char*, GError**);
 FUNC(poppler, int, poppler_document_get_n_pages, PopplerDocument*);
 FUNC(poppler, PopplerPage*, poppler_document_get_page, PopplerDocument*, int);
 FUNC(poppler, void, poppler_page_get_size, PopplerPage*, double*, double*);

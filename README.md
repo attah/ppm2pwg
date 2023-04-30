@@ -1,6 +1,9 @@
 # ppm2pwg - misc printing format conversion utilities
 (should really be renamed)
 
+![C/C++ CI](https://github.com/attah/ppm2pwg/workflows/C%2FC%2B%2B%20CI/badge.svg)
+![CodeQL](https://github.com/attah/ppm2pwg/workflows/CodeQL/badge.svg)
+
 Available as rudimentary standalone applications, but mainly made for use in [SeaPrint](https://github.com/attah/harbour-seaprint).
 
 ## ppm2pwg
@@ -28,7 +31,7 @@ Despite working with in-memory data, it only requires the libjpeg 62.2.0 and not
 
 Install dependencies:
 
-`sudo apt install libpoppler-dev libpoppler-glib-dev  libcairo2-dev  libglib2.0-dev libjpeg-dev`
+`sudo apt install libpoppler-dev libpoppler-glib-dev libcairo2-dev libglib2.0-dev libjpeg-dev`
 
 Build:
 

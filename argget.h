@@ -236,6 +236,12 @@ public:
       }
     }
 
+    if(argList.size() > _posArgDefs.size())
+    { // Cannot consume all - fail early.
+      _errMsg << "Unknown argument: " << argList.front();
+      return false;
+    }
+
     for(PosArg* posArg : _posArgDefs)
     {
       if(!posArg->parse(argList))

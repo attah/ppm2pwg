@@ -1098,4 +1098,13 @@ TEST(argget)
   ASSERT(get2.errmsg().find("Missing positional argument") != std::string::npos);
   ASSERT(get2.errmsg().find("arg1") != std::string::npos);
 
+  char* argv5[4] = {(char*)"myprog",
+                    (char*)"-bool", // Malformed switch
+                    (char*)"apa", (char*)"bpa"};
+
+  ASSERT_FALSE(get2.get_args(4, argv5));
+  ASSERT(get2.errmsg().find("Unknown argument") != std::string::npos);
+
+  ASSERT(get2.errmsg().find("-bool") != std::string::npos);
+
 }

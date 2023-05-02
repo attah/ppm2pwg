@@ -84,10 +84,23 @@ int pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParameter
   Pointer<PopplerDocument> doc(nullptr, g_object_unref);
   GError* error = nullptr;
 
+#if POPPLER_CHECK_VERSION(21, 12, 0)
   if(inFile == "-")
   {
     doc = poppler_document_new_from_fd(STDIN_FILENO, nullptr, &error);
   }
+#else
+  Bytestream inBts;
+  if(inFile == "-")
+  {
+    inBts = Bytestream(std::cin);
+    // Safe until 21.12 at least, ignore deprecation.
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    doc = poppler_document_new_from_data((char*)inBts.raw(), inBts.size(), nullptr, &error);
+    #pragma GCC diagnostic pop
+  }
+#endif
   else
   {
     if (!g_path_is_absolute(inFile.c_str()))

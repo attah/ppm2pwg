@@ -50,6 +50,7 @@ void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts,
   {
     uint8_t* thisLine = row0+y*step;
     uint8_t lineRepeat = 0;
+    size_t colors = params.getNumberOfColors();
 
     uint8_t* next_line = thisLine + step;
     while((y+1)<yRes && memcmp(thisLine, next_line, bytesPerLine) == 0)
@@ -67,7 +68,7 @@ void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts,
     if(backside&&params.backHFlip)
     {
       // Flip line into tmp buffer
-      if(params.bitsPerColor == 1)
+      if(params.getBitsPerColor() == 1)
       {
         for(size_t i = 0; i < bytesPerLine; i++)
         {
@@ -77,16 +78,16 @@ void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts,
       }
       else
       {
-        for(size_t i = 0; i < bytesPerLine; i += params.colors)
+        for(size_t i = 0; i < bytesPerLine; i += colors)
         {
-          memcpy(tmpLine+i, thisLine+bytesPerLine-params.colors-i, params.colors);
+          memcpy(tmpLine+i, thisLine+bytesPerLine-colors-i, colors);
         }
       }
-      compress_line(tmpLine, bytesPerLine, outBts, params.colors);
+      compress_line(tmpLine, bytesPerLine, outBts, colors);
     }
     else
     {
-      compress_line(thisLine, bytesPerLine, outBts, params.colors);
+      compress_line(thisLine, bytesPerLine, outBts, colors);
     }
   }
 }
@@ -174,14 +175,14 @@ void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backsi
   outHdr.Tumble = params.tumble;
   outHdr.Width = params.getPaperSizeWInPixels();
   outHdr.Height = params.getPaperSizeHInPixels();
-  outHdr.BitsPerColor = params.bitsPerColor;
-  outHdr.BitsPerPixel = params.colors * outHdr.BitsPerColor;
+  outHdr.BitsPerColor = params.getBitsPerColor();
+  outHdr.BitsPerPixel = params.getNumberOfColors() * outHdr.BitsPerColor;
   outHdr.BytesPerLine = params.getPaperSizeWInBytes();
-  outHdr.ColorSpace = params.colors == 4 ? PwgPgHdr::CMYK
-                    : params.colors == 3 ? PwgPgHdr::sRGB
-                    : params.black ? PwgPgHdr::Black
+  outHdr.ColorSpace = params.colorMode == PrintParameters::CMYK32 ? PwgPgHdr::CMYK
+                    : params.colorMode == PrintParameters::sRGB24 ? PwgPgHdr::sRGB
+                    : params.isBlack() ? PwgPgHdr::Black
                     : PwgPgHdr::sGray;
-  outHdr.NumColors = params.colors;
+  outHdr.NumColors = params.getNumberOfColors();
   outHdr.TotalPageCount = 0;
   outHdr.CrossFeedTransform = backside&&params.backHFlip ? -1 : 1;
   outHdr.FeedTransform = backside&&params.backVFlip ? -1 : 1;
@@ -209,9 +210,9 @@ void make_urf_hdr(Bytestream& outBts, const PrintParameters& params, bool verbos
 
   UrfPgHdr outHdr;
 
-  outHdr.BitsPerPixel = 8*params.colors;
-  outHdr.ColorSpace = params.colors==4 ? UrfPgHdr::CMYK
-                    : params.colors==3 ? UrfPgHdr::sRGB
+  outHdr.BitsPerPixel = 8*params.getNumberOfColors();
+  outHdr.ColorSpace = params.colorMode == PrintParameters::CMYK32 ? UrfPgHdr::CMYK
+                    : params.colorMode == PrintParameters::sRGB24 ? UrfPgHdr::sRGB
                     : UrfPgHdr::sGray;
   outHdr.Duplex = params.duplex ? (params.tumble ? UrfPgHdr::ShortSide : UrfPgHdr::LongSide)
                          : UrfPgHdr::NoDuplex;

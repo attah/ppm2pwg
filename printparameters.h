@@ -23,13 +23,19 @@ public:
     Invalid
   };
 
+  enum ColorMode
+  {
+    sRGB24,
+    CMYK32,
+    Gray8,
+    Black8,
+    Gray1,
+    Black1
+  };
+
   Format format = PDF;
 
-  size_t colors = 3; // RGB
-  size_t bitsPerColor = 8;
-  // More color is black, like for black_1, black_8.
-  // False for regular modes like sRGB and sGray.
-  bool black = false;
+  ColorMode colorMode = sRGB24;
   size_t quality = 0; // Default
   bool antiAlias = false;
   std::string paperSizeName = "iso_a4_210x297mm";
@@ -82,7 +88,9 @@ public:
 
   bool setPaperSize(const std::string& sizeStr);
 
-  bool setColorMode(std::string colorMode);
+  bool isBlack() const;
+  size_t getNumberOfColors() const;
+  size_t getBitsPerColor() const;
 
 private:
 

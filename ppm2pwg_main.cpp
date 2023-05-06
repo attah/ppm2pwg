@@ -158,21 +158,17 @@ int PPM2PWG_MAIN(int argc, char** argv)
     if(p == "P6")
     {
       *in >> r;
-      params.colors = 3;
-      params.bitsPerColor = 8;
+      params.colorMode = PrintParameters::sRGB24;
     }
     else if(p == "P5")
     {
       *in >> r;
-      params.colors = 1;
-      params.bitsPerColor = 8;
+      params.colorMode = PrintParameters::Gray8;
     }
     else if(p == "P4")
     {
       r = "1";
-      params.colors = 1;
-      params.bitsPerColor = 1;
-      params.black = true;
+      params.colorMode = PrintParameters::Black1;
       size_t x = stoi(xs);
       if(x % 8 != 0)
       {

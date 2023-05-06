@@ -98,6 +98,36 @@ int main(int argc, char** argv)
     return 1;
   }
 
+  if(colorMode == "srgb24")
+  {
+    params.colorMode = PrintParameters::sRGB24;
+  }
+  else if(colorMode == "cmyk32")
+  {
+    params.colorMode = PrintParameters::CMYK32;
+  }
+  else if(colorMode == "gray8")
+  {
+    params.colorMode = PrintParameters::Gray8;
+  }
+  else if(colorMode == "black8")
+  {
+    params.colorMode = PrintParameters::Black8;
+  }
+  else if(colorMode == "gray1")
+  {
+    params.colorMode = PrintParameters::Gray1;
+  }
+  else if(colorMode == "black1")
+  {
+    params.colorMode = PrintParameters::Black1;
+  }
+  else if(colorMode != "")
+  {
+    print_error("Unrecognized color mode", args.argHelp());
+    return 1;
+  }
+
   if(!pages.empty())
   {
     if(!params.setPageRange(pages))
@@ -131,12 +161,7 @@ int main(int argc, char** argv)
     params.hwResH = hwRes;
   }
 
-  if(colorMode != "" && !params.setColorMode(colorMode))
-  {
-    print_error("Unrecognized color mode", args.argHelp());
-  }
-
-  if(params.format == PrintParameters::URF && (params.bitsPerColor == 1 || params.black))
+  if(params.format == PrintParameters::URF && (params.getBitsPerColor() == 1 || params.isBlack()))
   {
     print_error("URF does not support black or 1-bit color modes", args.argHelp());
     return 1;

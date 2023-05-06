@@ -95,14 +95,14 @@ float PrintParameters::getPaperSizeHInPoints() const
 
 size_t PrintParameters::getPaperSizeWInBytes() const
 {
-  if(bitsPerColor == 1)
+  if(getBitsPerColor() == 1)
   {
     // Round up to whole bytes
-    return colors * ((getPaperSizeWInPixels() + 7) / 8);
+    return getNumberOfColors() * ((getPaperSizeWInPixels() + 7) / 8);
   }
   else
   {
-    return colors * (getPaperSizeWInPixels() / (8 / bitsPerColor));
+    return getNumberOfColors() * (getPaperSizeWInPixels() / (8 / getBitsPerColor()));
   }
 }
 
@@ -246,49 +246,54 @@ bool PrintParameters::setPaperSize(const std::string& sizeStr)
   return false;
 }
 
-bool PrintParameters::setColorMode(std::string colorMode)
+bool PrintParameters::isBlack() const
 {
-  if(colorMode == "srgb24")
+  switch (colorMode)
   {
-    colors = 3;
-    bitsPerColor = 8;
-    black = false;
-    return true;
+    case Black8:
+    case Black1:
+      return true;
+    case sRGB24:
+    case CMYK32:
+    case Gray8:
+    case Gray1:
+      return false;
+    default:
+      throw(std::logic_error("Unknown color mode"));
   }
-  else if(colorMode == "cmyk32")
+}
+
+size_t PrintParameters::getNumberOfColors() const
+{
+  switch (colorMode)
   {
-    colors = 4;
-    bitsPerColor = 8;
-    black = false;
-    return true;
+    case sRGB24:
+      return 3;
+    case CMYK32:
+      return 4;
+    case Gray8:
+    case Black8:
+    case Gray1:
+    case Black1:
+      return 1;
+    default:
+      throw(std::logic_error("Unknown color mode"));
   }
-  else if(colorMode == "gray8")
+}
+
+size_t PrintParameters::getBitsPerColor() const
+{
+  switch (colorMode)
   {
-    colors = 1;
-    bitsPerColor = 8;
-    black = false;
-    return true;
+    case sRGB24:
+    case CMYK32:
+    case Gray8:
+    case Black8:
+      return 8;
+    case Gray1:
+    case Black1:
+      return 1;
+    default:
+      throw(std::logic_error("Unknown color mode"));
   }
-  else if(colorMode == "black8")
-  {
-    colors = 1;
-    bitsPerColor = 8;
-    black = true;
-    return true;
-  }
-  else if(colorMode == "gray1")
-  {
-    colors = 1;
-    bitsPerColor = 1;
-    black = false;
-    return true;
-  }
-  else if(colorMode == "black1")
-  {
-    colors = 1;
-    bitsPerColor = 1;
-    black = true;
-    return true;
-  }
-  return false;
 }

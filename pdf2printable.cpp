@@ -234,6 +234,7 @@ int pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParameter
 void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameters& params)
 {
   size_t size = params.getPaperSizeInPixels();
+  bool black = params.isBlack();
 
   if(bmpBts.size() != params.getPaperSizeInBytes())
   {
@@ -242,7 +243,7 @@ void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameter
 
   uint8_t* tmp = bmpBts.raw();
 
-  if(params.colors == 1 && params.bitsPerColor == 1)
+  if(params.colorMode == PrintParameters::Gray1 || params.colorMode == PrintParameters::Black1)
   {
     size_t paperSizeWInPixels = params.getPaperSizeWInPixels();
     size_t paperSizeWInBytes = params.getPaperSizeWInBytes();
@@ -250,7 +251,7 @@ void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameter
     int nextDebt, pixel, newpixel, debt;
     Array<int> debtArray(paperSizeWInPixels+2);
     memset(debtArray, 0, (paperSizeWInPixels+2)*sizeof(int));
-    memset(tmp, params.black ? 0 : 0xff, bmpBts.size());
+    memset(tmp, black ? 0 : 0xff, bmpBts.size());
     for(size_t line=0; line < paperSizeHInPixels; line++)
     {
       nextDebt = 0; // Don't carry over forward debt from previous line
@@ -263,7 +264,7 @@ void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameter
         debtArray[col] += SIXTEENTHS(3, debt);
         debtArray[col+1] += SIXTEENTHS(5, debt);
         debtArray[col+2] = SIXTEENTHS(1, debt);
-        if(newpixel == 0 && params.black)
+        if(newpixel == 0 && black)
         {
           tmp[line*paperSizeWInBytes+col/8] |= (0x80 >> (col % 8));
         }
@@ -274,14 +275,14 @@ void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameter
       }
     }
   }
-  else if(params.colors == 1 && params.bitsPerColor == 8)
+  else if(params.colorMode == PrintParameters::Gray8 || params.colorMode == PrintParameters::Black8)
   {
     for(size_t i=0; i < size; i++)
     {
-      tmp[i] = params.black ? (255 - RGB32_GRAY(data[i])) : RGB32_GRAY(data[i]);
+      tmp[i] = black ? (255 - RGB32_GRAY(data[i])) : RGB32_GRAY(data[i]);
     }
   }
-  else if(params.colors == 3)
+  else if(params.colorMode == PrintParameters::sRGB24)
   {
     for(size_t i=0; i < size; i++)
     {
@@ -290,7 +291,7 @@ void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameter
       tmp[i*3+2] = RGB32_B(data[i]);
     }
   }
-  else if(params.colors == 4)
+  else if(params.colorMode == PrintParameters::CMYK32)
   {
     for(size_t i=0; i < size; i++)
     {

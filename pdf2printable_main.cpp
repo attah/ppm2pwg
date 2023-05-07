@@ -48,7 +48,7 @@ int main(int argc, char** argv)
   SwitchArg<int> resolutionXOpt(hwResX, {"-rx", "--resolution-x"}, "Resolution (in DPI) for rasterization, x-axis");
   SwitchArg<int> resolutionYOpt(hwResY, {"-ry", "--resolution-y"}, "Resolution (in DPI) for rasterization, y-axis");
   SwitchArg<bool> duplexOpt(params.duplex, {"-d", "--duplex"}, "Process for duplex printing");
-  SwitchArg<bool> tumbleOpt(params.duplex, {"-t", "--tumble"}, "Set tumble indicator in raster header");
+  SwitchArg<bool> tumbleOpt(params.tumble, {"-t", "--tumble"}, "Set tumble indicator in raster header");
   SwitchArg<bool> hFlipOpt(params.backHFlip, {"-hf", "--hflip"}, "Flip backsides horizontally for duplex");
   SwitchArg<bool> vFlipOpt(params.backVFlip, {"-vf", "--vflip"}, "Flip backsides vertically for duplex");
   SwitchArg<std::string> colorModeOpt(colorMode, {"-c", "--color-mode"}, "Color mode (srgb24/cmyk32/gray8/black8/gray1/black1)");

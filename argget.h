@@ -5,32 +5,32 @@
 #include <string>
 #include <sstream>
 #include <list>
+#include <map>
 #include <iomanip>
 #include <type_traits>
 
 class ArgBase
 {
 public:
-
   virtual bool parse(std::list<std::string>&) = 0;
-
   virtual std::string docName() const = 0;
-  virtual std::string doc() const = 0;
 
-private:
+  bool isSet()
+  {
+    return _set;
+  }
+
+protected:
+  bool _set = false;
 
 };
 
-template<typename T>
-class SwitchArg : public ArgBase
+class SwitchArgBase : public ArgBase
 {
 public:
-  SwitchArg() = delete;
-  SwitchArg(const SwitchArg&) = delete;
-  SwitchArg& operator=(const SwitchArg&) = delete;
-
-  SwitchArg(T& value, std::initializer_list<std::string> names, std::string doc)
-  : _value(value), _names(names), _doc(doc)
+  SwitchArgBase(std::initializer_list<std::string> names,
+                std::string doc, std::string errorHint="")
+  : _names(names), _doc(doc), _errorHint(errorHint)
   {
     if(names.size() < 1)
     {
@@ -42,10 +42,11 @@ public:
   {
     if(match(argv))
     {
-      if(!get_value(_value, argv))
+      if(!get_value(argv))
       {
         throw std::invalid_argument("");
       }
+      _set = true;
       return true;
     }
     return false;
@@ -64,6 +65,8 @@ public:
     return false;
   }
 
+  virtual bool get_value(std::list<std::string>&) = 0;
+
   std::string docName() const
   {
     std::stringstream docName;
@@ -75,44 +78,58 @@ public:
     {
       docName << sep << *it;
     }
-    docName << hint();
+    docName << typeHint();
     return docName.str();
   }
 
-  std::string doc() const
+  virtual std::string typeHint() const = 0;
+
+  std::string doc()
   {
     return _doc;
   }
+  std::string errorHint() const
+  {
+    return _errorHint;
+  }
 
 private:
-  bool get_value(bool& value, std::list<std::string>&)
+  std::list<std::string> _names;
+  std::string _doc;
+  std::string _errorHint;
+
+};
+
+template<typename T>
+class SwitchArg : public SwitchArgBase
+{
+public:
+  SwitchArg() = delete;
+  SwitchArg(const SwitchArg&) = delete;
+  SwitchArg& operator=(const SwitchArg&) = delete;
+
+  SwitchArg(T& value, std::initializer_list<std::string> names, std::string doc)
+  : SwitchArgBase(names, doc), _value(value)
+  {}
+
+private:
+  bool get_value(std::list<std::string>& argv)
   {
-    value = true;
-    return true;
-  }
-  bool get_value(std::string& value, std::list<std::string>& argv)
-  {
-    if(!argv.empty())
+    if(std::is_same<T, bool>::value)
     {
-      value = argv.front();
-      argv.pop_front();
+      _value = true;
       return true;
     }
-    return false;
-  }
-  template<typename TT>
-  bool get_value(TT& value, std::list<std::string>& argv)
-  {
-    if(!argv.empty())
+    else if(!argv.empty())
     {
-      convert(value, argv.front());
+      convert(_value, argv.front());
       argv.pop_front();
       return true;
     }
     return false;
   }
 
-  std::string hint() const
+  std::string typeHint() const
   {
     if(std::is_same<T, bool>::value)
     {
@@ -128,6 +145,8 @@ private:
     }
   }
 
+  void convert(std::string& res, std::string s) {res = s;}
+  void convert(bool& res, std::string) {res = true;}
   void convert(int& res, std::string s) {res = std::stoi(s);}
   void convert(long& res, std::string s) {res = std::stol(s);}
   void convert(long long& res, std::string s) {res = std::stoll(s);}
@@ -136,8 +155,47 @@ private:
   void convert(unsigned long long& res, std::string s) {res = std::stoull(s);}
 
   T& _value;
-  std::list<std::string> _names;
-  std::string _doc;
+};
+
+template<typename T>
+class EnumSwitchArg : public SwitchArgBase
+{
+public:
+  typedef std::map<std::string, T> Mappings;
+
+  EnumSwitchArg() = delete;
+  EnumSwitchArg(const EnumSwitchArg&) = delete;
+  EnumSwitchArg& operator=(const EnumSwitchArg&) = delete;
+
+  EnumSwitchArg(T& value, Mappings mappings, std::initializer_list<std::string> names,
+                std::string doc, std::string errorHint="")
+  : SwitchArgBase(names, doc, errorHint), _value(value), _mappings(mappings)
+  {}
+
+  std::string typeHint() const
+  {
+    return " <choice>";
+  }
+
+private:
+
+  bool get_value(std::list<std::string>& argv)
+  {
+    if(!argv.empty())
+    {
+      typename std::map<std::string, T>::const_iterator it = _mappings.find(argv.front());
+      if(it != _mappings.end())
+      {
+        _value = it->second;
+        argv.pop_front();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  T& _value;
+  Mappings _mappings;
 };
 
 class PosArg : public ArgBase
@@ -157,6 +215,7 @@ public:
     {
       _value = argv.front();
       argv.pop_front();
+      _set = true;
       return true;
     }
     return _optional;
@@ -165,11 +224,6 @@ public:
   std::string docName() const
   {
     return _optional ? "["+_name+"]" : "<"+_name+">";
-  }
-
-  std::string doc() const
-  {
-    return "";
   }
 
 private:
@@ -185,7 +239,7 @@ public:
   ArgGet(const ArgGet&) = delete;
   ArgGet& operator=(const ArgGet&) = delete;
 
-  ArgGet(std::initializer_list<ArgBase*> argDefs,
+  ArgGet(std::initializer_list<SwitchArgBase*> argDefs,
          std::initializer_list<PosArg*> posArgDefs = {})
   : _argDefs(argDefs), _posArgDefs(posArgDefs)
   {}
@@ -210,7 +264,7 @@ public:
     while(progress && argList.size() != 0)
     {
       progress = false;
-      for(ArgBase* argDef : _argDefs)
+      for(SwitchArgBase* argDef : _argDefs)
       {
         try
         {
@@ -225,6 +279,11 @@ public:
           if(argList.size() == 0)
           {
             _errMsg << "Missing value for " << argDef->docName();
+          }
+          else if(argDef->errorHint() != "")
+          {
+            _errMsg << argDef->errorHint()
+                    << " (" << argList.front() << ")";
           }
           else
           {
@@ -274,11 +333,11 @@ public:
     }
     help << std::endl;
 
-    for(ArgBase* argDef : _argDefs)
+    for(SwitchArgBase* argDef : _argDefs)
     {
       w = std::max(w, argDef->docName().length());
     }
-    for(ArgBase* argDef : _argDefs)
+    for(SwitchArgBase* argDef : _argDefs)
     {
       help << "  " << std::left << std::setw(w) << argDef->docName() << "    "
            << argDef->doc() << std::endl;
@@ -298,7 +357,7 @@ public:
 
 private:
   std::string _name;
-  std::list<ArgBase*> _argDefs;
+  std::list<SwitchArgBase*> _argDefs;
   std::list<PosArg*> _posArgDefs;
   std::stringstream _errMsg;
 };

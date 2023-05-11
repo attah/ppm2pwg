@@ -27,10 +27,8 @@ int main(int argc, char** argv)
   PrintParameters params;
   bool help = false;
   bool verbose = false;
-  std::string format;
   std::string pages;
   std::string paperSize = params.paperSizeName;
-  std::string colorMode;
   int hwRes = 0;
   int hwResX = 0;
   int hwResY = 0;
@@ -39,7 +37,15 @@ int main(int argc, char** argv)
 
   SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
   SwitchArg<bool> verboseOpt(verbose, {"-v", "--verbose"}, "Be verbose, print headers and progress");
-  SwitchArg<std::string> formatOpt(format, {"-f", "--format"}, "Format to output (pdf/postscript/pwg/urf)");
+  EnumSwitchArg<PrintParameters::Format> formatOpt(params.format,
+                                                   {{"pdf", PrintParameters::PDF},
+                                                    {"postscript", PrintParameters::Postscript},
+                                                    {"ps", PrintParameters::Postscript},
+                                                    {"pwg", PrintParameters::PWG},
+                                                    {"urf", PrintParameters::URF}},
+                                                   {"-f", "--format"},
+                                                   "Format to output (pdf/postscript/pwg/urf)",
+                                                   "Unrecognized target format");
   SwitchArg<std::string> pagesOpt(pages, {"--pages"}, "What pages to process, e.g.: 1,17-42");
   SwitchArg<size_t> copiesOpt(params.documentCopies, {"--copies"}, "Number of copies to output");
   SwitchArg<size_t> pageCopiesOpt(params.pageCopies, {"--page-copies"}, "Number of copies to output for each page");
@@ -51,7 +57,16 @@ int main(int argc, char** argv)
   SwitchArg<bool> tumbleOpt(params.tumble, {"-t", "--tumble"}, "Set tumble indicator in raster header");
   SwitchArg<bool> hFlipOpt(params.backHFlip, {"-hf", "--hflip"}, "Flip backsides horizontally for duplex");
   SwitchArg<bool> vFlipOpt(params.backVFlip, {"-vf", "--vflip"}, "Flip backsides vertically for duplex");
-  SwitchArg<std::string> colorModeOpt(colorMode, {"-c", "--color-mode"}, "Color mode (srgb24/cmyk32/gray8/black8/gray1/black1)");
+  EnumSwitchArg<PrintParameters::ColorMode> colorModeOpt(params.colorMode,
+                                                         {{"srgb24", PrintParameters::sRGB24},
+                                                          {"cmyk32", PrintParameters::CMYK32},
+                                                          {"gray8", PrintParameters::Gray8},
+                                                          {"black8", PrintParameters::Black8},
+                                                          {"gray1", PrintParameters::Gray1},
+                                                          {"black1", PrintParameters::Black1}},
+                                                         {"-c", "--color-mode"},
+                                                         "Color mode (srgb24/cmyk32/gray8/black8/gray1/black1)",
+                                                         "Unrecognized color mode");
   SwitchArg<size_t> qualityOpt(params.quality, {"-q", "--quality"}, "Quality setting in raster header (3,4,5)");
   SwitchArg<bool> antiAliasOpt(params.antiAlias, {"-aa", "--antaialias"}, "Enable antialiasing in rasterization");
 
@@ -76,56 +91,24 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  if(format == "ps" || format == "postscript" || (format == "" && ends_with(outfile, ".ps")))
+  if(!formatOpt.isSet())
   {
-    params.format = PrintParameters::Postscript;
-  }
-  else if(format == "pwg" || (format == "" && ends_with(outfile, ".pwg")))
-  {
-    params.format = PrintParameters::PWG;
-  }
-  else if(format == "urf" || (format == "" && ends_with(outfile, ".urf")))
-  {
-    params.format = PrintParameters::URF;
-  }
-  else if(format == "pdf" || (format == "" && ends_with(outfile, ".pdf")))
-  {
-    params.format = PrintParameters::PDF;
-  }
-  else if(format != "")
-  {
-    print_error("Unrecognized target format", args.argHelp());
-    return 1;
-  }
-
-  if(colorMode == "srgb24")
-  {
-    params.colorMode = PrintParameters::sRGB24;
-  }
-  else if(colorMode == "cmyk32")
-  {
-    params.colorMode = PrintParameters::CMYK32;
-  }
-  else if(colorMode == "gray8")
-  {
-    params.colorMode = PrintParameters::Gray8;
-  }
-  else if(colorMode == "black8")
-  {
-    params.colorMode = PrintParameters::Black8;
-  }
-  else if(colorMode == "gray1")
-  {
-    params.colorMode = PrintParameters::Gray1;
-  }
-  else if(colorMode == "black1")
-  {
-    params.colorMode = PrintParameters::Black1;
-  }
-  else if(colorMode != "")
-  {
-    print_error("Unrecognized color mode", args.argHelp());
-    return 1;
+    if(ends_with(outfile, ".ps"))
+    {
+      params.format = PrintParameters::Postscript;
+    }
+    else if(ends_with(outfile, ".pwg"))
+    {
+      params.format = PrintParameters::PWG;
+    }
+    else if(ends_with(outfile, ".urf"))
+    {
+      params.format = PrintParameters::URF;
+    }
+    else if(ends_with(outfile, ".pdf"))
+    {
+      params.format = PrintParameters::PDF;
+    }
   }
 
   if(!pages.empty())

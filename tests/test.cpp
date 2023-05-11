@@ -1026,40 +1026,76 @@ TEST(argget)
 {
   bool b = false;
   SwitchArg<bool> boolopt(b, {"-b", "--bool"}, "A bool option");
+  ASSERT_FALSE(boolopt.isSet());
   std::list<std::string> list1 {"-b"};
   ASSERT(boolopt.parse(list1));
+  ASSERT(boolopt.isSet());
   ASSERT(b == true);
 
   std::string s;
   SwitchArg<string> stringopt(s, {"-s", "--string"}, "A string option");
   std::list<std::string> list2 {"-s", "mystring"};
   ASSERT(stringopt.parse(list2));
+  ASSERT(stringopt.isSet());
   ASSERT(s == "mystring");
 
   int i = 0;
   SwitchArg<int> intopt(i, {"-i", "--integer"}, "An integer option");
   std::list<std::string> list3 {"-i", "123"};
   ASSERT(intopt.parse(list3));
+  ASSERT(intopt.isSet());
   ASSERT(i == 123);
+
+  enum MyEnum
+  {
+    apa,
+    bpa,
+    cpa
+  };
+
+  std::map<std::string, MyEnum> enumMap = {{"apa", apa}, {"bpa", bpa}, {"cpa", cpa}};
+  MyEnum e = apa;
+
+  EnumSwitchArg<MyEnum> enumopt(e, enumMap, {"-e", "--enum"}, "An enum option");
+  std::list<std::string> list4 {"-e", "bpa"};
+  ASSERT(enumopt.parse(list4));
+  ASSERT(enumopt.isSet());
+  ASSERT(e == bpa);
 
   b = false;
 
-  ArgGet get({&boolopt, &stringopt, &intopt});
-  char* argv[6] = {(char*)"myprog",
+  ArgGet get({&boolopt, &stringopt, &intopt, &enumopt});
+  char* argv[8] = {(char*)"myprog",
                    (char*)"-b",
                    (char*)"-s", (char*)"something",
-                   (char*)"-i", (char*)"456"};
-  ASSERT(get.get_args(6, argv));
+                   (char*)"-i", (char*)"456",
+                   (char*)"-e", (char*)"cpa"};
+  ASSERT(get.get_args(8, argv));
   ASSERT(b == true);
   ASSERT(s == "something");
   ASSERT(i == 456);
+  ASSERT(e == cpa);
 
-  char* argv2[3] = {(char*)"myprog",
+  char* argv1[3] = {(char*)"myprog",
                     (char*)"-i", (char*)"NaN"};
-  ASSERT_FALSE(get.get_args(3, argv2));
+  ASSERT_FALSE(get.get_args(3, argv1));
   ASSERT(get.errmsg().find("Bad value") != std::string::npos);
   ASSERT(get.errmsg().find("-i, --integer") != std::string::npos);
   ASSERT(get.errmsg().find("NaN") != std::string::npos);
+
+  char* argv2[3] = {(char*)"myprog",
+                    (char*)"-e", (char*)"dpa"};
+  ASSERT_FALSE(get.get_args(3, argv2));
+  ASSERT(get.errmsg().find("Bad value") != std::string::npos);
+  ASSERT(get.errmsg().find("-e, --enum") != std::string::npos);
+  ASSERT(get.errmsg().find("dpa") != std::string::npos);
+
+  EnumSwitchArg<MyEnum> enumopt2(e, enumMap, {"-e", "--enum"}, "An enum option", "Does not map to enum");
+  ArgGet get1({&boolopt, &stringopt, &intopt, &enumopt2});
+
+  ASSERT_FALSE(get1.get_args(3, argv2));
+  ASSERT(get1.errmsg().find("Does not map to enum") != std::string::npos);
+  ASSERT(get1.errmsg().find("dpa") != std::string::npos);
 
   char* argv3[5] = {(char*)"myprog",
                     (char*)"-i", (char*)"666",
@@ -1079,14 +1115,16 @@ TEST(argget)
                     (char*)"-b",
                     (char*)"-s", (char*)"something_else",
                     (char*)"-i", (char*)"789",
-                    (char*)"apa", (char*)"bpa"};
+                    (char*)"posarg1", (char*)"posarg2"};
 
   ASSERT(get2.get_args(8, argv4));
   ASSERT(b == true);
   ASSERT(s == "something_else");
   ASSERT(i == 789);
-  ASSERT(a1 == "apa");
-  ASSERT(a2 == "bpa");
+  ASSERT(arg1.isSet());
+  ASSERT(a1 == "posarg1");
+  ASSERT(arg1.isSet());
+  ASSERT(a2 == "posarg2");
 
   // It still succeeds even without the last optional argument
   ASSERT(get2.get_args(7, argv4));
@@ -1098,7 +1136,7 @@ TEST(argget)
 
   char* argv5[4] = {(char*)"myprog",
                     (char*)"-bool", // Malformed switch
-                    (char*)"apa", (char*)"bpa"};
+                    (char*)"posarg1", (char*)"posarg2"};
 
   ASSERT_FALSE(get2.get_args(4, argv5));
   ASSERT(get2.errmsg().find("Unknown argument") != std::string::npos);

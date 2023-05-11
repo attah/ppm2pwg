@@ -206,7 +206,7 @@ TEST(duplex_vflip)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--vflip", "-", "-"});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "flipped", "-", "-"});
   ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
@@ -232,7 +232,7 @@ TEST(duplex_hflip)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip", "-", "-"});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "-t", "--back-xform", "flipped", "-", "-"});
   ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
@@ -258,7 +258,7 @@ TEST(duplex_rotated)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip", "--vflip", "-", "-"});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "rotated", "-", "-"});
   ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
@@ -284,7 +284,7 @@ TEST(two_pages_no_duplex)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"--hflip", "--vflip", "-", "-"});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"--back-xform", "rotated", "-", "-"});
   ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
@@ -330,7 +330,7 @@ TEST(bilevel_vflip)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--vflip", "-", "-"});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "flipped", "-", "-"});
   ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
@@ -356,7 +356,7 @@ TEST(bilevel_hflip)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip", "-", "-"});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "-t", "--back-xform", "flipped", "-", "-"});
   ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
@@ -383,7 +383,7 @@ TEST(bilevel_rotated)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--hflip", "--vflip", "-", "-"});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "rotated", "-", "-"});
   ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
@@ -1143,4 +1143,64 @@ TEST(argget)
 
   ASSERT(get2.errmsg().find("-bool") != std::string::npos);
 
+}
+
+TEST(flip_logic)
+{
+  PrintParameters params;
+  ASSERT(params.backXformMode == PrintParameters::Normal);
+  ASSERT(params.duplex == false);
+  ASSERT(params.tumble == false);
+
+  params.backXformMode = PrintParameters::Flipped;
+  ASSERT(params.getBackHFlip() == false);
+  ASSERT(params.getBackVFlip() == false);
+
+  params.backXformMode = PrintParameters::ManualTumble;
+  ASSERT(params.getBackHFlip() == false);
+  ASSERT(params.getBackVFlip() == false);
+
+  params.backXformMode = PrintParameters::Normal;
+  ASSERT(params.getBackHFlip() == false);
+  ASSERT(params.getBackVFlip() == false);
+
+  params.backXformMode = PrintParameters::Rotated;
+  ASSERT(params.getBackHFlip() == false);
+  ASSERT(params.getBackVFlip() == false);
+
+  params.duplex = true;
+
+  params.backXformMode = PrintParameters::Flipped;
+  ASSERT(params.getBackHFlip() == false);
+  ASSERT(params.getBackVFlip() == true);
+
+  params.backXformMode = PrintParameters::ManualTumble;
+  ASSERT(params.getBackHFlip() == false);
+  ASSERT(params.getBackVFlip() == false);
+
+  params.backXformMode = PrintParameters::Normal;
+  ASSERT(params.getBackHFlip() == false);
+  ASSERT(params.getBackVFlip() == false);
+
+  params.backXformMode = PrintParameters::Rotated;
+  ASSERT(params.getBackHFlip() == true);
+  ASSERT(params.getBackVFlip() == true);
+
+  params.tumble = true;
+
+  params.backXformMode = PrintParameters::Flipped;
+  ASSERT(params.getBackHFlip() == true);
+  ASSERT(params.getBackVFlip() == false);
+
+  params.backXformMode = PrintParameters::ManualTumble;
+  ASSERT(params.getBackHFlip() == true);
+  ASSERT(params.getBackVFlip() == true);
+
+  params.backXformMode = PrintParameters::Normal;
+  ASSERT(params.getBackHFlip() == false);
+  ASSERT(params.getBackVFlip() == false);
+
+  params.backXformMode = PrintParameters::Rotated;
+  ASSERT(params.getBackHFlip() == false);
+  ASSERT(params.getBackVFlip() == false);
 }

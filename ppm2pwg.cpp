@@ -42,8 +42,8 @@ void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts,
   size_t yRes = params.getPaperSizeHInPixels();
   uint8_t* raw = bmpBts.raw();
   size_t bytesPerLine = params.getPaperSizeWInBytes();
-  int step = backside&&params.backVFlip ? -bytesPerLine : bytesPerLine;
-  uint8_t* row0 = backside&&params.backVFlip ? raw+(yRes-1)*bytesPerLine : raw;
+  int step = backside&&params.getBackVFlip() ? -bytesPerLine : bytesPerLine;
+  uint8_t* row0 = backside&&params.getBackVFlip() ? raw+(yRes-1)*bytesPerLine : raw;
   Array<uint8_t> tmpLine(bytesPerLine);
 
   for(size_t y=0; y<yRes; y++)
@@ -65,7 +65,7 @@ void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts,
     }
 
     outBts << lineRepeat;
-    if(backside&&params.backHFlip)
+    if(backside&&params.getBackHFlip())
     {
       // Flip line into tmp buffer
       if(params.getBitsPerColor() == 1)
@@ -184,12 +184,12 @@ void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backsi
                     : PwgPgHdr::sGray;
   outHdr.NumColors = params.getNumberOfColors();
   outHdr.TotalPageCount = 0;
-  outHdr.CrossFeedTransform = backside&&params.backHFlip ? -1 : 1;
-  outHdr.FeedTransform = backside&&params.backVFlip ? -1 : 1;
+  outHdr.CrossFeedTransform = backside&&params.getBackHFlip() ? -1 : 1;
+  outHdr.FeedTransform = backside&&params.getBackVFlip() ? -1 : 1;
   outHdr.AlternatePrimary = 0x00ffffff;
-  outHdr.PrintQuality = (params.quality == 3 ? PwgPgHdr::Draft
-                      : (params.quality == 4 ? PwgPgHdr::Normal
-                      : (params.quality == 5 ? PwgPgHdr::High
+  outHdr.PrintQuality = (params.quality == PrintParameters::DraftQuality ? PwgPgHdr::Draft
+                      : (params.quality == PrintParameters::NormalQuality ? PwgPgHdr::Normal
+                      : (params.quality == PrintParameters::HighQuality ? PwgPgHdr::High
                       : PwgPgHdr::DefaultPrintQuality)));
   outHdr.PageSizeName = params.paperSizeName;
 
@@ -216,9 +216,9 @@ void make_urf_hdr(Bytestream& outBts, const PrintParameters& params, bool verbos
                     : UrfPgHdr::sGray;
   outHdr.Duplex = params.duplex ? (params.tumble ? UrfPgHdr::ShortSide : UrfPgHdr::LongSide)
                          : UrfPgHdr::NoDuplex;
-  outHdr.Quality = (params.quality == 3 ? UrfPgHdr::Draft
-                 : (params.quality == 4 ? UrfPgHdr::Normal
-                 : (params.quality == 5 ? UrfPgHdr::High
+  outHdr.Quality = (params.quality == PrintParameters::DraftQuality ? UrfPgHdr::Draft
+                 : (params.quality == PrintParameters::NormalQuality ? UrfPgHdr::Normal
+                 : (params.quality == PrintParameters::HighQuality ? UrfPgHdr::High
                  : UrfPgHdr::DefaultQuality)));
   outHdr.Width = params.getPaperSizeWInPixels();
   outHdr.Height = params.getPaperSizeHInPixels();

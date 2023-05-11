@@ -33,10 +33,26 @@ public:
     Black1
   };
 
+  enum Quality
+  {
+    DefaultQuality = 0,
+    DraftQuality = 3,
+    NormalQuality = 4,
+    HighQuality = 5
+  };
+
+  enum BackXformMode
+  {
+    Normal,
+    Rotated,
+    Flipped,
+    ManualTumble
+  };
+
   Format format = PDF;
 
   ColorMode colorMode = sRGB24;
-  size_t quality = 0; // Default
+  Quality quality = DefaultQuality;
   bool antiAlias = false;
   std::string paperSizeName = "iso_a4_210x297mm";
 
@@ -60,8 +76,7 @@ public:
   bool duplex = false;
   bool tumble = false;
 
-  bool backHFlip = false;
-  bool backVFlip = false;
+  BackXformMode backXformMode = Normal;
 
   size_t documentCopies = 1;
   size_t pageCopies = 1;
@@ -91,6 +106,9 @@ public:
   bool isBlack() const;
   size_t getNumberOfColors() const;
   size_t getBitsPerColor() const;
+
+  bool getBackHFlip() const;
+  bool getBackVFlip() const;
 
 private:
 

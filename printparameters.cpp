@@ -297,3 +297,71 @@ size_t PrintParameters::getBitsPerColor() const
       throw(std::logic_error("Unknown color mode"));
   }
 }
+
+bool PrintParameters::getBackHFlip() const
+{
+  if(duplex && !tumble)
+  {
+    switch (backXformMode)
+    {
+      case Flipped:
+      case ManualTumble:
+      case Normal:
+        return false;
+      case Rotated:
+        return true;
+      default:
+        throw(std::logic_error("Unknown back flip mode"));
+    }
+  }
+  else if(duplex && tumble)
+  {
+    switch (backXformMode)
+    {
+      case Flipped:
+      case ManualTumble:
+        return true;
+      case Normal:
+      case Rotated:
+        return false;
+      default:
+        throw(std::logic_error("Unknown back flip mode"));
+    }
+  }
+  return false;
+}
+
+bool PrintParameters::getBackVFlip() const
+{
+  if(duplex && !tumble)
+  {
+    switch (backXformMode)
+    {
+      case Flipped:
+        return true;
+      case ManualTumble:
+      case Normal:
+        return false;
+      case Rotated:
+        return true;
+      default:
+        throw(std::logic_error("Unknown back flip mode"));
+    }
+  }
+  else if(duplex && tumble)
+  {
+    switch (backXformMode)
+    {
+      case Flipped:
+        return false;
+      case ManualTumble:
+        return true;
+      case Normal:
+      case Rotated:
+        return false;
+      default:
+        throw(std::logic_error("Unknown back flip mode"));
+    }
+  }
+  return false;
+}

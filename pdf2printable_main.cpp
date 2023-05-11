@@ -55,8 +55,12 @@ int main(int argc, char** argv)
   SwitchArg<int> resolutionYOpt(hwResY, {"-ry", "--resolution-y"}, "Resolution (in DPI) for rasterization, y-axis");
   SwitchArg<bool> duplexOpt(params.duplex, {"-d", "--duplex"}, "Process for duplex printing");
   SwitchArg<bool> tumbleOpt(params.tumble, {"-t", "--tumble"}, "Set tumble indicator in raster header");
-  SwitchArg<bool> hFlipOpt(params.backHFlip, {"-hf", "--hflip"}, "Flip backsides horizontally for duplex");
-  SwitchArg<bool> vFlipOpt(params.backVFlip, {"-vf", "--vflip"}, "Flip backsides vertically for duplex");
+  EnumSwitchArg<PrintParameters::BackXformMode> backXformOpt(params.backXformMode,
+                                                             {{"rotated", PrintParameters::Rotated},
+                                                              {"flipped", PrintParameters::Flipped},
+                                                              {"manual-tumble", PrintParameters::ManualTumble}},
+                                                             {"-b", "--back-xform"},
+                                                             "Transform backsides (rotated/flipped/manual-tumble)");
   EnumSwitchArg<PrintParameters::ColorMode> colorModeOpt(params.colorMode,
                                                          {{"srgb24", PrintParameters::sRGB24},
                                                           {"cmyk32", PrintParameters::CMYK32},
@@ -67,7 +71,12 @@ int main(int argc, char** argv)
                                                          {"-c", "--color-mode"},
                                                          "Color mode (srgb24/cmyk32/gray8/black8/gray1/black1)",
                                                          "Unrecognized color mode");
-  SwitchArg<size_t> qualityOpt(params.quality, {"-q", "--quality"}, "Quality setting in raster header (3,4,5)");
+  EnumSwitchArg<PrintParameters::Quality> qualityOpt(params.quality,
+                                                     {{"draft", PrintParameters::DraftQuality},
+                                                      {"normal", PrintParameters::NormalQuality},
+                                                      {"high", PrintParameters::HighQuality}},
+                                                     {"-q", "--quality"},
+                                                     "Quality setting in raster header (draft/normal/high)");
   SwitchArg<bool> antiAliasOpt(params.antiAlias, {"-aa", "--antaialias"}, "Enable antialiasing in rasterization");
 
   PosArg pdfArg(infile, "PDF-file");
@@ -76,7 +85,7 @@ int main(int argc, char** argv)
   ArgGet args({&helpOpt, &verboseOpt, &formatOpt, &pagesOpt,
                &copiesOpt, &pageCopiesOpt, &paperSizeOpt, &resolutionOpt,
                &resolutionXOpt, &resolutionYOpt, &duplexOpt, &tumbleOpt,
-               &hFlipOpt, &vFlipOpt, &colorModeOpt, &qualityOpt, &antiAliasOpt},
+               &backXformOpt, &colorModeOpt, &qualityOpt, &antiAliasOpt},
               {&pdfArg, &outArg});
 
   bool correctArgs = args.get_args(argc, argv);

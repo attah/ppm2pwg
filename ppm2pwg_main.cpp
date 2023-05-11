@@ -47,17 +47,26 @@ int PPM2PWG_MAIN(int argc, char** argv)
   SwitchArg<int> resolutionXOpt(hwResX, {"-rx", "--resolution-x"}, "Resolution (in DPI) to set in header, x-axis");
   SwitchArg<int> resolutionYOpt(hwResY, {"-ry", "--resolution-y"}, "Resolution (in DPI) to set in header, y-axis");
   SwitchArg<bool> duplexOpt(params.duplex, {"-d", "--duplex"}, "Process for duplex printing");
-  SwitchArg<bool> tumbleOpt(params.duplex, {"-t", "--tumble"}, "Set tumble indicator in raster header");
-  SwitchArg<bool> hFlipOpt(params.backHFlip, {"-hf", "--hflip"}, "Flip backsides horizontally for duplex");
-  SwitchArg<bool> vFlipOpt(params.backVFlip, {"-vf", "--vflip"}, "Flip backsides vertically for duplex");
-  SwitchArg<size_t> qualityOpt(params.quality, {"-q", "--quality"}, "Quality setting in raster header (3,4,5)");
+  SwitchArg<bool> tumbleOpt(params.tumble, {"-t", "--tumble"}, "Set tumble indicator in raster header");
+  EnumSwitchArg<PrintParameters::BackXformMode> backXformOpt(params.backXformMode,
+                                                             {{"rotated", PrintParameters::Rotated},
+                                                              {"flipped", PrintParameters::Flipped},
+                                                              {"manual-tumble", PrintParameters::ManualTumble}},
+                                                             {"-b", "--back-xform"},
+                                                             "Transform backsides (rotated/flipped/manual-tumble)");
+  EnumSwitchArg<PrintParameters::Quality> qualityOpt(params.quality,
+                                                     {{"draft", PrintParameters::DraftQuality},
+                                                      {"normal", PrintParameters::NormalQuality},
+                                                      {"high", PrintParameters::HighQuality}},
+                                                     {"-q", "--quality"},
+                                                     "Quality setting in raster header (draft/normal/high)");
 
   PosArg inArg(inFile, "in-file");
   PosArg outArg(outFile, "out-file");
 
   ArgGet args({&helpOpt, &verboseOpt, &urfOpt, &pagesOpt, &paperSizeOpt,
                &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
-               &duplexOpt, &tumbleOpt, &hFlipOpt, &vFlipOpt, &qualityOpt},
+               &duplexOpt, &tumbleOpt, &backXformOpt, &qualityOpt},
               {&inArg, &outArg});
 
   bool correctArgs = args.get_args(argc, argv);

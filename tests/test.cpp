@@ -206,7 +206,7 @@ TEST(duplex_vflip)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "flipped", "-", "-"});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "flip", "-", "-"});
   ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
@@ -232,7 +232,7 @@ TEST(duplex_hflip)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "-t", "--back-xform", "flipped", "-", "-"});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "-t", "--back-xform", "flip", "-", "-"});
   ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
@@ -258,7 +258,7 @@ TEST(duplex_rotated)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "rotated", "-", "-"});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "rotate", "-", "-"});
   ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
@@ -284,7 +284,7 @@ TEST(two_pages_no_duplex)
   Bytestream twoSided;
   twoSided << PacmanPpm() << PacmanPpm();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"--back-xform", "rotated", "-", "-"});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"--back-xform", "rotate", "-", "-"});
   ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
@@ -330,7 +330,7 @@ TEST(bilevel_vflip)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "flipped", "-", "-"});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "flip", "-", "-"});
   ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
@@ -356,7 +356,7 @@ TEST(bilevel_hflip)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "-t", "--back-xform", "flipped", "-", "-"});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "-t", "--back-xform", "flip", "-", "-"});
   ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 
@@ -383,7 +383,7 @@ TEST(bilevel_rotated)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "rotated", "-", "-"});
+  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "rotate", "-", "-"});
   ppm2pwg.stdin() << twoSided;
   ppm2pwg.close();
 

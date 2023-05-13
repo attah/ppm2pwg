@@ -46,7 +46,7 @@ int main(int argc, char** argv)
                                                    {"-f", "--format"},
                                                    "Format to output (pdf/postscript/pwg/urf)",
                                                    "Unrecognized target format");
-  SwitchArg<std::string> pagesOpt(pages, {"--pages"}, "What pages to process, e.g.: 1,17-42");
+  SwitchArg<std::string> pagesOpt(pages, {"-p", "--pages"}, "What pages to process, e.g.: 1,17-42");
   SwitchArg<size_t> copiesOpt(params.documentCopies, {"--copies"}, "Number of copies to output");
   SwitchArg<size_t> pageCopiesOpt(params.pageCopies, {"--page-copies"}, "Number of copies to output for each page");
   SwitchArg<std::string> paperSizeOpt(paperSize, {"--paper-size"}, "Paper size to output, e.g.: iso_a4_210x297mm");
@@ -54,13 +54,13 @@ int main(int argc, char** argv)
   SwitchArg<int> resolutionXOpt(hwResX, {"-rx", "--resolution-x"}, "Resolution (in DPI) for rasterization, x-axis");
   SwitchArg<int> resolutionYOpt(hwResY, {"-ry", "--resolution-y"}, "Resolution (in DPI) for rasterization, y-axis");
   SwitchArg<bool> duplexOpt(params.duplex, {"-d", "--duplex"}, "Process for duplex printing");
-  SwitchArg<bool> tumbleOpt(params.tumble, {"-t", "--tumble"}, "Set tumble indicator in raster header");
+  SwitchArg<bool> tumbleOpt(params.tumble, {"-t", "--tumble"}, "For duplex, process for tumbled output");
   EnumSwitchArg<PrintParameters::BackXformMode> backXformOpt(params.backXformMode,
-                                                             {{"rotated", PrintParameters::Rotated},
-                                                              {"flipped", PrintParameters::Flipped},
+                                                             {{"rotate", PrintParameters::Rotated},
+                                                              {"flip", PrintParameters::Flipped},
                                                               {"manual-tumble", PrintParameters::ManualTumble}},
                                                              {"-b", "--back-xform"},
-                                                             "Transform backsides (rotated/flipped/manual-tumble)");
+                                                             "Transform backsides (rotate/flip/manual-tumble)");
   EnumSwitchArg<PrintParameters::ColorMode> colorModeOpt(params.colorMode,
                                                          {{"srgb24", PrintParameters::sRGB24},
                                                           {"cmyk32", PrintParameters::CMYK32},

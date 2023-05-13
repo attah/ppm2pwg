@@ -47,13 +47,13 @@ int PPM2PWG_MAIN(int argc, char** argv)
   SwitchArg<int> resolutionXOpt(hwResX, {"-rx", "--resolution-x"}, "Resolution (in DPI) to set in header, x-axis");
   SwitchArg<int> resolutionYOpt(hwResY, {"-ry", "--resolution-y"}, "Resolution (in DPI) to set in header, y-axis");
   SwitchArg<bool> duplexOpt(params.duplex, {"-d", "--duplex"}, "Process for duplex printing");
-  SwitchArg<bool> tumbleOpt(params.tumble, {"-t", "--tumble"}, "Set tumble indicator in raster header");
+  SwitchArg<bool> tumbleOpt(params.tumble, {"-t", "--tumble"}, "For duplex, process for tumbled output");
   EnumSwitchArg<PrintParameters::BackXformMode> backXformOpt(params.backXformMode,
-                                                             {{"rotated", PrintParameters::Rotated},
-                                                              {"flipped", PrintParameters::Flipped},
+                                                             {{"rotate", PrintParameters::Rotated},
+                                                              {"flip", PrintParameters::Flipped},
                                                               {"manual-tumble", PrintParameters::ManualTumble}},
                                                              {"-b", "--back-xform"},
-                                                             "Transform backsides (rotated/flipped/manual-tumble)");
+                                                             "Transform backsides (rotate/flip/manual-tumble)");
   EnumSwitchArg<PrintParameters::Quality> qualityOpt(params.quality,
                                                      {{"draft", PrintParameters::DraftQuality},
                                                       {"normal", PrintParameters::NormalQuality},

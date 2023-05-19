@@ -28,10 +28,10 @@ int main(int argc, char** argv)
   bool help = false;
   bool verbose = false;
   std::string pages;
-  std::string paperSize = params.paperSizeName;
-  int hwRes = 0;
-  int hwResX = 0;
-  int hwResY = 0;
+  std::string paperSize;
+  int hwRes;
+  int hwResX;
+  int hwResY;
   std::string infile;
   std::string outfile;
 
@@ -120,7 +120,7 @@ int main(int argc, char** argv)
     }
   }
 
-  if(!pages.empty())
+  if(pagesOpt.isSet())
   {
     if(!params.setPageRange(pages))
     {
@@ -129,26 +129,29 @@ int main(int argc, char** argv)
     }
   }
 
-  if(!params.setPaperSize(paperSize))
+  if(paperSizeOpt.isSet())
   {
-    print_error("Malformed paper size", args.argHelp());
-    return 1;
+    if(!params.setPaperSize(paperSize))
+    {
+      print_error("Malformed paper size", args.argHelp());
+      return 1;
+    }
   }
 
-  if(hwResX != 0)
+  if(resolutionXOpt.isSet())
   {
     params.hwResW = hwResX;
   }
-  else if(hwRes != 0)
+  else if(resolutionOpt.isSet())
   {
     params.hwResW = hwRes;
   }
 
-  if(hwResY != 0)
+  if(resolutionYOpt.isSet())
   {
     params.hwResH = hwResY;
   }
-  else if(hwRes != 0)
+  else if(resolutionOpt.isSet())
   {
     params.hwResH = hwRes;
   }

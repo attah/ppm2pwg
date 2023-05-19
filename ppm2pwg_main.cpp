@@ -32,9 +32,9 @@ int PPM2PWG_MAIN(int argc, char** argv)
   bool verbose = false;
   bool urf = false;
   int pages = 0;
-  int hwRes = 0;
-  int hwResX = 0;
-  int hwResY = 0;
+  int hwRes;
+  int hwResX;
+  int hwResY;
   std::string inFile;
   std::string outFile;
 
@@ -91,20 +91,20 @@ int PPM2PWG_MAIN(int argc, char** argv)
     params.format = PrintParameters::PWG;
   }
 
-  if(hwResX != 0)
+  if(resolutionXOpt.isSet())
   {
     params.hwResW = hwResX;
   }
-  else if(hwRes != 0)
+  else if(resolutionOpt.isSet())
   {
     params.hwResW = hwRes;
   }
 
-  if(hwResY != 0)
+  if(resolutionYOpt.isSet())
   {
     params.hwResH = hwResY;
   }
-  else if(hwRes != 0)
+  else if(resolutionOpt.isSet())
   {
     params.hwResH = hwRes;
   }

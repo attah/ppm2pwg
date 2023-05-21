@@ -1,8 +1,8 @@
 # ppm2pwg - misc printing format conversion utilities
 (should really be renamed)
 
-![C/C++ CI](https://github.com/attah/ppm2pwg/workflows/C%2FC%2B%2B%20CI/badge.svg)
-![CodeQL](https://github.com/attah/ppm2pwg/workflows/CodeQL/badge.svg)
+[![C/C++ CI](https://github.com/attah/ppm2pwg/workflows/C%2FC%2B%2B%20CI/badge.svg)](https://github.com/attah/ppm2pwg/actions/workflows/ccpp.yml)
+[![CodeQL](https://github.com/attah/ppm2pwg/workflows/CodeQL/badge.svg)](https://github.com/attah/ppm2pwg/actions/workflows/codeql-analysis.yml)
 
 Available as rudimentary standalone applications, but mainly made for use in [SeaPrint](https://github.com/attah/harbour-seaprint).
 

@@ -5,6 +5,7 @@
 #include "pwg2ppm.h"
 #include "printparameters.h"
 #include "argget.h"
+#include "lthread.h"
 #include <cstring>
 using namespace std;
 
@@ -1203,4 +1204,25 @@ TEST(flip_logic)
   params.backXformMode = PrintParameters::Rotated;
   ASSERT(params.getBackHFlip() == false);
   ASSERT(params.getBackVFlip() == false);
+}
+
+TEST(lthread)
+{
+  LThread ltr;
+  ltr.run([](){});
+  ltr.await();
+
+  bool started = false;
+  bool proceed = false;
+
+  LThread::runnable fun1 = [&started, &proceed]()
+                           {
+                             started = true;
+                             while(!proceed);
+                           };
+  ltr.run(fun1);
+  while(!started);
+  ASSERT(ltr.isRunning());
+  proceed = true;
+  ltr.await();
 }

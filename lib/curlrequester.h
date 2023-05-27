@@ -28,7 +28,8 @@ public:
 
   CURLcode await(Bytestream* = nullptr);
 
-  bool write(const char *data, size_t size);
+  bool write(const char* data, size_t size);
+  bool give(Bytestream& bts);
   size_t requestWrite(char* dest, size_t size);
 
   static size_t write_callback(char *ptr, size_t size, size_t nmemb, void* userdata)
@@ -69,7 +70,7 @@ private:
   CURLcode _result;
   Bytestream _resultMsg;
 
-  Array<char> _data;
+  Array<uint8_t> _data;
   size_t _size = 0;
   size_t _offset = 0;
 

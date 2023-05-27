@@ -1,7 +1,7 @@
-CXXFLAGS = -std=c++11 -O3 -pedantic -Wall -Wextra -Werror -I. -Ibytestream \
+CXXFLAGS = -std=c++11 -O3 -pedantic -Wall -Wextra -Werror -Ilib -Ibytestream \
 $(shell pkg-config --cflags poppler-glib)
 
-VPATH = bytestream
+VPATH = bytestream lib utils
 
 all: ppm2pwg pwg2ppm pdf2printable hexdump baselinify
 
@@ -43,4 +43,4 @@ clean:
 	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad hexdump baselinify baselinify_mad
 
 analyze:
-	clang++ --analyze $(CXXFLAGS) *.cpp
+	clang++ --analyze $(CXXFLAGS) lib/*.cpp utils/*.cpp

@@ -82,12 +82,6 @@ CurlRequester::CurlRequester(std::string addr, bool ignoreSslErrors, bool verbos
 CurlRequester::~CurlRequester()
 {
   await();
-
-  if(_dest != nullptr)
-  {
-    delete _dest;
-  }
-
   curl_slist_free_all(_opts);
   curl_easy_cleanup(_curl);
 }
@@ -121,12 +115,8 @@ bool CurlRequester::write(const char *data, size_t size)
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
-  if(_dest != nullptr)
-  {
-    delete _dest;
-  }
-  _dest = new char[size];
-  memcpy(_dest, data, size);
+  _data = Array<char>(size);
+  memcpy(_data, data, size);
   _size = size;
   _offset = 0;
   _canRead.unlock();
@@ -138,22 +128,19 @@ size_t CurlRequester::requestWrite(char* dest, size_t size)
   if(!_reading)
   {
     _canRead.lock();
-    if(_done) // Can only have been set by await() - only relevant to check if strating to write
+    if(_done)
     {
       return 0;
     }
     _reading = true;
   }
 
-  size_t remaining = _size - _offset;
+  size_t actualSize = std::min(size, (_size - _offset));
 
-  size_t actualSize = std::min(size, remaining);
-
-  memcpy(dest, (_dest+_offset), actualSize);
+  memcpy(dest, (_data+_offset), actualSize);
   _offset += actualSize;
 
-  remaining = _size - _offset;
-  if(remaining == 0)
+  if(_offset == _size)
   {
     _reading = false;
     _canWrite.unlock();

@@ -7,6 +7,7 @@
 
 #include <curl/curl.h>
 #include "lthread.h"
+#include <array.h>
 #include <bytestream.h>
 #include <mutex>
 
@@ -68,7 +69,7 @@ private:
   CURLcode _result;
   Bytestream _resultMsg;
 
-  char* _dest = nullptr;
+  Array<char> _data;
   size_t _size = 0;
   size_t _offset = 0;
 

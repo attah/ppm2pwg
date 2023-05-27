@@ -104,7 +104,7 @@ CURLcode CurlRequester::await(Bytestream* data)
   return _result;
 }
 
-bool CurlRequester::write(const char *data, size_t size)
+bool CurlRequester::write(const char* data, size_t size)
 {
   while(!_canWrite.try_lock())
   {
@@ -115,8 +115,27 @@ bool CurlRequester::write(const char *data, size_t size)
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
-  _data = Array<char>(size);
+  _data = Array<uint8_t>(size);
   memcpy(_data, data, size);
+  _size = size;
+  _offset = 0;
+  _canRead.unlock();
+  return true;
+}
+
+bool CurlRequester::give(Bytestream& bts)
+{
+  while(!_canWrite.try_lock())
+  {
+    if(!_worker.isRunning())
+    {
+      return false;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+
+  size_t size = bts.size();
+  _data = bts.eject();
   _size = size;
   _offset = 0;
   _canRead.unlock();

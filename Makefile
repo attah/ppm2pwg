@@ -36,6 +36,9 @@ baselinify: bytestream.o baselinify.o baselinify_main.o
 baselinify_mad: bytestream.o baselinify_mad.o baselinify_main.o
 	$(CXX) $^ -ldl -o $@
 
+ippposter: ippposter.o curlrequester.o bytestream.o
+	$(CXX) $^ -lcurl -o $@
+
 clean:
 	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad hexdump baselinify baselinify_mad
 

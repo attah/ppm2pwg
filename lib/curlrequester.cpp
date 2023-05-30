@@ -1,6 +1,5 @@
 #include "curlrequester.h"
 #include <cstring>
-#include <iostream>
 #include <chrono>
 #include <thread>
 
@@ -43,8 +42,6 @@ void CurlRequester::doRun()
     curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, write_callback);
 
     CURLcode res = curl_easy_perform(_curl);
-    if(res != CURLE_OK)
-      std::cerr <<  "curl_easy_perform() failed: " << curl_easy_strerror(res);
 
     _result = res;
     _resultMsg = buf;
@@ -126,7 +123,7 @@ size_t CurlIppPosterBase::requestWrite(char* dest, size_t size)
 }
 
 CurlIppPosterBase::CurlIppPosterBase(std::string addr, bool ignoreSslErrors, bool verbose)
-  : CurlRequester(addr, ignoreSslErrors, verbose)
+  : CurlRequester("http"+addr.erase(0,3), ignoreSslErrors, verbose)
 {
   _canWrite.unlock();
   _canRead.lock();

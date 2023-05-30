@@ -6,6 +6,8 @@
 #include "printparameters.h"
 #include "argget.h"
 #include "lthread.h"
+#include "ippmsg.h"
+#include "ippprintjob.h"
 #include <cstring>
 using namespace std;
 
@@ -1229,4 +1231,673 @@ TEST(lthread)
   ASSERT(ltr.isRunning());
   proceed = true;
   ltr.await();
+}
+
+TEST(ippattr)
+{
+
+  IppAttr attr1(IppMsg::BeginCollection, IppCollection{{"key", IppAttr(7, 42)}});
+  IppAttr attr2(IppMsg::Keyword, IppOneSetOf {IppValue {42}});
+  ASSERT(attr2.isList());
+  ASSERT(attr2.get<IppOneSetOf>().front().is<int>());
+  ASSERT(attr2.asList().front().is<int>());
+  ASSERT(attr2.asList().front().get<int>() == 42);
+
+  IppAttr attr3(IppMsg::Enum, 42);
+  ASSERT_FALSE(attr3.isList());
+  ASSERT(attr3.get<int>() == 42);
+  ASSERT(attr3.asList().front().is<int>());
+  ASSERT(attr3.asList().front().get<int>() == 42);
+
+}
+
+TEST(ippprintjob_support)
+{
+  IppAttrs printerAttrs =
+    {{"sides-default", IppAttr(IppMsg::Keyword, "one-sided")},
+     {"sides-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"one-sided",
+                                                               "two-sided-long-edge",
+                                                               "two-sided-short-edge"})},
+     {"media-default", IppAttr(IppMsg::Keyword, "iso_a4_210x297mm")},
+     {"media-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"iso_a4_210x297mm",
+                                                               "na_letter_8.5x11in"})},
+     {"media-ready", IppAttr(IppMsg::Keyword, "iso_a4_210x297mm")},
+     {"copies-default", IppAttr(IppMsg::Integer, 1)},
+     {"copies-supported", IppAttr(IppMsg::IntegerRange, IppIntRange {1, 999})},
+     {"multiple-document-handling-default", IppAttr(IppMsg::Keyword, "separate-documents-uncollated-copies")},
+     {"multiple-document-handling-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"single-document",
+                                                                                    "separate-documents-uncollated-copies",
+                                                                                    "separate-documents-collated-copies"})},
+     {"page-ranges-supported", IppAttr(IppMsg::Boolean, false)},
+     {"number-up-default", IppAttr(IppMsg::Integer, 1)},
+     {"number-up-supported", IppAttr(IppMsg::Integer, IppOneSetOf{1, 2, 4})},
+     {"print-color-mode-default", IppAttr(IppMsg::Keyword, "auto")},
+     {"print-color-mode-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"auto", "color", "monochrome"})},
+     {"print-quality-default", IppAttr(IppMsg::Enum, 4)},
+     {"print-quality-supported", IppAttr(IppMsg::Enum, IppOneSetOf {3, 4, 5})},
+     {"printer-resolution-default", IppAttr(IppMsg::Resolution, IppResolution {600, 600, 3})},
+     {"printer-resolution-supported", IppAttr(IppMsg::Resolution, IppOneSetOf {IppResolution {600, 600, 3},
+                                                                               IppResolution {600, 1200, 3}})},
+     {"document-format-default", IppAttr(IppMsg::Keyword, "application/octet-stream")},
+     {"document-format-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"application/octet-stream",
+                                                                         "image/urf",
+                                                                         "image/pwg-raster",
+                                                                         "application/pdf"})},
+     {"print-scaling-default", IppAttr(IppMsg::Keyword, "auto")},
+     {"print-scaling-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"auto", "fill", "fit"})},
+     {"media-type-default", IppAttr(IppMsg::Keyword, "stationery")},
+     {"media-type-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"stationery", "cardstock", "labels"})},
+     {"media-source-default", IppAttr(IppMsg::Keyword, "auto")},
+     {"media-source-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"auto", "envelope", "manual", "tray-1"})},
+     {"output-bin-default", IppAttr(IppMsg::Keyword, "face-down")},
+     {"output-bin-supported", IppAttr(IppMsg::Keyword, "face-down")},
+
+     {"media-top-margin-default", IppAttr(IppMsg::Integer, 1)},
+     {"media-top-margin-supported", IppAttr(IppMsg::Integer, IppOneSetOf {1, 2, 3, 4})},
+     {"media-bottom-margin-default", IppAttr(IppMsg::Integer, 2)},
+     {"media-bottom-margin-supported", IppAttr(IppMsg::Integer, IppOneSetOf {2, 3, 4})},
+     {"media-left-margin-default", IppAttr(IppMsg::Integer, 3)},
+     {"media-left-margin-supported", IppAttr(IppMsg::Integer, IppOneSetOf {3, 4})},
+     {"media-right-margin-default", IppAttr(IppMsg::Integer, 4)},
+     {"media-right-margin-supported", IppAttr(IppMsg::Integer, 4)},
+    };
+
+  IppMsg getAttrsMsg(0, IppAttrs(), IppAttrs(), 1, 1, printerAttrs);
+  Bytestream encoded = getAttrsMsg.encode();
+  IppMsg msg2(encoded);
+
+  ASSERT(printerAttrs == msg2.getPrinterAttrs());
+
+  encoded -= encoded.size();
+  IppMsg::setReqId(1); // Revert automatic global incrementation of ReqId.
+  Bytestream encoded2 = msg2.encode();
+  ASSERT(encoded2 == encoded);
+
+  IppPrintJob ip(printerAttrs);
+
+  ASSERT(ip.sides.isSupported());
+  ASSERT(ip.sides.getDefault() == "one-sided");
+  ASSERT(ip.sides.getSupported() == List<std::string>({"one-sided",
+                                                       "two-sided-long-edge",
+                                                       "two-sided-short-edge"}));
+
+  ASSERT(ip.media.isSupported());
+  ASSERT(ip.media.getDefault() == "iso_a4_210x297mm");
+  ASSERT(ip.media.getSupported() == List<std::string>({"iso_a4_210x297mm", "na_letter_8.5x11in"}));
+  // A single choice was not wrapped in OneSetOf, but still returned as a list.
+  ASSERT(ip.media.getPreferred() == List<std::string>({"iso_a4_210x297mm"}));
+
+  ASSERT(ip.copies.isSupported());
+  ASSERT(ip.copies.getDefault() == 1);
+  ASSERT(ip.copies.getSupportedMin() == 1);
+  ASSERT(ip.copies.getSupportedMax() == 999);
+
+  ASSERT(ip.multipleDocumentHandling.isSupported());
+  ASSERT(ip.multipleDocumentHandling.getDefault() == "separate-documents-uncollated-copies");
+  ASSERT(ip.multipleDocumentHandling.getSupported() == List<std::string>({"single-document",
+                                                                          "separate-documents-uncollated-copies",
+                                                                          "separate-documents-collated-copies"}));
+
+  ASSERT(ip.pageRanges.isSupported());
+  ASSERT(ip.pageRanges.getSupported() == false);
+
+  ASSERT(ip.numberUp.isSupported());
+  ASSERT(ip.numberUp.getDefault() == 1);
+  ASSERT(ip.numberUp.getSupported() == List<int>({1, 2, 4}));
+
+  // number-up-supported may be a range too...
+  printerAttrs.set("number-up-supported", IppAttr(IppMsg::IntegerRange, IppIntRange {1, 4}));
+
+  ip = IppPrintJob(printerAttrs);
+
+  ASSERT(ip.numberUp.isSupported());
+  ASSERT(ip.numberUp.getDefault() == 1);
+  ASSERT(ip.numberUp.getSupported() == List<int>({1, 2, 3, 4}));
+
+  ASSERT(ip.colorMode.isSupported());
+  ASSERT(ip.colorMode.getDefault() == "auto");
+  ASSERT(ip.colorMode.getSupported() == List<std::string>({"auto", "color", "monochrome"}));
+
+  ASSERT(ip.printQuality.isSupported());
+  ASSERT(ip.printQuality.getDefault() == 4);
+  ASSERT(ip.printQuality.getSupported() == List<int>({3, 4, 5}));
+
+  ASSERT(ip.resolution.isSupported());
+  ASSERT(ip.resolution.getDefault() == IppResolution({600, 600, 3}));
+  ASSERT(ip.resolution.getSupported() == List<IppResolution>({{600, 600, 3}, {600, 1200, 3}}));
+
+  ASSERT(ip.scaling.isSupported());
+  ASSERT(ip.scaling.getDefault() == "auto");
+  ASSERT(ip.scaling.getSupported() == List<std::string>({"auto", "fill", "fit"}));
+
+  ASSERT(ip.documentFormat.isSupported());
+  ASSERT(ip.documentFormat.getDefault() == "application/octet-stream");
+  ASSERT(ip.documentFormat.getSupported() == List<std::string>({"application/octet-stream",
+                                                                "image/urf",
+                                                                "image/pwg-raster",
+                                                                "application/pdf"}));
+
+  ASSERT(ip.mediaType.isSupported());
+  ASSERT(ip.mediaType.getDefault() == "stationery");
+  ASSERT(ip.mediaType.getSupported() == List<std::string>({"stationery", "cardstock", "labels"}));
+
+  ASSERT(ip.mediaSource.isSupported());
+  ASSERT(ip.mediaSource.getDefault() == "auto");
+  ASSERT(ip.mediaSource.getSupported() == List<std::string>({"auto", "envelope", "manual", "tray-1"}));
+
+  ASSERT(ip.outputBin.isSupported());
+  ASSERT(ip.outputBin.getDefault() == "face-down");
+  ASSERT(ip.outputBin.getSupported() == List<std::string>({"face-down"}));
+
+  ASSERT(ip.topMargin.isSupported());
+  ASSERT(ip.topMargin.getDefault() == 1);
+  ASSERT(ip.topMargin.getSupported() == List<int>({1, 2, 3, 4}));
+
+  ASSERT(ip.bottomMargin.isSupported());
+  ASSERT(ip.bottomMargin.getDefault() == 2);
+  ASSERT(ip.bottomMargin.getSupported() == List<int>({2, 3, 4}));
+
+  ASSERT(ip.leftMargin.isSupported());
+  ASSERT(ip.leftMargin.getDefault() == 3);
+  ASSERT(ip.leftMargin.getSupported() == List<int>({3, 4}));
+
+  ASSERT(ip.rightMargin.isSupported());
+  ASSERT(ip.rightMargin.getDefault() == 4);
+  ASSERT(ip.rightMargin.getSupported() == List<int>({4}));
+
+}
+
+TEST(ippprintjob_empty)
+{
+  IppAttrs printerAttrs;
+  IppPrintJob ip(printerAttrs);
+
+  ASSERT_FALSE(ip.sides.isSupported());
+  ASSERT(ip.sides.getDefault() == "");
+  ASSERT(ip.sides.getSupported() == List<std::string>());
+
+  ASSERT_FALSE(ip.media.isSupported());
+  ASSERT(ip.media.getDefault() == "");
+  ASSERT(ip.media.getSupported() == List<std::string>());
+  ASSERT(ip.media.getPreferred() == List<std::string>());
+
+  ASSERT_FALSE(ip.copies.isSupported());
+  ASSERT(ip.copies.getDefault() == 0);
+  ASSERT(ip.copies.getSupportedMin() == 0);
+  ASSERT(ip.copies.getSupportedMax() == 0);
+
+  ASSERT_FALSE(ip.multipleDocumentHandling.isSupported());
+  ASSERT(ip.multipleDocumentHandling.getDefault() == "");
+  ASSERT(ip.multipleDocumentHandling.getSupported() == List<std::string>());
+
+  ASSERT_FALSE(ip.pageRanges.isSupported());
+  ASSERT(ip.pageRanges.getSupported() == false);
+
+  ASSERT_FALSE(ip.numberUp.isSupported());
+  ASSERT(ip.numberUp.getDefault() == 0);
+  ASSERT(ip.numberUp.getSupported() == List<int>());
+
+  ASSERT_FALSE(ip.colorMode.isSupported());
+  ASSERT(ip.colorMode.getDefault() == "");
+  ASSERT(ip.colorMode.getSupported() == List<std::string>());
+
+  ASSERT_FALSE(ip.printQuality.isSupported());
+  ASSERT(ip.printQuality.getDefault() == 0);
+  ASSERT(ip.printQuality.getSupported() == List<int>());
+
+  ASSERT_FALSE(ip.resolution.isSupported());
+  ASSERT(ip.resolution.getDefault() == IppResolution());
+  ASSERT(ip.resolution.getSupported() == List<IppResolution>());
+
+  ASSERT_FALSE(ip.scaling.isSupported());
+  ASSERT(ip.scaling.getDefault() == "");
+  ASSERT(ip.scaling.getSupported() == List<std::string>());
+
+  ASSERT_FALSE(ip.documentFormat.isSupported());
+  ASSERT(ip.documentFormat.getDefault() == "");
+  ASSERT(ip.documentFormat.getSupported() == List<std::string>());
+
+  ASSERT_FALSE(ip.mediaType.isSupported());
+  ASSERT(ip.mediaType.getDefault() == "");
+  ASSERT(ip.mediaType.getSupported() == List<std::string>());
+
+  ASSERT_FALSE(ip.mediaSource.isSupported());
+  ASSERT(ip.mediaSource.getDefault() == "");
+  ASSERT(ip.mediaSource.getSupported() == List<std::string>());
+
+  ASSERT_FALSE(ip.outputBin.isSupported());
+  ASSERT(ip.outputBin.getDefault() == "");
+  ASSERT(ip.outputBin.getSupported() == List<std::string>());
+
+  ASSERT_FALSE(ip.topMargin.isSupported());
+  ASSERT(ip.topMargin.getDefault() == 0);
+  ASSERT(ip.topMargin.getSupported() == List<int>());
+
+  ASSERT_FALSE(ip.bottomMargin.isSupported());
+  ASSERT(ip.bottomMargin.getDefault() == 0);
+  ASSERT(ip.bottomMargin.getSupported() == List<int>());
+
+  ASSERT_FALSE(ip.leftMargin.isSupported());
+  ASSERT(ip.leftMargin.getDefault() == 0);
+  ASSERT(ip.leftMargin.getSupported() == List<int>());
+
+  ASSERT_FALSE(ip.rightMargin.isSupported());
+  ASSERT(ip.rightMargin.getDefault() == 0);
+  ASSERT(ip.rightMargin.getSupported() == List<int>());
+
+}
+
+TEST(ippprintjob_set)
+{
+  IppAttrs printerAttrs;
+  IppPrintJob ip(printerAttrs);
+
+  IppAttrs jobAttrs;
+
+  ip.sides.set("two-sided");
+  ASSERT(ip.sides.isSet());
+  ASSERT(ip.sides.get() == "two-sided");
+  jobAttrs.set("sides", IppAttr(IppMsg::Keyword, "two-sided"));
+  ASSERT(ip.jobAttrs == jobAttrs);
+
+  ip.media.set("iso_a4_210x297mm");
+  ASSERT(ip.media.isSet());
+  ASSERT(ip.media.get() == "iso_a4_210x297mm");
+  jobAttrs.set("media", IppAttr(IppMsg::Keyword, "iso_a4_210x297mm"));
+  ASSERT(ip.jobAttrs == jobAttrs);
+
+  ip.copies.set(42);
+  ASSERT(ip.copies.isSet());
+  ASSERT(ip.copies.get() == 42);
+  jobAttrs.set("copies", IppAttr(IppMsg::Integer, 42));
+  ASSERT(ip.jobAttrs == jobAttrs);
+
+  ip.multipleDocumentHandling.set("separate-documents-collated-copies");
+  ASSERT(ip.multipleDocumentHandling.isSet());
+  ASSERT(ip.multipleDocumentHandling.get() == "separate-documents-collated-copies");
+  jobAttrs.set("multiple-document-handling", IppAttr(IppMsg::Keyword, "separate-documents-collated-copies"));
+  ASSERT(ip.jobAttrs == jobAttrs);
+
+  ip.pageRanges.set({IppIntRange {17, 42}});
+  ASSERT(ip.pageRanges.isSet());
+  ASSERT((ip.pageRanges.get() == IppOneSetOf {IppIntRange {17, 42}}));
+  jobAttrs.set("page-ranges", IppAttr(IppMsg::IntegerRange, IppOneSetOf {IppIntRange {17, 42}}));
+  ASSERT(ip.jobAttrs == jobAttrs);
+
+  ip.pageRanges.set({{IppIntRange {1, 2}}, {IppIntRange {17, 42}}});
+  ASSERT(ip.pageRanges.isSet());
+  ASSERT((ip.pageRanges.get() == IppOneSetOf {IppIntRange {1, 2}, IppIntRange {17, 42}}));
+  jobAttrs.set("page-ranges", IppAttr(IppMsg::IntegerRange, IppOneSetOf {IppIntRange {1, 2}, IppIntRange {17, 42}}));
+  ASSERT(ip.jobAttrs == jobAttrs);
+
+  ip.numberUp.set(8);
+  ASSERT(ip.numberUp.isSet());
+  ASSERT(ip.numberUp.get() == 8);
+  jobAttrs.set("number-up", IppAttr(IppMsg::Integer, 8));
+  ASSERT(ip.jobAttrs == jobAttrs);
+
+  ip.colorMode.set("monochrome");
+  ASSERT(ip.colorMode.isSet());
+  ASSERT(ip.colorMode.get() == "monochrome");
+  jobAttrs.set("print-color-mode", IppAttr(IppMsg::Keyword, "monochrome"));
+  ASSERT(ip.jobAttrs == jobAttrs);
+
+  ip.printQuality.set(5);
+  ASSERT(ip.printQuality.isSet());
+  ASSERT(ip.printQuality.get() == 5);
+  jobAttrs.set("print-quality", IppAttr(IppMsg::Integer, 5));
+  ASSERT(ip.jobAttrs == jobAttrs);
+
+  ip.resolution.set(IppResolution {600, 600, 3});
+  ASSERT(ip.resolution.isSet());
+  ASSERT((ip.resolution.get() == IppResolution {600, 600, 3}));
+  jobAttrs.set("printer-resolution", IppAttr(IppMsg::Resolution, IppResolution {600, 600, 3}));
+  ASSERT(ip.jobAttrs == jobAttrs);
+
+  ip.scaling.set("auto");
+  ASSERT(ip.scaling.isSet());
+  ASSERT(ip.scaling.get() == "auto");
+  jobAttrs.set("print-scaling", IppAttr(IppMsg::Keyword, "auto"));
+  ASSERT(ip.jobAttrs == jobAttrs);
+
+  ip.documentFormat.set("application/pdf");
+  ASSERT(ip.documentFormat.isSet());
+  ASSERT(ip.documentFormat.get() == "application/pdf");
+  ASSERT((ip.opAttrs == IppAttrs {{"document-format", IppAttr(IppMsg::MimeMediaType, "application/pdf")}}));
+  ASSERT(ip.jobAttrs == jobAttrs);
+
+  ip.outputBin.set("face-down");
+  ASSERT(ip.outputBin.isSet());
+  ASSERT(ip.outputBin.get() == "face-down");
+  jobAttrs.set("output-bin", IppAttr(IppMsg::Keyword, "face-down"));
+  ASSERT(ip.jobAttrs == jobAttrs);
+
+  ip.mediaType.set("stationery");
+  ASSERT(ip.mediaType.isSet());
+  ASSERT(ip.mediaType.get() == "stationery");
+  ip.mediaSource.set("main");
+  ASSERT(ip.mediaSource.isSet());
+  ASSERT(ip.mediaSource.get() == "main");
+  ip.topMargin.set(1);
+  ASSERT(ip.topMargin.isSet());
+  ASSERT(ip.topMargin.get() == 1);
+  ip.bottomMargin.set(2);
+  ASSERT(ip.bottomMargin.isSet());
+  ASSERT(ip.bottomMargin.get() == 2);
+  ip.leftMargin.set(3);
+  ASSERT(ip.leftMargin.isSet());
+  ASSERT(ip.leftMargin.get() == 3);
+  ip.rightMargin.set(4);
+  ASSERT(ip.rightMargin.isSet());
+  ASSERT(ip.rightMargin.get() == 4);
+
+  IppCollection mediaCol {{"media-type", IppAttr(IppMsg::Keyword, "stationery")},
+                          {"media-source", IppAttr(IppMsg::Keyword, "main")},
+                          {"media-top-margin", IppAttr(IppMsg::Integer, 1)},
+                          {"media-bottom-margin", IppAttr(IppMsg::Integer, 2)},
+                          {"media-left-margin", IppAttr(IppMsg::Integer, 3)},
+                          {"media-right-margin", IppAttr(IppMsg::Integer, 4)}};
+
+  jobAttrs.set("media-col", IppAttr(IppMsg::BeginCollection, mediaCol));
+
+  ASSERT(ip.jobAttrs == jobAttrs);
+
+}
+
+TEST(finalize)
+{
+  IppAttrs printerAttrs =
+    {{"sides-default", IppAttr(IppMsg::Keyword, "one-sided")},
+     {"sides-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"one-sided",
+                                                               "two-sided-long-edge",
+                                                               "two-sided-short-edge"})},
+     {"media-default", IppAttr(IppMsg::Keyword, "iso_a4_210x297mm")},
+     {"media-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"iso_a4_210x297mm",
+                                                               "na_letter_8.5x11in"})},
+     {"media-ready", IppAttr(IppMsg::Keyword, "iso_a4_210x297mm")},
+     {"copies-default", IppAttr(IppMsg::Integer, 1)},
+     {"copies-supported", IppAttr(IppMsg::IntegerRange, IppIntRange {1, 999})},
+     {"multiple-document-handling-default", IppAttr(IppMsg::Keyword, "separate-documents-uncollated-copies")},
+     {"multiple-document-handling-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"single-document",
+                                                                                    "separate-documents-uncollated-copies",
+                                                                                    "separate-documents-collated-copies"})},
+     {"page-ranges-supported", IppAttr(IppMsg::Boolean, false)},
+     {"number-up-default", IppAttr(IppMsg::Integer, 1)},
+     {"number-up-supported", IppAttr(IppMsg::Integer, IppOneSetOf{1, 2, 4})},
+     {"print-color-mode-default", IppAttr(IppMsg::Keyword, "auto")},
+     {"print-color-mode-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"auto", "color", "monochrome"})},
+     {"print-quality-default", IppAttr(IppMsg::Enum, 4)},
+     {"print-quality-supported", IppAttr(IppMsg::Enum, IppOneSetOf {3, 4, 5})},
+     {"printer-resolution-default", IppAttr(IppMsg::Resolution, IppResolution {600, 600, 3})},
+     {"printer-resolution-supported", IppAttr(IppMsg::Resolution, IppOneSetOf {IppResolution {600, 600, 3},
+                                                                               IppResolution {600, 1200, 3}})},
+     {"document-format-default", IppAttr(IppMsg::Keyword, "application/octet-stream")},
+     {"document-format-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"application/octet-stream",
+                                                                         "image/urf",
+                                                                         "image/pwg-raster",
+                                                                         "application/pdf"})},
+     {"print-scaling-default", IppAttr(IppMsg::Keyword, "auto")},
+     {"print-scaling-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"auto", "fill", "fit"})},
+     {"media-type-default", IppAttr(IppMsg::Keyword, "stationery")},
+     {"media-type-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"stationery", "cardstock", "labels"})},
+     {"media-source-default", IppAttr(IppMsg::Keyword, "auto")},
+     {"media-source-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"auto", "envelope", "manual", "tray-1"})},
+     {"output-bin-default", IppAttr(IppMsg::Keyword, "face-down")},
+     {"output-bin-supported", IppAttr(IppMsg::Keyword, "face-down")},
+
+     {"media-top-margin-default", IppAttr(IppMsg::Integer, 1)},
+     {"media-top-margin-supported", IppAttr(IppMsg::Integer, IppOneSetOf {1, 2, 3, 4})},
+     {"media-bottom-margin-default", IppAttr(IppMsg::Integer, 2)},
+     {"media-bottom-margin-supported", IppAttr(IppMsg::Integer, IppOneSetOf {2, 3, 4})},
+     {"media-left-margin-default", IppAttr(IppMsg::Integer, 3)},
+     {"media-left-margin-supported", IppAttr(IppMsg::Integer, IppOneSetOf {3, 4})},
+     {"media-right-margin-default", IppAttr(IppMsg::Integer, 4)},
+     {"media-right-margin-supported", IppAttr(IppMsg::Integer, 4)},
+
+     {"pwg-raster-document-resolution-supported", IppAttr(IppMsg::Resolution, IppOneSetOf {IppResolution {300, 300, 3},
+                                                                                           IppResolution {600, 600, 3}})},
+     {"pwg-raster-document-sheet-back", IppAttr(IppMsg::Keyword, "flipped")},
+     {"document-format-varying-attributes", IppAttr(IppMsg::Keyword, "copies-supported")},
+     {"urf-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"RS300-600", "DM3"})},
+
+    };
+
+  IppPrintJob ip(printerAttrs);
+
+  // Margins - to be unset/ignored for PDF derivatives
+  ip.topMargin.set(1);
+  ip.bottomMargin.set(2);
+  ip.leftMargin.set(3);
+  ip.rightMargin.set(4);
+
+  // To propagate to printParams
+  ip.resolution.set(IppResolution {600, 600, 3});
+
+  // To be kept in media since media-col is emptied when margins are removed
+  ip.media.set("na_letter_8.5x11in");
+
+  // To be removed in jobAttrs, but set in jobAttrs
+  ip.pageRanges.set({IppIntRange {17, 42}});
+
+  // To be kept and set in printParams
+  ip.sides.set("two-sided-long-edge");
+  ip.printQuality.set(5);
+  ip.colorMode.set("monochrome");
+
+  ip.finalize("application/pdf");
+
+  ASSERT((ip.opAttrs == IppAttrs {{"document-format", IppAttr(IppMsg::MimeMediaType, "application/pdf")}}));
+  ASSERT((ip.jobAttrs == IppAttrs {{"printer-resolution", IppAttr(IppMsg::Resolution, IppResolution {600, 600, 3})},
+                                   {"media", IppAttr(IppMsg::Keyword, "na_letter_8.5x11in")},
+                                   {"sides", IppAttr(IppMsg::Keyword, "two-sided-long-edge")},
+                                   {"print-quality", IppAttr(IppMsg::Enum, 5)},
+                                   {"print-color-mode", IppAttr(IppMsg::Keyword, "monochrome")}}));
+  ASSERT(ip.printParams.format == PrintParameters::PDF);
+  ASSERT(ip.printParams.paperSizeName == "na_letter_8.5x11in");
+  ASSERT(ip.printParams.hwResW == 600);
+  ASSERT(ip.printParams.hwResH == 600);
+  ASSERT((ip.printParams.pageRangeList == PageRangeList {{17, 42}}));
+  ASSERT(ip.printParams.duplexMode == PrintParameters::TwoSidedLongEdge);
+  ASSERT(ip.printParams.quality == PrintParameters::HighQuality);
+  ASSERT(ip.printParams.colorMode == PrintParameters::Gray8);
+
+  // Forget choices
+  ip = IppPrintJob(printerAttrs);
+
+  // With some random media-col setting, media-size moves to media-col too
+  ip.media.set("iso_a4_210x297mm");
+  ip.mediaSource.set("tray-1");
+  ip.mediaType.set("cardstock");
+
+  ip.finalize("application/pdf");
+
+  ASSERT((ip.opAttrs == IppAttrs {{"document-format", IppAttr(IppMsg::MimeMediaType, "application/pdf")}}));
+  IppCollection dimensions {{"x-dimension", IppAttr(IppMsg::Integer, 21000)},
+                            {"y-dimension", IppAttr(IppMsg::Integer, 29700)}};
+  IppCollection mediaCol {{"media-type", IppAttr(IppMsg::Keyword, "cardstock")},
+                          {"media-size", IppAttr(IppMsg::BeginCollection, dimensions)},
+                          {"media-source", IppAttr(IppMsg::Keyword, "tray-1")}};
+  ASSERT((ip.jobAttrs == IppAttrs {{"media-col", IppAttr(IppMsg::BeginCollection, mediaCol)}}));
+
+  ASSERT(ip.printParams.paperSizeName == "iso_a4_210x297mm");
+  ASSERT(ip.printParams.mediaPosition == PrintParameters::Tray1);
+  ASSERT(ip.printParams.mediaType == "cardstock");
+
+  // Remove PDF support, forget choices
+  printerAttrs.set("document-format-supported",
+                   IppAttr(IppMsg::Keyword, IppOneSetOf {"application/octet-stream",
+                                                         "image/urf",
+                                                         "image/pwg-raster"}));
+  ip = IppPrintJob(printerAttrs);
+
+  // To be removed and clamped to 600x600 in printParams
+  ip.resolution.set(IppResolution {600, 1200, 3});
+
+  ip.copies.set(2);
+
+  ip.finalize("application/pdf");
+
+  ASSERT((ip.opAttrs == IppAttrs {{"document-format", IppAttr(IppMsg::MimeMediaType, "image/pwg-raster")}}));
+  ASSERT((ip.jobAttrs == IppAttrs {}));
+  ASSERT(ip.printParams.format == PrintParameters::PWG);
+  ASSERT(ip.printParams.hwResW == 600);
+  ASSERT(ip.printParams.hwResH == 600);
+  ASSERT(ip.printParams.backXformMode == PrintParameters::Flipped);
+  ASSERT(ip.printParams.copies == 2);
+
+  // Forget and do almost the same again, but with URF selected
+  ip = IppPrintJob(printerAttrs);
+  ip.documentFormat.set("image/urf");
+
+  // To be removed and clamped to 600x600 in printParams
+  ip.resolution.set(IppResolution {600, 1200, 3});
+
+  ip.copies.set(2);
+
+  ip.finalize("application/pdf");
+
+  ASSERT((ip.opAttrs == IppAttrs {{"document-format", IppAttr(IppMsg::MimeMediaType, "image/urf")}}));
+  ASSERT((ip.jobAttrs == IppAttrs {}));
+  ASSERT(ip.printParams.format == PrintParameters::URF);
+  ASSERT(ip.printParams.hwResW == 600);
+  ASSERT(ip.printParams.hwResH == 600);
+  ASSERT(ip.printParams.backXformMode == PrintParameters::Rotated);
+  ASSERT(ip.printParams.copies == 2);
+
+  // Add Postscript, forget settings
+  printerAttrs.set("document-format-supported",
+                   IppAttr(IppMsg::Keyword, IppOneSetOf {"application/octet-stream",
+                                                         "application/postscript",
+                                                         "image/urf",
+                                                         "image/pwg-raster"}));
+  ip = IppPrintJob(printerAttrs);
+
+  // Margins - to be unset/ignored for Postscript
+  ip.topMargin.set(1);
+  ip.bottomMargin.set(2);
+  ip.leftMargin.set(3);
+  ip.rightMargin.set(4);
+
+  ip.resolution.set(IppResolution {600, 600, 3});
+  // To be kept for Postscript
+  ip.pageRanges.set({IppIntRange {17, 42}});
+
+  ip.finalize("application/postscript");
+
+  ASSERT((ip.opAttrs == IppAttrs {{"document-format", IppAttr(IppMsg::MimeMediaType, "application/postscript")}}));
+  ASSERT((ip.jobAttrs == IppAttrs {{"printer-resolution", IppAttr(IppMsg::Resolution, IppResolution {600, 600, 3})},
+                                   {"page-ranges", IppAttr(IppMsg::IntegerRange, IppOneSetOf {IppIntRange {17, 42}})}}));
+  // PrintParameters only used for PDF input
+  ASSERT(ip.printParams.format == PrintParameters::Invalid);
+
+  // Add JPEG, forget settings
+  printerAttrs.set("document-format-supported",
+                   IppAttr(IppMsg::Keyword, IppOneSetOf {"application/octet-stream",
+                                                         "image/jpeg",
+                                                         "image/urf",
+                                                         "image/pwg-raster"}));
+  ip = IppPrintJob(printerAttrs);
+
+  // Margins - to be kept for images
+  ip.topMargin.set(1);
+  ip.bottomMargin.set(2);
+  ip.leftMargin.set(3);
+  ip.rightMargin.set(4);
+
+  ip.resolution.set(IppResolution {600, 600, 3});
+
+  ip.finalize("image/jpeg");
+
+  ASSERT((ip.opAttrs == IppAttrs {{"document-format", IppAttr(IppMsg::MimeMediaType, "image/jpeg")}}));
+  IppCollection mediaCol2 {{"media-top-margin", IppAttr(IppMsg::Integer, 1)},
+                           {"media-bottom-margin", IppAttr(IppMsg::Integer, 2)},
+                           {"media-left-margin", IppAttr(IppMsg::Integer, 3)},
+                           {"media-right-margin", IppAttr(IppMsg::Integer, 4)}};
+  ASSERT((ip.jobAttrs == IppAttrs {{"printer-resolution", IppAttr(IppMsg::Resolution, IppResolution {600, 600, 3})},
+                                   {"media-col", IppAttr(IppMsg::BeginCollection, mediaCol2)}}));
+  // PrintParameters only used for PDF input
+  ASSERT(ip.printParams.format == PrintParameters::Invalid);
+
+  // Forget choices
+  ip = IppPrintJob(printerAttrs);
+
+  // Margins - to be unset/ignored for rasters
+  ip.topMargin.set(1);
+  ip.bottomMargin.set(2);
+  ip.leftMargin.set(3);
+  ip.rightMargin.set(4);
+
+  // To be changed for single-page document doing copies
+  ip.sides.set("two-sided-long-edge");
+  ip.copies.set(2);
+
+  ip.finalize("application/pdf", 1);
+
+  ASSERT((ip.opAttrs == IppAttrs {{"document-format", IppAttr(IppMsg::MimeMediaType, "image/pwg-raster")}}));
+  ASSERT((ip.jobAttrs == IppAttrs {{"sides", IppAttr(IppMsg::Keyword, "one-sided")}}));
+  // Not an image taregt format - margins removed
+  IppCollection mediaCol3 = ip.jobAttrs.get<IppCollection>("media-col");
+  ASSERT_FALSE(mediaCol3.has("media-top-margin"));
+  ASSERT_FALSE(mediaCol3.has("media-bottom-margin"));
+  ASSERT_FALSE(mediaCol3.has("media-left-margin"));
+  ASSERT_FALSE(mediaCol3.has("media-right-margin"));
+  ASSERT(ip.margins.top == 1);
+  ASSERT(ip.margins.bottom == 2);
+  ASSERT(ip.margins.left == 3);
+  ASSERT(ip.margins.right == 4);
+  ASSERT(ip.printParams.format == PrintParameters::PWG);
+  ASSERT(ip.printParams.colorMode == PrintParameters::sRGB24);
+
+  // Un-support color, forget choices
+  printerAttrs.set("print-color-mode-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"auto", "monochrome"}));
+  ip = IppPrintJob(printerAttrs);
+  ip.finalize("application/pdf", 0);
+
+  ASSERT((ip.opAttrs == IppAttrs {{"document-format", IppAttr(IppMsg::MimeMediaType, "image/pwg-raster")}}));
+  ASSERT(ip.printParams.format == PrintParameters::PWG);
+  ASSERT(ip.printParams.colorMode == PrintParameters::Gray8); // Since we don't support color
+
+}
+
+TEST(additional_formats)
+{
+  IppAttrs printerAttrs;
+  IppPrintJob ip(printerAttrs);
+  ASSERT(ip.additionalDocumentFormats() == List<std::string>());
+
+  printerAttrs.set("printer-device-id", IppAttr(IppMsg::TextWithoutLanguage, "MANUFACTURER:Xerox;COMMAND SET:PDF,URF,JPEG;MODEL:WorkCentre 6515;URF:IS4-20,IFU20,OB10,CP255,DM1,MT1,PQ4-5,RS600,W8,SRGB24,V1.4,FN3"));
+  ip = IppPrintJob(printerAttrs);
+  ASSERT(ip.additionalDocumentFormats() == List<std::string>({"application/pdf", "image/urf"}));
+
+  printerAttrs.set("printer-device-id", IppAttr(IppMsg::TextWithoutLanguage, "MFG:Canon;CMD:URF;MDL:SELPHY CP1300;CLS:PRINTER;URF:W8,SRGB24,V1.4,RS300,IS7,MT11,PQ4,OB9,IFU0,OFU0,CP99;"));
+  ip = IppPrintJob(printerAttrs);
+  ASSERT(ip.additionalDocumentFormats() == List<std::string>({"image/urf"}));
+
+  printerAttrs.set("printer-device-id", IppAttr(IppMsg::TextWithoutLanguage, "MANUFACTURER:Xerox;COMMAND SET:PCL 6 Emulation, PostScript Level 3 Emulation, URF, PWG, NPAP, PJL;MODEL:C230 Color Printer;CLS:PRINTER;DES:Xerox(R) C230 Color Printer;CID:XR_PCL6_XCPT_Color_A4;COMMENT:ECP1.0, LV_0924, LP_9D15, LF_00C7;"));
+  ip = IppPrintJob(printerAttrs);
+  ASSERT(ip.additionalDocumentFormats() == List<std::string>({"application/postscript", "image/pwg-raster", "image/urf"}));
+
+  printerAttrs.set("printer-device-id", IppAttr(IppMsg::TextWithoutLanguage, "MFG:EPSON;CMD:ESCPL2,BDC,D4,D4PX,ESCPR7,END4,GENEP,PWGRaster,URF;MDL:SC-P900 Series;CLS:PRINTER;DES:EPSON SC-P900 Series;CID:EpsonRGB;RID:02;DDS:401900;ELG:13F0;SN:583757503030333448;URF:CP1,PQ3-4-5,OB9,OFU0,RS360-720,SRGB24,ADOBERGB24-48,W8,IS18-20-21-22,V1.4,MT1-10-11;"));
+  ip = IppPrintJob(printerAttrs);
+  ASSERT(ip.additionalDocumentFormats() == List<std::string>({"image/pwg-raster", "image/urf"}));
+
+  printerAttrs.set("printer-device-id", IppAttr(IppMsg::TextWithoutLanguage, "MFG:HP;CMD:PJL,PML,PWG_RASTER,URP;MDL:HP LaserJet MFP M28-M31;CLS:PRINTER;DES:HP LaserJet MFP M28w;MEM:MEM=279MB;PRN:W2G55A;S:0300000000000000000000000000000000;COMMENT:RES=600x2;LEDMDIS:USB#ff#04#01;CID:HPLJPCLMSMV1;MCT:MF;MCL:FL;MCV:2.0;"));
+  ip = IppPrintJob(printerAttrs);
+  ASSERT(ip.additionalDocumentFormats() == List<std::string>({"image/pwg-raster"}));
+
+  printerAttrs.set("printer-device-id", IppAttr(IppMsg::TextWithoutLanguage, "MFG:HP;MDL:DeskJet 3700 series;CMD:PCL3GUI,PJL,Automatic,JPEG,PCLM,AppleRaster,PWGRaster,DW-PCL,802.11,DESKJET,DYN;CLS:PRINTER;DES:T8X04B;CID:HPDeskjet_P976D;LEDMDIS:USB#FF#CC#00,USB#07#01#02,USB#FF#04#01;SN:CN69R3D24J06H3;S:038000C480a00001002c0000000c1400046;Z:05000001000008,12000,17000000000000,181;"));
+  ip = IppPrintJob(printerAttrs);
+  ASSERT(ip.additionalDocumentFormats() == List<std::string>({"image/pwg-raster", "image/urf"}));
+
+  printerAttrs = IppAttrs();
+  ip = IppPrintJob(printerAttrs);
+  ASSERT(ip.additionalDocumentFormats() == List<std::string>());
+
+  printerAttrs.set("document-format-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"application/octet-stream",
+                                                                                      "application/postscript",
+                                                                                      "image/urf"}));
+  printerAttrs.set("printer-device-id", IppAttr(IppMsg::TextWithoutLanguage, "MFG:OKI DATA c332.js-CORP;CMD:PCL,XPS,IBMPPR,EPSONFX,POSTSCRIPT,PDF,PCLXL,HIPERMIP,URF;MDL:C332;CLS:PRINTER;DES:OKI c332.js-C332;CID:OK_N_B800;"));
+  ip = IppPrintJob(printerAttrs);
+  ASSERT(ip.additionalDocumentFormats() == List<std::string>({"application/pdf"}));
+
 }

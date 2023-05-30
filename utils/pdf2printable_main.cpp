@@ -16,7 +16,7 @@ inline void print_error(std::string hint, std::string argHelp)
   std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
 }
 
-inline bool ends_with(std::string s, std::string ending)
+inline bool endsWith(std::string s, std::string ending)
 {
   if(ending.length() <= s.length())
   {
@@ -115,19 +115,19 @@ int main(int argc, char** argv)
 
   if(!formatOpt.isSet())
   {
-    if(ends_with(outFileName, ".ps"))
+    if(endsWith(outFileName, ".ps"))
     {
       params.format = PrintParameters::Postscript;
     }
-    else if(ends_with(outFileName, ".pwg"))
+    else if(endsWith(outFileName, ".pwg"))
     {
       params.format = PrintParameters::PWG;
     }
-    else if(ends_with(outFileName, ".urf"))
+    else if(endsWith(outFileName, ".urf"))
     {
       params.format = PrintParameters::URF;
     }
-    else if(ends_with(outFileName, ".pdf"))
+    else if(endsWith(outFileName, ".pdf"))
     {
       params.format = PrintParameters::PDF;
     }
@@ -200,17 +200,25 @@ int main(int argc, char** argv)
              return outFile->exceptions() == std::ostream::goodbit;
            });
 
+  Error error;
+
   if(verbose)
   {
     ProgressFun progressFun([](size_t page, size_t total) -> void
                 {
                   std::cerr << "Progress: " << page << "/" << total << "\n\n";
                 });
-    return pdf_to_printable(inFileName, writeFun, params, progressFun, true);
+    error = pdf_to_printable(inFileName, writeFun, params, progressFun, true);
   }
   else
   {
-    return pdf_to_printable(inFileName, writeFun, params);
+    error = pdf_to_printable(inFileName, writeFun, params);
   }
-
+  if(error)
+  {
+    std::cerr << "Conversion failed: " << error.value() << std::endl;
+    return 1;
+  }
+  return 0;
 }
+

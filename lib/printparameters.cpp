@@ -186,7 +186,7 @@ PageSequence PrintParameters::getPageSequence(size_t pages) const
   return seq;
 }
 
-bool PrintParameters::setPageRange(const std::string& rangeStr)
+PageRangeList PrintParameters::parsePageRange(const std::string& rangeStr)
 {
   PageRangeList rangeList;
   const std::regex single("^([0-9]+)$");
@@ -210,16 +210,22 @@ bool PrintParameters::setPageRange(const std::string& rangeStr)
       size_t to = stol(match[2]);
       if(to < from)
       {
-        return false;
+        return {};
       }
       rangeList.push_back({from, to});
     }
     else
     {
-      return false;
+      return {};
     }
     pos = found+1;
   }
+  return rangeList;
+}
+
+bool PrintParameters::setPageRange(const std::string& rangeStr)
+{
+  PageRangeList rangeList = parsePageRange(rangeStr);
 
   if(!rangeList.empty())
   {

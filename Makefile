@@ -3,7 +3,7 @@ $(shell pkg-config --cflags poppler-glib)
 
 VPATH = bytestream lib utils
 
-all: ppm2pwg pwg2ppm pdf2printable hexdump baselinify
+all: ppm2pwg pwg2ppm pdf2printable hexdump baselinify ippposter
 
 
 pdf2printable_mad.o: pdf2printable.cpp
@@ -36,8 +36,8 @@ baselinify: bytestream.o baselinify.o baselinify_main.o
 baselinify_mad: bytestream.o baselinify_mad.o baselinify_main.o
 	$(CXX) $^ -ldl -o $@
 
-ippposter: ippposter.o curlrequester.o bytestream.o
-	$(CXX) $^ -lcurl -o $@
+ippposter: ippmsg.o ippattr.o ippprintjob.o printparameters.o ippposter.o curlrequester.o pdf2printable.o ppm2pwg.o baselinify.o bytestream.o
+	$(CXX) $^ $(shell pkg-config --libs poppler-glib) -ljpeg -lcurl -o $@
 
 clean:
 	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad hexdump baselinify baselinify_mad

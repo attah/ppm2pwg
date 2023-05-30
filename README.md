@@ -27,11 +27,14 @@ IPP-printers are only required to support baseline-encoded jpeg according to PWG
 
 Despite working with in-memory data, it only requires the libjpeg 62.2.0 and not 62.3.0/7.3+ API, so it works on conservative distros.
 
+## ippposter (WIP)
+An IPP client that harnesses the above tools for converting files to be printed.
+
 ## Building
 
 Install dependencies:
 
-`sudo apt install libpoppler-dev libpoppler-glib-dev libcairo2-dev libglib2.0-dev libjpeg-dev`
+`sudo apt install libpoppler-dev libpoppler-glib-dev libcairo2-dev libglib2.0-dev libjpeg-dev libcurl4-openssl-dev`
 
 Build:
 

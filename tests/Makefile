@@ -1,5 +1,6 @@
-LDFLAGS = -ldl -Wl,--export-dynamic
-CXXFLAGS = -std=c++17 -g -pedantic -Wall -Werror -Wextra -I ../bytestream
+LDFLAGS = -ldl -Wl,--export-dynamic -lcurl -ljpeg $(shell pkg-config --libs poppler-glib)
+CXXFLAGS = -std=c++17 -g -pedantic -Wall -Werror -Wextra -I ../lib -I ../bytestream \
+$(shell pkg-config --cflags poppler-glib)
 TEST_INCLUDES = -I ../lib -I ../bytestream/minitest -I ../bytestream/minitest/tests
 
 VPATH = ../bytestream ../lib
@@ -12,7 +13,7 @@ test.o: test.cpp
 %.o: %.cpp
 	$(CXX) -c $(CXXFLAGS) $<
 
-test: bytestream.o printparameters.o pwg2ppm.o test.o
+test: bytestream.o ippprintjob.o curlrequester.o printparameters.o ppm2pwg.o pwg2ppm.o pdf2printable.o baselinify.o ippmsg.o ippattr.o test.o
 	$(CXX) $(CXXFLAGS) $^ $(LDFLAGS) -o $@
 
 clean:

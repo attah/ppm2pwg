@@ -110,8 +110,8 @@ public:
   bool antiAlias = false;
   std::string paperSizeName = "iso_a4_210x297mm";
 
-  size_t hwResW = 300;
-  size_t hwResH = 300;
+  uint32_t hwResW = 300;
+  uint32_t hwResH = 300;
 
   enum PaperSizeUnits
   {
@@ -164,6 +164,7 @@ public:
 
   PageSequence getPageSequence(size_t pages) const;
 
+  static PageRangeList parsePageRange(const std::string& rangeStr);
   bool setPageRange(const std::string& rangeStr);
 
   bool setPaperSize(const std::string& sizeStr);

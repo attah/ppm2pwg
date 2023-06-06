@@ -73,8 +73,16 @@ public:
   float paperSizeW = 210; // A4
   float paperSizeH = 297; // A4
 
-  bool duplex = false;
-  bool tumble = false;
+  enum DuplexMode
+  {
+    OneSided = 0,
+    Duplex,
+    Tumble
+  };
+
+  DuplexMode duplexMode = OneSided;
+
+  bool isTwoSided() const;
 
   BackXformMode backXformMode = Normal;
 

@@ -23,7 +23,7 @@ Bytestream make_urf_file_hdr(uint32_t pages)
 void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts,
                 size_t page, const PrintParameters& params, bool verbose)
 {
-  bool backside = params.duplex && ((page%2)==0);
+  bool backside = params.isTwoSided() && ((page % 2) == 0);
 
   if(verbose)
   {
@@ -166,13 +166,13 @@ void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backsi
 {
   PwgPgHdr outHdr;
 
-  outHdr.Duplex = params.duplex;
+  outHdr.Duplex = params.isTwoSided();
   outHdr.HWResolutionX = params.hwResW;
   outHdr.HWResolutionY = params.hwResH;
   outHdr.NumCopies = 1;
   outHdr.PageSizeX = round(params.getPaperSizeWInPoints());
   outHdr.PageSizeY = round(params.getPaperSizeHInPoints());
-  outHdr.Tumble = params.tumble;
+  outHdr.Tumble = params.duplexMode == PrintParameters::Tumble;
   outHdr.Width = params.getPaperSizeWInPixels();
   outHdr.Height = params.getPaperSizeHInPixels();
   outHdr.BitsPerColor = params.getBitsPerColor();
@@ -214,8 +214,10 @@ void make_urf_hdr(Bytestream& outBts, const PrintParameters& params, bool verbos
   outHdr.ColorSpace = params.colorMode == PrintParameters::CMYK32 ? UrfPgHdr::CMYK
                     : params.colorMode == PrintParameters::sRGB24 ? UrfPgHdr::sRGB
                     : UrfPgHdr::sGray;
-  outHdr.Duplex = params.duplex ? (params.tumble ? UrfPgHdr::ShortSide : UrfPgHdr::LongSide)
-                         : UrfPgHdr::NoDuplex;
+  outHdr.Duplex = params.isTwoSided() ? (params.duplexMode == PrintParameters::Tumble
+                                             ? UrfPgHdr::ShortSide
+                                             : UrfPgHdr::LongSide)
+                                      : UrfPgHdr::NoDuplex;
   outHdr.Quality = (params.quality == PrintParameters::DraftQuality ? UrfPgHdr::Draft
                  : (params.quality == PrintParameters::NormalQuality ? UrfPgHdr::Normal
                  : (params.quality == PrintParameters::HighQuality ? UrfPgHdr::High

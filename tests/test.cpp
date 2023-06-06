@@ -720,7 +720,7 @@ TEST(pagerange)
   ASSERT(seq == PageSequence({4, 5, 6, 7,
                               4, 5, 6, 7}));
 
-  params.duplex = false;
+  params.duplexMode = PrintParameters::OneSided;
   params.documentCopies = 2;
   params.format = PrintParameters::PWG;
   params.pageRangeList = {{4, 6}};
@@ -729,7 +729,7 @@ TEST(pagerange)
   ASSERT(seq == PageSequence({4, 5, 6,
                               4, 5, 6}));
 
-  params.duplex = false;
+  params.duplexMode = PrintParameters::OneSided;
   params.documentCopies = 3;
   params.pageRangeList = {{4, 6}};
   seq = params.getPageSequence(100);
@@ -738,7 +738,7 @@ TEST(pagerange)
                               4, 5, 6,
                               4, 5, 6}));
 
-  params.duplex = true;
+  params.duplexMode = PrintParameters::Duplex;
   params.documentCopies = 2;
   params.format = PrintParameters::PWG;
   params.pageRangeList = {{4, 6}};
@@ -747,7 +747,7 @@ TEST(pagerange)
   ASSERT(seq == PageSequence({4, 5, 6, INVALID_PAGE,
                               4, 5, 6, INVALID_PAGE}));
 
-  params.duplex = true;
+  params.duplexMode = PrintParameters::Duplex;
   params.documentCopies = 3;
   params.pageRangeList = {{4, 6}};
   seq = params.getPageSequence(100);
@@ -756,7 +756,7 @@ TEST(pagerange)
                               4, 5, 6, INVALID_PAGE,
                               4, 5, 6, INVALID_PAGE}));
 
-  params.duplex = false;
+  params.duplexMode = PrintParameters::OneSided;
   params.documentCopies = 1;
   params.pageCopies = 2;
   params.pageRangeList = {{4, 7}};
@@ -767,7 +767,7 @@ TEST(pagerange)
                               6, 6,
                               7, 7}));
 
-  params.duplex = true;
+  params.duplexMode = PrintParameters::Duplex;
   params.documentCopies = 1;
   params.pageCopies = 2;
   params.pageRangeList = {{4, 7}};
@@ -778,7 +778,7 @@ TEST(pagerange)
                               6, 7,
                               6, 7}));
 
-  params.duplex = false;
+  params.duplexMode = PrintParameters::OneSided;
   params.documentCopies = 3;
   params.pageCopies = 1;
   params.pageRangeList = {{1, 2}, {5, 7}};
@@ -788,7 +788,7 @@ TEST(pagerange)
                               1, 2, 5, 6, 7,
                               1, 2, 5, 6, 7}));
 
-  params.duplex = true;
+  params.duplexMode = PrintParameters::Duplex;
   params.documentCopies = 3;
   params.pageCopies = 1;
   params.pageRangeList = {{1, 2}, {5, 7}};
@@ -798,7 +798,7 @@ TEST(pagerange)
                               1, 2, 5, 6, 7, INVALID_PAGE,
                               1, 2, 5, 6, 7, INVALID_PAGE}));
 
-  params.duplex = true;
+  params.duplexMode = PrintParameters::Duplex;
   params.documentCopies = 3;
   params.pageCopies = 1;
   params.pageRangeList = {{1, 2}, {6, 7}};
@@ -808,7 +808,7 @@ TEST(pagerange)
                               1, 2, 6, 7,
                               1, 2, 6, 7}));
 
-  params.duplex = false;
+  params.duplexMode = PrintParameters::OneSided;
   params.documentCopies = 1;
   params.pageCopies = 2;
   params.pageRangeList = {{1, 2}, {5, 7}};
@@ -820,7 +820,7 @@ TEST(pagerange)
                               6, 6,
                               7, 7}));
 
-  params.duplex = true;
+  params.duplexMode = PrintParameters::Duplex;
   params.documentCopies = 1;
   params.pageCopies = 2;
   params.pageRangeList = {{1, 2}, {5, 7}};
@@ -833,7 +833,7 @@ TEST(pagerange)
                               7, INVALID_PAGE,
                               7, INVALID_PAGE}));
 
-  params.duplex = false;
+  params.duplexMode = PrintParameters::OneSided;
   params.documentCopies = 1;
   params.pageCopies = 1;
   params.pageRangeList = {};
@@ -841,7 +841,7 @@ TEST(pagerange)
   ASSERT(seq.size() == 3);
   ASSERT(seq == PageSequence({1, 2, 3}));
 
-  params.duplex = false;
+  params.duplexMode = PrintParameters::OneSided;
   params.documentCopies = 2;
   params.pageCopies = 1;
   params.pageRangeList = {};
@@ -850,7 +850,7 @@ TEST(pagerange)
   ASSERT(seq == PageSequence({1, 2, 3,
                               1, 2, 3}));
 
-  params.duplex = false;
+  params.duplexMode = PrintParameters::OneSided;
   params.documentCopies = 1;
   params.pageCopies = 2;
   params.pageRangeList = {};
@@ -860,7 +860,7 @@ TEST(pagerange)
                               2, 2,
                               3, 3}));
 
-  params.duplex = true;
+  params.duplexMode = PrintParameters::Duplex;
   params.documentCopies = 2;
   params.pageCopies = 1;
   params.pageRangeList = {};
@@ -869,7 +869,7 @@ TEST(pagerange)
   ASSERT(seq == PageSequence({1, 2, 3, INVALID_PAGE,
                               1, 2, 3, INVALID_PAGE}));
 
-  params.duplex = true;
+  params.duplexMode = PrintParameters::Duplex;
   params.documentCopies = 1;
   params.pageCopies = 2;
   params.pageRangeList = {};
@@ -880,7 +880,7 @@ TEST(pagerange)
                               3, INVALID_PAGE,
                               3, INVALID_PAGE}));
 
-  params.duplex = false;
+  params.duplexMode = PrintParameters::OneSided;
   params.documentCopies = 1;
   params.pageCopies = 1;
   params.pageRangeList = {{17,42}};
@@ -1150,8 +1150,8 @@ TEST(flip_logic)
 {
   PrintParameters params;
   ASSERT(params.backXformMode == PrintParameters::Normal);
-  ASSERT(params.duplex == false);
-  ASSERT(params.tumble == false);
+  ASSERT(params.duplexMode == PrintParameters::OneSided);
+  ASSERT_FALSE(params.isTwoSided());
 
   params.backXformMode = PrintParameters::Flipped;
   ASSERT(params.getBackHFlip() == false);
@@ -1169,7 +1169,8 @@ TEST(flip_logic)
   ASSERT(params.getBackHFlip() == false);
   ASSERT(params.getBackVFlip() == false);
 
-  params.duplex = true;
+  params.duplexMode = PrintParameters::Duplex;
+  ASSERT(params.isTwoSided());
 
   params.backXformMode = PrintParameters::Flipped;
   ASSERT(params.getBackHFlip() == false);
@@ -1187,7 +1188,8 @@ TEST(flip_logic)
   ASSERT(params.getBackHFlip() == true);
   ASSERT(params.getBackVFlip() == true);
 
-  params.tumble = true;
+  params.duplexMode = PrintParameters::Tumble;
+  ASSERT(params.isTwoSided()); // Still two-sided
 
   params.backXformMode = PrintParameters::Flipped;
   ASSERT(params.getBackHFlip() == true);

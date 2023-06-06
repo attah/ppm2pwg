@@ -4,6 +4,11 @@
 #define MM_PER_IN 25.4
 #define PTS_PER_IN 72.0
 
+bool PrintParameters::isTwoSided() const
+{
+  return duplexMode != OneSided;
+}
+
 size_t PrintParameters::getPaperSizeWInPixels() const
 {
   switch(paperSizeUnits)
@@ -138,7 +143,7 @@ PageSequence PrintParameters::getPageSequence(size_t pages) const
       seq.push_back(p);
     }
   }
-  if(duplex && (documentCopies > 1 || pageCopies > 1) && ((seq.size() % 2) == 1))
+  if(isTwoSided() && (documentCopies > 1 || pageCopies > 1) && ((seq.size() % 2) == 1))
   {
     seq.push_back(INVALID_PAGE);
   }
@@ -148,7 +153,7 @@ PageSequence PrintParameters::getPageSequence(size_t pages) const
     PageSequence copy;
     for(PageSequence::iterator it = seq.begin(); it != seq.end(); it++)
     {
-      if(duplex)
+      if(isTwoSided())
       {
         for(size_t pc = pageCopies; pc > 0; pc--)
         {
@@ -300,7 +305,7 @@ size_t PrintParameters::getBitsPerColor() const
 
 bool PrintParameters::getBackHFlip() const
 {
-  if(duplex && !tumble)
+  if(duplexMode == Duplex)
   {
     switch (backXformMode)
     {
@@ -314,7 +319,7 @@ bool PrintParameters::getBackHFlip() const
         throw(std::logic_error("Unknown back flip mode"));
     }
   }
-  else if(duplex && tumble)
+  else if(duplexMode == Tumble)
   {
     switch (backXformMode)
     {
@@ -333,7 +338,7 @@ bool PrintParameters::getBackHFlip() const
 
 bool PrintParameters::getBackVFlip() const
 {
-  if(duplex && !tumble)
+  if(duplexMode == Duplex)
   {
     switch (backXformMode)
     {
@@ -348,7 +353,7 @@ bool PrintParameters::getBackVFlip() const
         throw(std::logic_error("Unknown back flip mode"));
     }
   }
-  else if(duplex && tumble)
+  else if(duplexMode == Tumble)
   {
     switch (backXformMode)
     {

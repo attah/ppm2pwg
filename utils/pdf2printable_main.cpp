@@ -32,6 +32,8 @@ int main(int argc, char** argv)
   int hwRes;
   int hwResX;
   int hwResY;
+  bool duplex = false;
+  bool tumble = false;
   std::string infile;
   std::string outfile;
 
@@ -53,8 +55,8 @@ int main(int argc, char** argv)
   SwitchArg<int> resolutionOpt(hwRes, {"-r", "--resolution"}, "Resolution (in DPI) for rasterization");
   SwitchArg<int> resolutionXOpt(hwResX, {"-rx", "--resolution-x"}, "Resolution (in DPI) for rasterization, x-axis");
   SwitchArg<int> resolutionYOpt(hwResY, {"-ry", "--resolution-y"}, "Resolution (in DPI) for rasterization, y-axis");
-  SwitchArg<bool> duplexOpt(params.duplex, {"-d", "--duplex"}, "Process for duplex printing");
-  SwitchArg<bool> tumbleOpt(params.tumble, {"-t", "--tumble"}, "For duplex, process for tumbled output");
+  SwitchArg<bool> duplexOpt(duplex, {"-d", "--duplex"}, "Process for duplex printing");
+  SwitchArg<bool> tumbleOpt(tumble, {"-t", "--tumble"}, "Process for tumbled duplex output");
   EnumSwitchArg<PrintParameters::BackXformMode> backXformOpt(params.backXformMode,
                                                              {{"rotate", PrintParameters::Rotated},
                                                               {"flip", PrintParameters::Flipped},
@@ -154,6 +156,15 @@ int main(int argc, char** argv)
   else if(resolutionOpt.isSet())
   {
     params.hwResH = hwRes;
+  }
+
+  if(tumble)
+  {
+    params.duplexMode = PrintParameters::Tumble;
+  }
+  else if(duplex)
+  {
+    params.duplexMode = PrintParameters::Duplex;
   }
 
   if(params.format == PrintParameters::URF && (params.getBitsPerColor() == 1 || params.isBlack()))

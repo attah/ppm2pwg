@@ -741,7 +741,7 @@ TEST(pagerange)
                               4, 5, 6,
                               4, 5, 6}));
 
-  params.duplexMode = PrintParameters::Duplex;
+  params.duplexMode = PrintParameters::TwoSidedLongEdge;
   params.copies = 2;
   params.collatedCopies = true;
   params.format = PrintParameters::PWG;
@@ -751,7 +751,7 @@ TEST(pagerange)
   ASSERT(seq == PageSequence({4, 5, 6, INVALID_PAGE,
                               4, 5, 6, INVALID_PAGE}));
 
-  params.duplexMode = PrintParameters::Duplex;
+  params.duplexMode = PrintParameters::TwoSidedLongEdge;
   params.copies = 3;
   params.pageRangeList = {{4, 6}};
   seq = params.getPageSequence(100);
@@ -771,7 +771,7 @@ TEST(pagerange)
                               6, 6,
                               7, 7}));
 
-  params.duplexMode = PrintParameters::Duplex;
+  params.duplexMode = PrintParameters::TwoSidedLongEdge;
   params.copies = 2;
   params.collatedCopies = false;
   params.pageRangeList = {{4, 7}};
@@ -792,7 +792,7 @@ TEST(pagerange)
                               1, 2, 5, 6, 7,
                               1, 2, 5, 6, 7}));
 
-  params.duplexMode = PrintParameters::Duplex;
+  params.duplexMode = PrintParameters::TwoSidedLongEdge;
   params.copies = 3;
   params.collatedCopies = true;
   params.pageRangeList = {{1, 2}, {5, 7}};
@@ -802,7 +802,7 @@ TEST(pagerange)
                               1, 2, 5, 6, 7, INVALID_PAGE,
                               1, 2, 5, 6, 7, INVALID_PAGE}));
 
-  params.duplexMode = PrintParameters::Duplex;
+  params.duplexMode = PrintParameters::TwoSidedLongEdge;
   params.copies = 3;
   params.collatedCopies = true;
   params.pageRangeList = {{1, 2}, {6, 7}};
@@ -824,7 +824,7 @@ TEST(pagerange)
                               6, 6,
                               7, 7}));
 
-  params.duplexMode = PrintParameters::Duplex;
+  params.duplexMode = PrintParameters::TwoSidedLongEdge;
   params.copies = 2;
   params.collatedCopies = false;
   params.pageRangeList = {{1, 2}, {5, 7}};
@@ -863,7 +863,7 @@ TEST(pagerange)
                               2, 2,
                               3, 3}));
 
-  params.duplexMode = PrintParameters::Duplex;
+  params.duplexMode = PrintParameters::TwoSidedLongEdge;
   params.copies = 2;
   params.collatedCopies = true;
   params.pageRangeList = {};
@@ -872,7 +872,7 @@ TEST(pagerange)
   ASSERT(seq == PageSequence({1, 2, 3, INVALID_PAGE,
                               1, 2, 3, INVALID_PAGE}));
 
-  params.duplexMode = PrintParameters::Duplex;
+  params.duplexMode = PrintParameters::TwoSidedLongEdge;
   params.copies = 2;
   params.collatedCopies = false;
   params.pageRangeList = {};
@@ -1171,7 +1171,7 @@ TEST(flip_logic)
   ASSERT(params.getBackHFlip() == false);
   ASSERT(params.getBackVFlip() == false);
 
-  params.duplexMode = PrintParameters::Duplex;
+  params.duplexMode = PrintParameters::TwoSidedLongEdge;
   ASSERT(params.isTwoSided());
 
   params.backXformMode = PrintParameters::Flipped;
@@ -1190,7 +1190,7 @@ TEST(flip_logic)
   ASSERT(params.getBackHFlip() == true);
   ASSERT(params.getBackVFlip() == true);
 
-  params.duplexMode = PrintParameters::Tumble;
+  params.duplexMode = PrintParameters::TwoSidedShortEdge;
   ASSERT(params.isTwoSided()); // Still two-sided
 
   params.backXformMode = PrintParameters::Flipped;

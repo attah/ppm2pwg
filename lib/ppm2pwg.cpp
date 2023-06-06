@@ -172,7 +172,7 @@ void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backsi
   outHdr.NumCopies = 1;
   outHdr.PageSizeX = round(params.getPaperSizeWInPoints());
   outHdr.PageSizeY = round(params.getPaperSizeHInPoints());
-  outHdr.Tumble = params.duplexMode == PrintParameters::Tumble;
+  outHdr.Tumble = params.duplexMode == PrintParameters::TwoSidedShortEdge;
   outHdr.Width = params.getPaperSizeWInPixels();
   outHdr.Height = params.getPaperSizeHInPixels();
   outHdr.BitsPerColor = params.getBitsPerColor();
@@ -214,7 +214,7 @@ void make_urf_hdr(Bytestream& outBts, const PrintParameters& params, bool verbos
   outHdr.ColorSpace = params.colorMode == PrintParameters::CMYK32 ? UrfPgHdr::CMYK
                     : params.colorMode == PrintParameters::sRGB24 ? UrfPgHdr::sRGB
                     : UrfPgHdr::sGray;
-  outHdr.Duplex = params.isTwoSided() ? (params.duplexMode == PrintParameters::Tumble
+  outHdr.Duplex = params.isTwoSided() ? (params.duplexMode == PrintParameters::TwoSidedShortEdge
                                              ? UrfPgHdr::ShortSide
                                              : UrfPgHdr::LongSide)
                                       : UrfPgHdr::NoDuplex;

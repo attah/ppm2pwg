@@ -76,8 +76,8 @@ public:
   enum DuplexMode
   {
     OneSided = 0,
-    Duplex,
-    Tumble
+    TwoSidedLongEdge,
+    TwoSidedShortEdge
   };
 
   DuplexMode duplexMode = OneSided;

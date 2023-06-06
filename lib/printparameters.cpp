@@ -307,7 +307,7 @@ size_t PrintParameters::getBitsPerColor() const
 
 bool PrintParameters::getBackHFlip() const
 {
-  if(duplexMode == Duplex)
+  if(duplexMode == TwoSidedLongEdge)
   {
     switch (backXformMode)
     {
@@ -321,7 +321,7 @@ bool PrintParameters::getBackHFlip() const
         throw(std::logic_error("Unknown back flip mode"));
     }
   }
-  else if(duplexMode == Tumble)
+  else if(duplexMode == TwoSidedShortEdge)
   {
     switch (backXformMode)
     {
@@ -340,7 +340,7 @@ bool PrintParameters::getBackHFlip() const
 
 bool PrintParameters::getBackVFlip() const
 {
-  if(duplexMode == Duplex)
+  if(duplexMode == TwoSidedLongEdge)
   {
     switch (backXformMode)
     {
@@ -355,7 +355,7 @@ bool PrintParameters::getBackVFlip() const
         throw(std::logic_error("Unknown back flip mode"));
     }
   }
-  else if(duplexMode == Tumble)
+  else if(duplexMode == TwoSidedShortEdge)
   {
     switch (backXformMode)
     {

@@ -163,11 +163,11 @@ int main(int argc, char** argv)
 
   if(tumble)
   {
-    params.duplexMode = PrintParameters::Tumble;
+    params.duplexMode = PrintParameters::TwoSidedShortEdge;
   }
   else if(duplex)
   {
-    params.duplexMode = PrintParameters::Duplex;
+    params.duplexMode = PrintParameters::TwoSidedLongEdge;
   }
 
   if(params.format == PrintParameters::URF && (params.getBitsPerColor() == 1 || params.isBlack()))

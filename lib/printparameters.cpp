@@ -143,42 +143,44 @@ PageSequence PrintParameters::getPageSequence(size_t pages) const
       seq.push_back(p);
     }
   }
-  if(isTwoSided() && (documentCopies > 1 || pageCopies > 1) && ((seq.size() % 2) == 1))
+  if(copies > 1)
   {
-    seq.push_back(INVALID_PAGE);
-  }
-
-  if(pageCopies > 1)
-  {
-    PageSequence copy;
-    for(PageSequence::iterator it = seq.begin(); it != seq.end(); it++)
+    if(isTwoSided() && (seq.size() % 2) == 1)
     {
-      if(isTwoSided())
+      seq.push_back(INVALID_PAGE);
+    }
+
+    if(collatedCopies)
+    {
+      PageSequence copy = seq;
+      for(size_t dc = copies; dc > 1; dc--)
       {
-        for(size_t pc = pageCopies; pc > 0; pc--)
-        {
-          copy.push_back(*it);
-          copy.push_back(*(it+1));
-        }
-        it++;
-      }
-      else
-      {
-        for(size_t pc = pageCopies; pc > 0; pc--)
-        {
-          copy.push_back(*it);
-        }
+        seq.insert(seq.end(), copy.begin(), copy.end());
       }
     }
-    seq = copy;
-  }
-
-  if(documentCopies > 1)
-  {
-    PageSequence copy = seq;
-    for(size_t dc = documentCopies; dc > 1; dc--)
+    else
     {
-      seq.insert(seq.end(), copy.begin(), copy.end());
+      PageSequence copy;
+      for(PageSequence::iterator it = seq.begin(); it != seq.end(); it++)
+      {
+        if(isTwoSided())
+        {
+          for(size_t pc = copies; pc > 0; pc--)
+          {
+            copy.push_back(*it);
+            copy.push_back(*(it+1));
+          }
+          it++;
+        }
+        else
+        {
+          for(size_t pc = copies; pc > 0; pc--)
+          {
+            copy.push_back(*it);
+          }
+        }
+      }
+      seq = copy;
     }
   }
   return seq;

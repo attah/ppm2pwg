@@ -86,8 +86,8 @@ public:
 
   BackXformMode backXformMode = Normal;
 
-  size_t documentCopies = 1;
-  size_t pageCopies = 1;
+  size_t copies = 1;
+  bool collatedCopies = true;
 
   PageRangeList pageRangeList;
 

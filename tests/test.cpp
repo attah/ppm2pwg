@@ -712,7 +712,8 @@ TEST(pagerange)
   ASSERT(seq.size() == 4);
   ASSERT(seq == PageSequence({4, 5, 6, 7}));
 
-  params.documentCopies = 2;
+  params.copies = 2;
+  params.collatedCopies = true;
   params.format = PrintParameters::PWG;
   params.pageRangeList = {{4, 7}};
   seq = params.getPageSequence(100);
@@ -721,7 +722,8 @@ TEST(pagerange)
                               4, 5, 6, 7}));
 
   params.duplexMode = PrintParameters::OneSided;
-  params.documentCopies = 2;
+  params.copies = 2;
+  params.collatedCopies = true;
   params.format = PrintParameters::PWG;
   params.pageRangeList = {{4, 6}};
   seq = params.getPageSequence(100);
@@ -730,7 +732,8 @@ TEST(pagerange)
                               4, 5, 6}));
 
   params.duplexMode = PrintParameters::OneSided;
-  params.documentCopies = 3;
+  params.copies = 3;
+  params.collatedCopies = true;
   params.pageRangeList = {{4, 6}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 9);
@@ -739,7 +742,8 @@ TEST(pagerange)
                               4, 5, 6}));
 
   params.duplexMode = PrintParameters::Duplex;
-  params.documentCopies = 2;
+  params.copies = 2;
+  params.collatedCopies = true;
   params.format = PrintParameters::PWG;
   params.pageRangeList = {{4, 6}};
   seq = params.getPageSequence(100);
@@ -748,7 +752,7 @@ TEST(pagerange)
                               4, 5, 6, INVALID_PAGE}));
 
   params.duplexMode = PrintParameters::Duplex;
-  params.documentCopies = 3;
+  params.copies = 3;
   params.pageRangeList = {{4, 6}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 12);
@@ -757,8 +761,8 @@ TEST(pagerange)
                               4, 5, 6, INVALID_PAGE}));
 
   params.duplexMode = PrintParameters::OneSided;
-  params.documentCopies = 1;
-  params.pageCopies = 2;
+  params.copies = 2;
+  params.collatedCopies = false;
   params.pageRangeList = {{4, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 8);
@@ -768,8 +772,8 @@ TEST(pagerange)
                               7, 7}));
 
   params.duplexMode = PrintParameters::Duplex;
-  params.documentCopies = 1;
-  params.pageCopies = 2;
+  params.copies = 2;
+  params.collatedCopies = false;
   params.pageRangeList = {{4, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 8);
@@ -779,8 +783,8 @@ TEST(pagerange)
                               6, 7}));
 
   params.duplexMode = PrintParameters::OneSided;
-  params.documentCopies = 3;
-  params.pageCopies = 1;
+  params.copies = 3;
+  params.collatedCopies = true;
   params.pageRangeList = {{1, 2}, {5, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 15);
@@ -789,8 +793,8 @@ TEST(pagerange)
                               1, 2, 5, 6, 7}));
 
   params.duplexMode = PrintParameters::Duplex;
-  params.documentCopies = 3;
-  params.pageCopies = 1;
+  params.copies = 3;
+  params.collatedCopies = true;
   params.pageRangeList = {{1, 2}, {5, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 18);
@@ -799,8 +803,8 @@ TEST(pagerange)
                               1, 2, 5, 6, 7, INVALID_PAGE}));
 
   params.duplexMode = PrintParameters::Duplex;
-  params.documentCopies = 3;
-  params.pageCopies = 1;
+  params.copies = 3;
+  params.collatedCopies = true;
   params.pageRangeList = {{1, 2}, {6, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 12);
@@ -809,8 +813,8 @@ TEST(pagerange)
                               1, 2, 6, 7}));
 
   params.duplexMode = PrintParameters::OneSided;
-  params.documentCopies = 1;
-  params.pageCopies = 2;
+  params.copies = 2;
+  params.collatedCopies = false;
   params.pageRangeList = {{1, 2}, {5, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 10);
@@ -821,8 +825,8 @@ TEST(pagerange)
                               7, 7}));
 
   params.duplexMode = PrintParameters::Duplex;
-  params.documentCopies = 1;
-  params.pageCopies = 2;
+  params.copies = 2;
+  params.collatedCopies = false;
   params.pageRangeList = {{1, 2}, {5, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 12);
@@ -834,16 +838,15 @@ TEST(pagerange)
                               7, INVALID_PAGE}));
 
   params.duplexMode = PrintParameters::OneSided;
-  params.documentCopies = 1;
-  params.pageCopies = 1;
+  params.copies = 1;
   params.pageRangeList = {};
   seq = params.getPageSequence(3);
   ASSERT(seq.size() == 3);
   ASSERT(seq == PageSequence({1, 2, 3}));
 
   params.duplexMode = PrintParameters::OneSided;
-  params.documentCopies = 2;
-  params.pageCopies = 1;
+  params.copies = 2;
+  params.collatedCopies = true;
   params.pageRangeList = {};
   seq = params.getPageSequence(3);
   ASSERT(seq.size() == 6);
@@ -851,8 +854,8 @@ TEST(pagerange)
                               1, 2, 3}));
 
   params.duplexMode = PrintParameters::OneSided;
-  params.documentCopies = 1;
-  params.pageCopies = 2;
+  params.copies = 2;
+  params.collatedCopies = false;
   params.pageRangeList = {};
   seq = params.getPageSequence(3);
   ASSERT(seq.size() == 6);
@@ -861,8 +864,8 @@ TEST(pagerange)
                               3, 3}));
 
   params.duplexMode = PrintParameters::Duplex;
-  params.documentCopies = 2;
-  params.pageCopies = 1;
+  params.copies = 2;
+  params.collatedCopies = true;
   params.pageRangeList = {};
   seq = params.getPageSequence(3);
   ASSERT(seq.size() == 8);
@@ -870,8 +873,8 @@ TEST(pagerange)
                               1, 2, 3, INVALID_PAGE}));
 
   params.duplexMode = PrintParameters::Duplex;
-  params.documentCopies = 1;
-  params.pageCopies = 2;
+  params.copies = 2;
+  params.collatedCopies = false;
   params.pageRangeList = {};
   seq = params.getPageSequence(3);
   ASSERT(seq.size() == 8);
@@ -881,8 +884,7 @@ TEST(pagerange)
                               3, INVALID_PAGE}));
 
   params.duplexMode = PrintParameters::OneSided;
-  params.documentCopies = 1;
-  params.pageCopies = 1;
+  params.copies = 1;
   params.pageRangeList = {{17,42}};
   seq = params.getPageSequence(42);
   ASSERT(seq.size() == 26);

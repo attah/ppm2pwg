@@ -49,8 +49,11 @@ int main(int argc, char** argv)
                                                    "Format to output (pdf/postscript/pwg/urf)",
                                                    "Unrecognized target format");
   SwitchArg<std::string> pagesOpt(pages, {"-p", "--pages"}, "What pages to process, e.g.: 1,17-42");
-  SwitchArg<size_t> copiesOpt(params.documentCopies, {"--copies"}, "Number of copies to output");
-  SwitchArg<size_t> pageCopiesOpt(params.pageCopies, {"--page-copies"}, "Number of copies to output for each page");
+  SwitchArg<size_t> copiesOpt(params.copies, {"--copies"}, "Number of copies to output");
+  // This is a pretty useless option...
+  // EnumSwitchArg<bool> pageCopiesOpt(params.collatedCopies,
+  //                                   {{"yes", true}, {"no", false}},
+  //                                   {"--collated-copies"}, "Collate copies (yes/no)");
   SwitchArg<std::string> paperSizeOpt(paperSize, {"--paper-size"}, "Paper size to output, e.g.: iso_a4_210x297mm");
   SwitchArg<int> resolutionOpt(hwRes, {"-r", "--resolution"}, "Resolution (in DPI) for rasterization");
   SwitchArg<int> resolutionXOpt(hwResX, {"-rx", "--resolution-x"}, "Resolution (in DPI) for rasterization, x-axis");
@@ -85,7 +88,7 @@ int main(int argc, char** argv)
   PosArg outArg(outfile, "out-file");
 
   ArgGet args({&helpOpt, &verboseOpt, &formatOpt, &pagesOpt,
-               &copiesOpt, &pageCopiesOpt, &paperSizeOpt, &resolutionOpt,
+               &copiesOpt, /*&pageCopiesOpt,*/ &paperSizeOpt, &resolutionOpt,
                &resolutionXOpt, &resolutionYOpt, &duplexOpt, &tumbleOpt,
                &backXformOpt, &colorModeOpt, &qualityOpt, &antiAliasOpt},
               {&pdfArg, &outArg});

@@ -36,11 +36,14 @@ baselinify: bytestream.o baselinify.o baselinify_main.o
 baselinify_mad: bytestream.o baselinify_mad.o baselinify_main.o
 	$(CXX) $^ -ldl -o $@
 
-ippposter: ippmsg.o ippattr.o ippprintjob.o printparameters.o ippposter.o curlrequester.o pdf2printable.o ppm2pwg.o baselinify.o bytestream.o
+ippposter: ippmsg.o ippattr.o ippprintjob.o printparameters.o ippposter.o curlrequester.o minimime.o pdf2printable.o ppm2pwg.o baselinify.o bytestream.o
 	$(CXX) $^ $(shell pkg-config --libs poppler-glib) -ljpeg -lcurl -o $@
 
+minimime: minimime_main.o minimime.o bytestream.o
+	$(CXX) $^ -o $@
+
 clean:
-	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad hexdump baselinify baselinify_mad
+	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad hexdump baselinify baselinify_mad ippposter minimime
 
 analyze:
 	clang++ --analyze $(CXXFLAGS) lib/*.cpp utils/*.cpp

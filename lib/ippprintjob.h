@@ -8,6 +8,7 @@
 #include "binfile.h"
 #include "setting.h"
 #include "error.h"
+#include "minimime.h"
 
 class IppPrintJob
 {
@@ -78,11 +79,11 @@ public:
                             return Error();
                           };
 
-  std::map<ConvertKey, ConvertFun> Pipelines {{{PDF, PDF}, Pdf2Printable},
-                                              {{PDF, Postscript}, Pdf2Printable},
-                                              {{PDF, PWG}, Pdf2Printable},
-                                              {{PDF, URF}, Pdf2Printable},
-                                              {{JPEG, JPEG}, Baselinify}};
+  std::map<ConvertKey, ConvertFun> Pipelines {{{MiniMime::PDF, MiniMime::PDF}, Pdf2Printable},
+                                              {{MiniMime::PDF, MiniMime::Postscript}, Pdf2Printable},
+                                              {{MiniMime::PDF, MiniMime::PWG}, Pdf2Printable},
+                                              {{MiniMime::PDF, MiniMime::URF}, Pdf2Printable},
+                                              {{MiniMime::JPEG, MiniMime::JPEG}, Baselinify}};
 
   IppAttrs opAttrs;
   IppAttrs jobAttrs;
@@ -105,13 +106,6 @@ private:
   std::string determineTargetFormat(std::string inputFormat);
   bool isImage(std::string format);
   void adjustRasterSettings(int pages);
-
-  static const std::string OctetStream;
-  static const std::string PDF;
-  static const std::string Postscript;
-  static const std::string PWG;
-  static const std::string URF;
-  static const std::string JPEG;
 
   IppAttrs _printerAttrs;
 };

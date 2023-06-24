@@ -4,6 +4,7 @@
 #include "curlrequester.h"
 #include "ippmsg.h"
 #include "ippprintjob.h"
+#include "minimime.h"
 
 #define HELPTEXT ""
 
@@ -48,7 +49,7 @@ int main(int argc, char** argv)
 
   std::string scaling;
   std::string format;
-  std::string mimeType = "application/pdf";
+  std::string mimeType;
   std::string mediaType;
   std::string mediaSource;
   std::string outputBin;
@@ -208,6 +209,19 @@ int main(int argc, char** argv)
     std::cerr << "media right margin: " << ip.rightMargin.getDefault() << std::endl;
     std::cerr << ip.rightMargin.getSupported() << std::endl << std::endl;
 
+  }
+
+  if(!mimeTypeOpt.isSet())
+  {
+    if(infile != "-")
+    {
+      mimeType = MiniMime::getMimeType(infile);
+    }
+    if(mimeType == "" || mimeType == MiniMime::OctetStream)
+    {
+      std::cerr << "Failed to determine input file format. (Specify with --mime-type)." << std::endl;
+      return 1;
+    }
   }
 
   // Error on unsupported - add force-option

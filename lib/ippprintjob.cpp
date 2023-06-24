@@ -22,25 +22,25 @@ List<std::string> IppPrintJob::additionalDocumentFormats()
 {
   List<std::string> additionalFormats;
   std::string printerDeviceId = _printerAttrs.get<std::string>("printer-device-id");
-  if(!documentFormat.getSupported().contains(PDF) &&
+  if(!documentFormat.getSupported().contains(MiniMime::PDF) &&
      contains(printerDeviceId, "PDF"))
   {
-    additionalFormats.push_back(PDF);
+    additionalFormats.push_back(MiniMime::PDF);
   }
-  if(!documentFormat.getSupported().contains(Postscript) &&
+  if(!documentFormat.getSupported().contains(MiniMime::Postscript) &&
      (contains(printerDeviceId, "POSTSCRIPT") || contains(printerDeviceId, "PostScript")))
   {
-    additionalFormats.push_back(Postscript);
+    additionalFormats.push_back(MiniMime::Postscript);
   }
-  if(!documentFormat.getSupported().contains(PWG) &&
+  if(!documentFormat.getSupported().contains(MiniMime::PWG) &&
      contains(printerDeviceId, "PWG"))
   {
-    additionalFormats.push_back(PWG);
+    additionalFormats.push_back(MiniMime::PWG);
   }
-  if(!documentFormat.getSupported().contains(URF) &&
+  if(!documentFormat.getSupported().contains(MiniMime::URF) &&
      (contains(printerDeviceId, "URF") || contains(printerDeviceId, "AppleRaster")))
   {
-    additionalFormats.push_back(URF);
+    additionalFormats.push_back(MiniMime::URF);
   }
   return additionalFormats;
 }
@@ -57,10 +57,10 @@ Error IppPrintJob::finalize(std::string inputFormat, int pages)
   }
   else
   {
-    documentFormat.set(OctetStream);
+    documentFormat.set(MiniMime::OctetStream);
   }
 
-  if(targetFormat == "" || targetFormat == OctetStream)
+  if(targetFormat == "" || targetFormat == MiniMime::OctetStream)
   {
     return Error("Failed to determine traget format");
   }
@@ -71,7 +71,7 @@ Error IppPrintJob::finalize(std::string inputFormat, int pages)
   }
 
   // Only keep margin setting for image formats
-  if(!isImage(targetFormat))
+  if(!MiniMime::isImage(targetFormat))
   {
     margins.top = topMargin.get();
     margins.bottom = bottomMargin.get();
@@ -98,21 +98,21 @@ Error IppPrintJob::finalize(std::string inputFormat, int pages)
     media.unset();
   }
 
-  if(inputFormat == PDF)
+  if(inputFormat == MiniMime::PDF)
   {
-    if(targetFormat == PDF)
+    if(targetFormat == MiniMime::PDF)
     {
       printParams.format = PrintParameters::PDF;
     }
-    else if(targetFormat == Postscript)
+    else if(targetFormat == MiniMime::Postscript)
     {
       printParams.format = PrintParameters::Postscript;
     }
-    else if(targetFormat == PWG)
+    else if(targetFormat == MiniMime::PWG)
     {
       printParams.format = PrintParameters::PWG;
     }
-    else if(targetFormat == URF)
+    else if(targetFormat == MiniMime::URF)
     {
       printParams.format = PrintParameters::URF;
     }
@@ -131,7 +131,7 @@ Error IppPrintJob::finalize(std::string inputFormat, int pages)
   printParams.hwResH = ippResolution.y;
 
   // Effected locally for PDF (and upstream formats)
-  if(inputFormat == PDF)
+  if(inputFormat == MiniMime::PDF)
   {
     for(IppIntRange range : jobAttrs.getList<IppIntRange>("page-ranges"))
     {
@@ -186,15 +186,15 @@ Error IppPrintJob::finalize(std::string inputFormat, int pages)
 
 std::string IppPrintJob::determineTargetFormat(std::string inputFormat)
 {
-  std::string targetFormat = documentFormat.get(OctetStream);
+  std::string targetFormat = documentFormat.get(MiniMime::OctetStream);
   bool canConvert = Pipelines.find({inputFormat, targetFormat}) != Pipelines.end();
 
   if(!documentFormat.isSet() && !canConvert)
   { // User made no choice, and we don't know the target format - treat as if auto
-    targetFormat = OctetStream;
+    targetFormat = MiniMime::OctetStream;
   }
 
-  if(targetFormat == OctetStream)
+  if(targetFormat == MiniMime::OctetStream)
   {
     List<std::string> supportedFormats = documentFormat.getSupported();
     supportedFormats += additionalDocumentFormats();
@@ -213,11 +213,6 @@ std::string IppPrintJob::determineTargetFormat(std::string inputFormat)
     }
   }
   return targetFormat;
-}
-
-bool IppPrintJob::isImage(std::string format)
-{
-  return startsWith(format, "image/") && format != URF && format != PWG;
 }
 
 void IppPrintJob::adjustRasterSettings(int pages)
@@ -479,12 +474,3 @@ Error IppPrintJob::doPrint(std::string addr, std::string inFile, ConvertFun conv
 
   return error;
 }
-
-const std::string IppPrintJob::OctetStream = "application/octet-stream";
-
-const std::string IppPrintJob::PDF = "application/pdf";
-const std::string IppPrintJob::Postscript = "application/postscript";
-const std::string IppPrintJob::PWG = "image/pwg-raster";
-const std::string IppPrintJob::URF = "image/urf";
-
-const std::string IppPrintJob::JPEG = "image/jpeg";

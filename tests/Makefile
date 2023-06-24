@@ -13,7 +13,7 @@ test.o: test.cpp
 %.o: %.cpp
 	$(CXX) -c $(CXXFLAGS) $<
 
-test: bytestream.o ippprintjob.o curlrequester.o printparameters.o ppm2pwg.o pwg2ppm.o pdf2printable.o baselinify.o ippmsg.o ippattr.o test.o
+test: bytestream.o ippprintjob.o curlrequester.o printparameters.o ppm2pwg.o pwg2ppm.o pdf2printable.o baselinify.o ippmsg.o ippattr.o minimime.o test.o
 	$(CXX) $(CXXFLAGS) $^ $(LDFLAGS) -o $@
 
 clean:

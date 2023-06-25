@@ -213,7 +213,7 @@ int PPM2PWG_MAIN(int argc, char** argv)
     params.paperSizeH = stoi(ys);
 
     size_t size = params.paperSizeH*params.getPaperSizeWInBytes();
-    bmpBts.initFrom(*in, size);
+    bmpBts = Bytestream(*in, size);
 
     bmp_to_pwg(bmpBts, outBts, page, params, verbose);
 

@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #include <math.h>
 #include <unistd.h>
 #include "madness.h"
@@ -40,13 +41,6 @@ void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameter
 
 void fixup_scale(double& xScale, double& yScale, double& xOffset, double& yOffset,
                  bool& rotate, double& wIn, double& hIn, const PrintParameters& params);
-
-inline std::string free_cstr(char* CStr)
-{
-  std::string tmp(CStr);
-  free(CStr);
-  return tmp;
-}
 
 inline cairo_status_t bytestream_writer(void* bts, const unsigned char* data, unsigned int length)
 {
@@ -90,12 +84,7 @@ int pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParameter
   }
   else
   {
-    if (!g_path_is_absolute(inFile.c_str()))
-    {
-      std::string dir = free_cstr(g_get_current_dir());
-      inFile = free_cstr(g_build_filename(dir.c_str(), inFile.c_str(), nullptr));
-    }
-
+    inFile = std::filesystem::absolute(inFile);
     std::string url("file://");
     url.append(inFile);
     doc = poppler_document_new_from_file(url.c_str(), nullptr, &error);

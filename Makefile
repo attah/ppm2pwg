@@ -1,4 +1,4 @@
-CXXFLAGS = -std=c++11 -O3 -pedantic -Wall -Wextra -Werror -Ilib -Ibytestream \
+CXXFLAGS = -std=c++17 -O3 -pedantic -Wall -Wextra -Werror -Ilib -Ibytestream \
 $(shell pkg-config --cflags poppler-glib)
 
 VPATH = bytestream lib utils

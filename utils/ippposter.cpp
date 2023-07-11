@@ -20,7 +20,7 @@ int main(int argc, char** argv)
   Bytestream hdr(ifs);
   Bytestream data(std::cin);
 
-  CurlRequester req(addr);
+  CurlIppStreamer req(addr);
 
   req.write((char*)(hdr.raw()), hdr.size());
   req.write((char*)(data.raw()), data.size());

@@ -191,6 +191,7 @@ void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backsi
                       : (params.quality == PrintParameters::NormalQuality ? PwgPgHdr::Normal
                       : (params.quality == PrintParameters::HighQuality ? PwgPgHdr::High
                       : PwgPgHdr::DefaultPrintQuality)));
+  outHdr.MediaType = params.mediaType;
   outHdr.PageSizeName = params.paperSizeName;
 
   if(verbose)

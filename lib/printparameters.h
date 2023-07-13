@@ -80,6 +80,8 @@ public:
     TwoSidedShortEdge
   };
 
+  std::string mediaType;
+
   DuplexMode duplexMode = OneSided;
 
   bool isTwoSided() const;

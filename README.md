@@ -35,4 +35,4 @@ Install dependencies:
 
 Build:
 
-`make`
+`make -j$(nproc)`

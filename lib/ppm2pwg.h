@@ -3,6 +3,7 @@
 
 #include <bytestream.h>
 #include "printparameters.h"
+#include "PwgPgHdr.h"
 
 Bytestream make_pwg_file_hdr();
 
@@ -19,5 +20,7 @@ void compress_lines(Bytestream& bmpBts, Bytestream& outBts,
                     const PrintParameters& params, bool backside);
 
 void compress_line(uint8_t* raw, size_t len, Bytestream& outBts, int Colors);
+
+PwgPgHdr::MediaPosition_enum media_position_from_name(std::string name);
 
 #endif //PPM2PWG_H

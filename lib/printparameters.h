@@ -81,6 +81,7 @@ public:
   };
 
   std::string mediaType;
+  std::string mediaPosition;
 
   DuplexMode duplexMode = OneSided;
 

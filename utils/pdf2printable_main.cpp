@@ -83,7 +83,8 @@ int main(int argc, char** argv)
                                                      {"-q", "--quality"},
                                                      "Quality setting in raster header (draft/normal/high)");
   SwitchArg<bool> antiAliasOpt(params.antiAlias, {"-aa", "--antaialias"}, "Enable antialiasing in rasterization");
-  SwitchArg<std::string> mediaTypeOpt(params.mediaType, {"--media-type"}, "The media type, e.g.: LightweightCardstock");
+  SwitchArg<std::string> mediaTypeOpt(params.mediaType, {"-mt", "--media-type"}, "The media type, e.g.: card-stock");
+  SwitchArg<std::string> mediaPositionOpt(params.mediaPosition, {"-mp", "--media-pos"}, "The media position, e.g.: Top");
 
   PosArg pdfArg(infile, "PDF-file");
   PosArg outArg(outfile, "out-file");

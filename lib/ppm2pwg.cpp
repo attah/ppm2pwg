@@ -1,7 +1,9 @@
 #include <iostream>
 #include <string.h>
 
+#include <algorithm>
 #include <array.h>
+#include <unordered_map>
 #include "ppm2pwg.h"
 #include "PwgPgHdr.h"
 #include "UrfPgHdr.h"
@@ -191,8 +193,13 @@ void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backsi
                       : (params.quality == PrintParameters::NormalQuality ? PwgPgHdr::Normal
                       : (params.quality == PrintParameters::HighQuality ? PwgPgHdr::High
                       : PwgPgHdr::DefaultPrintQuality)));
-  outHdr.MediaType = params.mediaType;
   outHdr.PageSizeName = params.paperSizeName;
+  outHdr.MediaType = params.mediaType;
+
+  if (!params.mediaPosition.empty()) {
+      outHdr.MediaPosition = media_position_from_name(params.mediaPosition);
+  }
+
 
   if(verbose)
   {
@@ -233,4 +240,73 @@ void make_urf_hdr(Bytestream& outBts, const PrintParameters& params, bool verbos
   }
 
   outHdr.encodeInto(outBts);
+}
+
+PwgPgHdr::MediaPosition_enum media_position_from_name(std::string name)
+{
+    std::unordered_map<std::string, int>positions;
+    positions = {
+        { "auto", 0 },
+        { "main", 1 },
+        { "alternate", 2 },
+        { "large-capacity", 3 },
+        { "manual", 4 },
+        { "envelope", 5 },
+        { "disc", 6 },
+        { "photo", 7 },
+        { "hagaki", 8 },
+        { "main-roll", 9 },
+        { "alternate-roll", 10 },
+        { "top", 11 },
+        { "middle", 12 },
+        { "bottom", 13 },
+        { "side", 14 },
+        { "left", 15 },
+        { "right", 16 },
+        { "center", 17 },
+        { "rear", 18 },
+        { "by-pass-tray", 19 },
+        { "tray-1", 20 },
+        { "tray-2", 21 },
+        { "tray-3", 22 },
+        { "tray-4", 23 },
+        { "tray-5", 24 },
+        { "tray-6", 25 },
+        { "tray-7", 26 },
+        { "tray-8", 27 },
+        { "tray-9", 28 },
+        { "tray-10", 29 },
+        { "tray-11", 30 },
+        { "tray-12", 31 },
+        { "tray-13", 32 },
+        { "tray-14", 33 },
+        { "tray-15", 34 },
+        { "tray-16", 35 },
+        { "tray-17", 36 },
+        { "tray-18", 37 },
+        { "tray-19", 38 },
+        { "tray-20", 39 },
+        { "roll-1", 40 },
+        { "roll-2", 41 },
+        { "roll-3", 42 },
+        { "roll-4", 43 },
+        { "roll-5", 44 },
+        { "roll-6", 45 },
+        { "roll-7", 46 },
+        { "roll-8", 47 },
+        { "roll-9", 48 },
+        { "roll-10", 49 },
+    };
+
+    transform(name.begin(), name.end(), name.begin(), [](unsigned char c){
+        return std::tolower(c);
+    });
+
+    if (positions.find(name) == positions.end())
+    {
+        std::cerr << "Unknown media position: " << name << std::endl;
+        exit(1);
+    }
+
+    return static_cast<PwgPgHdr::MediaPosition_enum>(positions[name]);
 }

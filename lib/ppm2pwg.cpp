@@ -194,10 +194,13 @@ void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backsi
                       : (params.quality == PrintParameters::HighQuality ? PwgPgHdr::High
                       : PwgPgHdr::DefaultPrintQuality)));
   outHdr.PageSizeName = params.paperSizeName;
-  outHdr.MediaType = params.mediaType;
+
+  if (!params.mediaType.empty()) {
+    outHdr.MediaType = params.mediaType;
+  }
 
   if (!params.mediaPosition.empty()) {
-      outHdr.MediaPosition = media_position_from_name(params.mediaPosition);
+    outHdr.MediaPosition = media_position_from_name(params.mediaPosition);
   }
 
 

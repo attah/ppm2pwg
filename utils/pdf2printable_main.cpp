@@ -92,7 +92,8 @@ int main(int argc, char** argv)
   ArgGet args({&helpOpt, &verboseOpt, &formatOpt, &pagesOpt,
                &copiesOpt, /*&pageCopiesOpt,*/ &paperSizeOpt, &resolutionOpt,
                &resolutionXOpt, &resolutionYOpt, &duplexOpt, &tumbleOpt,
-               &backXformOpt, &colorModeOpt, &qualityOpt, &antiAliasOpt},
+               &backXformOpt, &colorModeOpt, &qualityOpt, &antiAliasOpt,
+               &mediaTypeOpt, &mediaPositionOpt},
               {&pdfArg, &outArg});
 
   bool correctArgs = args.get_args(argc, argv);

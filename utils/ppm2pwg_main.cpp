@@ -70,7 +70,8 @@ int PPM2PWG_MAIN(int argc, char** argv)
 
   ArgGet args({&helpOpt, &verboseOpt, &urfOpt, &pagesOpt, &paperSizeOpt,
                &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
-               &duplexOpt, &tumbleOpt, &backXformOpt, &qualityOpt, &mediaTypeOpt, &mediaPositionOpt},
+               &duplexOpt, &tumbleOpt, &backXformOpt, &qualityOpt,
+               &mediaTypeOpt, &mediaPositionOpt},
               {&inArg, &outArg});
 
   bool correctArgs = args.get_args(argc, argv);

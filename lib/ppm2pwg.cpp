@@ -1,4 +1,5 @@
 #include <iostream>
+#include <map>
 #include <string.h>
 
 #include <array.h>
@@ -162,13 +163,36 @@ void compress_line(uint8_t* raw, size_t len, Bytestream& outBts, int colors)
   }
 }
 
+static std::map<std::string, UrfPgHdr::MediaType_enum>
+  UrfMediaTypeMappings {{"auto", UrfPgHdr::AutomaticMediaType},
+                        {"stationery", UrfPgHdr::Stationery},
+                        {"transparency", UrfPgHdr::Transparency},
+                        {"envelope", UrfPgHdr::Envelope},
+                        {"cardstock", UrfPgHdr::Cardstock},
+                        {"labels", UrfPgHdr::Labels},
+                        {"stationery-letterhead", UrfPgHdr::StationeryLetterhead},
+                        {"disc", UrfPgHdr::Disc},
+                        {"photographic-matte", UrfPgHdr::PhotographicMatte},
+                        {"photographic-satin", UrfPgHdr::PhotographicSatin},
+                        {"photographic-semi-gloss", UrfPgHdr::PhotographicSemiGloss},
+                        {"photographic-glossy", UrfPgHdr::PhotographicGlossy},
+                        {"photographic-high-gloss", UrfPgHdr::PhotographicHighGloss},
+                        {"other", UrfPgHdr::OtherMediaType}};
+
+bool isUrfMediaType(std::string mediaType)
+{
+  return UrfMediaTypeMappings.find(mediaType) != UrfMediaTypeMappings.end();
+}
+
 void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backside, bool verbose)
 {
   PwgPgHdr outHdr;
 
+  outHdr.MediaType = params.mediaType;
   outHdr.Duplex = params.isTwoSided();
   outHdr.HWResolutionX = params.hwResW;
   outHdr.HWResolutionY = params.hwResH;
+  outHdr.setMediaPosition(params.mediaPosition);
   outHdr.NumCopies = 1;
   outHdr.PageSizeX = round(params.getPaperSizeWInPoints());
   outHdr.PageSizeY = round(params.getPaperSizeHInPoints());
@@ -187,10 +211,7 @@ void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backsi
   outHdr.CrossFeedTransform = backside&&params.getBackHFlip() ? -1 : 1;
   outHdr.FeedTransform = backside&&params.getBackVFlip() ? -1 : 1;
   outHdr.AlternatePrimary = 0x00ffffff;
-  outHdr.PrintQuality = (params.quality == PrintParameters::DraftQuality ? PwgPgHdr::Draft
-                      : (params.quality == PrintParameters::NormalQuality ? PwgPgHdr::Normal
-                      : (params.quality == PrintParameters::HighQuality ? PwgPgHdr::High
-                      : PwgPgHdr::DefaultPrintQuality)));
+  outHdr.setPrintQuality(params.quality);
   outHdr.PageSizeName = params.paperSizeName;
 
   if(verbose)
@@ -218,10 +239,10 @@ void make_urf_hdr(Bytestream& outBts, const PrintParameters& params, bool verbos
                                              ? UrfPgHdr::ShortSide
                                              : UrfPgHdr::LongSide)
                                       : UrfPgHdr::NoDuplex;
-  outHdr.Quality = (params.quality == PrintParameters::DraftQuality ? UrfPgHdr::Draft
-                 : (params.quality == PrintParameters::NormalQuality ? UrfPgHdr::Normal
-                 : (params.quality == PrintParameters::HighQuality ? UrfPgHdr::High
-                 : UrfPgHdr::DefaultQuality)));
+  outHdr.setQuality(params.quality);
+  outHdr.MediaType = params.mediaType == "" ? UrfPgHdr::AutomaticMediaType
+                                            : UrfMediaTypeMappings.at(params.mediaType);
+  outHdr.setMediaPosition(params.mediaPosition);
   outHdr.Width = params.getPaperSizeWInPixels();
   outHdr.Height = params.getPaperSizeHInPixels();
   outHdr.HWRes = params.hwResW;

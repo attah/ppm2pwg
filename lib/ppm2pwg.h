@@ -3,6 +3,7 @@
 
 #include <bytestream.h>
 #include "printparameters.h"
+#include <string>
 
 Bytestream make_pwg_file_hdr();
 
@@ -19,5 +20,7 @@ void compress_lines(Bytestream& bmpBts, Bytestream& outBts,
                     const PrintParameters& params, bool backside);
 
 void compress_line(uint8_t* raw, size_t len, Bytestream& outBts, int Colors);
+
+bool isUrfMediaType(std::string mediaType);
 
 #endif //PPM2PWG_H

@@ -49,6 +49,60 @@ public:
     ManualTumble
   };
 
+  enum MediaPosition
+  {
+    AutomaticMediaPosition = 0,
+    Main,
+    Alternate,
+    LargeCapacity,
+    Manual,
+    Envelope,
+    Disc,
+    PhotoMediaPosition,
+    Hagaki,
+    MainRoll,
+    AlternateRoll,
+    Top,
+    Middle,
+    Bottom,
+    Side,
+    Left,
+    Right,
+    Center,
+    Rear,
+    ByPassTray,
+    Tray1,
+    Tray2,
+    Tray3,
+    Tray4,
+    Tray5,
+    Tray6,
+    Tray7,
+    Tray8,
+    Tray9,
+    Tray10,
+    Tray11,
+    Tray12,
+    Tray13,
+    Tray14,
+    Tray15,
+    Tray16,
+    Tray17,
+    Tray18,
+    Tray19,
+    Tray20,
+    Roll1,
+    Roll2,
+    Roll3,
+    Roll4,
+    Roll5,
+    Roll6,
+    Roll7,
+    Roll8,
+    Roll9,
+    Roll10
+  };
+
   Format format = PDF;
 
   ColorMode colorMode = sRGB24;
@@ -90,6 +144,9 @@ public:
   bool collatedCopies = true;
 
   PageRangeList pageRangeList;
+
+  MediaPosition mediaPosition = AutomaticMediaPosition;
+  std::string mediaType;
 
   size_t getPaperSizeWInPixels() const;
   size_t getPaperSizeHInPixels() const;

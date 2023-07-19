@@ -3,7 +3,9 @@
 #include <cstring>
 
 #include "pdf2printable.h"
+#include "ppm2pwg.h"
 #include "argget.h"
+#include "mediaposition.h"
 
 #define HELPTEXT "Options from 'resolution' and onwards only affect raster output formats.\n" \
                  "Use \"-\" as filename for stdin/stdout."
@@ -83,6 +85,10 @@ int main(int argc, char** argv)
                                                      {"-q", "--quality"},
                                                      "Quality setting in raster header (draft/normal/high)");
   SwitchArg<bool> antiAliasOpt(params.antiAlias, {"-aa", "--antaialias"}, "Enable antialiasing in rasterization");
+  EnumSwitchArg<PrintParameters::MediaPosition> mediaPositionOpt(params.mediaPosition, MEDIA_POSITION_MAP,
+                                                                 {"-mp", "--media-pos"},
+                                                                 "Media position, e.g.: main, top, left, roll-2 etc.");
+  SwitchArg<std::string> mediaTypeOpt(params.mediaType, {"-mt", "--media-type"}, "Media type, e.g.: stationery, cardstock etc.");
 
   PosArg pdfArg(infile, "PDF-file");
   PosArg outArg(outfile, "out-file");
@@ -90,7 +96,8 @@ int main(int argc, char** argv)
   ArgGet args({&helpOpt, &verboseOpt, &formatOpt, &pagesOpt,
                &copiesOpt, /*&pageCopiesOpt,*/ &paperSizeOpt, &resolutionOpt,
                &resolutionXOpt, &resolutionYOpt, &duplexOpt, &tumbleOpt,
-               &backXformOpt, &colorModeOpt, &qualityOpt, &antiAliasOpt},
+               &backXformOpt, &colorModeOpt, &qualityOpt, &antiAliasOpt,
+               &mediaPositionOpt, &mediaTypeOpt},
               {&pdfArg, &outArg});
 
   bool correctArgs = args.get_args(argc, argv);
@@ -170,10 +177,18 @@ int main(int argc, char** argv)
     params.duplexMode = PrintParameters::TwoSidedLongEdge;
   }
 
-  if(params.format == PrintParameters::URF && (params.getBitsPerColor() == 1 || params.isBlack()))
+  if(params.format == PrintParameters::URF)
   {
-    print_error("URF does not support black or 1-bit color modes", args.argHelp());
-    return 1;
+    if(params.getBitsPerColor() == 1 || params.isBlack())
+    {
+      print_error("URF does not support black or 1-bit color modes", args.argHelp());
+      return 1;
+    }
+    if(mediaTypeOpt.isSet() && !isUrfMediaType(params.mediaType))
+    {
+      print_error("Invalid media type for URF", args.argHelp());
+      return 1;
+    }
   }
 
   std::ofstream ofs;

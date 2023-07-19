@@ -23,9 +23,9 @@ CODABLE(PwgPgHdr)
                               ENUM_LABEL(LongEdgeFirst))
   PADDING(12)
   ENUM(uint32_t, MediaPosition,
-       ENUM_VALUE(Auto, 0), ENUM_LABEL(Main), ENUM_LABEL(Alternate),
-       ENUM_LABEL(LargeCapacity), ENUM_LABEL(Manual), ENUM_LABEL(Envelope),
-       ENUM_LABEL(Disc), ENUM_LABEL(Photo), ENUM_LABEL(Hagaki),
+       ENUM_VALUE(AutomaticMediaPosition, 0), ENUM_LABEL(Main), ENUM_LABEL(Alternate),
+       ENUM_LABEL(LargeCapacity), ENUM_LABEL(Manual), ENUM_LABEL(EnvelopeMediaPosition),
+       ENUM_LABEL(DiscMediaPosition), ENUM_LABEL(PhotoMediaPosition), ENUM_LABEL(Hagaki),
        ENUM_LABEL(MainRoll), ENUM_LABEL(AlternateRoll), ENUM_LABEL(Top),
        ENUM_LABEL(Middle), ENUM_LABEL(Bottom), ENUM_LABEL(Side),
        ENUM_LABEL(Left), ENUM_LABEL(Right), ENUM_LABEL(Center),
@@ -40,7 +40,6 @@ CODABLE(PwgPgHdr)
        ENUM_LABEL(Roll3), ENUM_LABEL(Roll4), ENUM_LABEL(Roll5),
        ENUM_LABEL(Roll6), ENUM_LABEL(Roll7), ENUM_LABEL(Roll8),
        ENUM_LABEL(Roll9), ENUM_LABEL(Roll10))
-
   FIELD(uint32_t, MediaWeightMetric)
   PADDING(8)
   FIELD(uint32_t, NumCopies)

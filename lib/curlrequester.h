@@ -14,11 +14,6 @@
 class CurlRequester
 {
 public:
-  enum Role {
-    IppRequest,
-    HttpGetRequest
-  };
-
   ~CurlRequester();
 
   CurlRequester(const CurlRequester&) = delete;

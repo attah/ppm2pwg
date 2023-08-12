@@ -28,7 +28,7 @@ void raster_to_bmp(Bytestream& outBts, Bytestream& file,
           line << white;
         }
       }
-      else if (count < 128)
+      else if(count < 128)
       { // repeats
         size_t repeats = count+1;
         Bytestream tmp;

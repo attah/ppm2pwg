@@ -168,13 +168,12 @@ int pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParameter
       bool rotate = false;
 
       poppler_page_get_size(page, &pageWidth, &pageHeight);
-      fixup_scale(xScale, yScale, xOffset, yOffset, rotate,
-                  pageWidth, pageHeight, params);
+      fixup_scale(xScale, yScale, xOffset, yOffset, rotate, pageWidth, pageHeight, params);
 
       cairo_translate(cairo, xOffset, yOffset);
       cairo_scale(cairo, xScale, yScale);
 
-      if (rotate)
+      if(rotate)
       { // Rotate to portrait
         cairo_matrix_t matrix;
         cairo_matrix_init(&matrix, 0, -1, 1, 0, 0, pageHeight);
@@ -185,7 +184,7 @@ int pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParameter
     }
 
     status = cairo_status(cairo);
-    if (status)
+    if(status)
     {
       std::cerr << "cairo error: " << cairo_status_to_string(status) << std::endl;
       return 1;
@@ -247,19 +246,22 @@ void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameter
       for(size_t col=0; col < paperSizeWInPixels; col++)
       { // Do Floyd-Steinberg dithering to keep grayscales readable in 1-bit
         pixel = RGB32_GRAY(data[line*paperSizeWInPixels+col]) + nextDebt;
-        newpixel = pixel < 127 ? 0 : 255;
+        newpixel = pixel < 128 ? 0 : 255;
         debt = pixel - newpixel;
         nextDebt = debtArray[col+2] + SIXTEENTHS(7, debt);
         debtArray[col] += SIXTEENTHS(3, debt);
         debtArray[col+1] += SIXTEENTHS(5, debt);
         debtArray[col+2] = SIXTEENTHS(1, debt);
-        if(newpixel == 0 && black)
+        if(newpixel == 0)
         {
-          tmp[line*paperSizeWInBytes+col/8] |= (0x80 >> (col % 8));
-        }
-        else if(newpixel == 0)
-        {
-          tmp[line*paperSizeWInBytes+col/8] &= ~(0x80 >> (col % 8));
+          if(black)
+          {
+            tmp[line*paperSizeWInBytes+col/8] |= (0x80 >> (col % 8));
+          }
+          else
+          {
+            tmp[line*paperSizeWInBytes+col/8] &= ~(0x80 >> (col % 8));
+          }
         }
       }
     }
@@ -313,10 +315,8 @@ void fixup_scale(double& xScale, double& yScale, double& xOffset, double& yOffse
   bool raster = params.format == PrintParameters::PWG ||
                 params.format == PrintParameters::URF;
 
-  size_t hOut = raster ? tmp.getPaperSizeHInPixels()
-                       : tmp.getPaperSizeHInPoints();
-  size_t wOut = raster ? tmp.getPaperSizeWInPixels()
-                       : tmp.getPaperSizeWInPoints();
+  size_t hOut = raster ? tmp.getPaperSizeHInPixels() : tmp.getPaperSizeHInPoints();
+  size_t wOut = raster ? tmp.getPaperSizeWInPixels() : tmp.getPaperSizeWInPoints();
   double scale = round2(std::min(wOut/wIn, hOut/hIn));
   xOffset = roundf((wOut-(wIn*scale))/2);
   yOffset = roundf((hOut-(hIn*scale))/2);

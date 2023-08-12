@@ -28,11 +28,7 @@ inline void ignore_comments(std::istream* in)
   }
 }
 
-#ifndef PPM2PWG_MAIN
-  #define PPM2PWG_MAIN main
-#endif
-
-int PPM2PWG_MAIN(int argc, char** argv)
+int main(int argc, char** argv)
 {
   PrintParameters params;
   params.paperSizeUnits = PrintParameters::Pixels;

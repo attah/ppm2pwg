@@ -7,6 +7,7 @@
 
 #include "ppm2pwg.h"
 #include "argget.h"
+#include "binfile.h"
 #include "mediaposition.h"
 
 #define HELPTEXT "Use \"-\" as filename for stdin/stdout."
@@ -16,15 +17,15 @@ inline void print_error(std::string hint, std::string argHelp)
   std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
 }
 
-inline void ignore_comments(std::istream* in)
+inline void ignore_comments(std::istream& in)
 {
-  if(in->peek() == '\n')
+  if(in.peek() == '\n')
   {
-    in->ignore(1);
+    in.ignore(1);
   }
-  while(in->peek() == '#')
+  while(in.peek() == '#')
   {
-    in->ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
 }
 
@@ -41,8 +42,8 @@ int main(int argc, char** argv)
   int hwResY;
   bool duplex = false;
   bool tumble = false;
-  std::string inFile;
-  std::string outFile;
+  std::string inFileName;
+  std::string outFileName;
 
   SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
   SwitchArg<bool> verboseOpt(verbose, {"-v", "--verbose"}, "Be verbose, print headers");
@@ -71,8 +72,8 @@ int main(int argc, char** argv)
                                                                  "Media position, e.g.: main, top, left, roll-2 etc.");
   SwitchArg<std::string> mediaTypeOpt(params.mediaType, {"-mt", "--media-type"}, "Media type, e.g.: stationery, cardstock etc.");
 
-  PosArg inArg(inFile, "in-file");
-  PosArg outArg(outFile, "out-file");
+  PosArg inArg(inFileName, "in-file");
+  PosArg outArg(outFileName, "out-file");
 
   ArgGet args({&helpOpt, &verboseOpt, &urfOpt, &pagesOpt, &paperSizeOpt,
                &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
@@ -149,53 +150,31 @@ int main(int argc, char** argv)
   Bytestream outBts;
   Bytestream bmpBts;
 
-  std::ifstream ifs;
-  std::istream* in;
-  std::ofstream ofs;
-  std::ostream* out;
+  InBinFile inFile(inFileName);
+  OutBinFile outFile(outFileName);
 
-  if(inFile == "-")
-  {
-    in = &std::cin;
-  }
-  else
-  {
-    ifs = std::ifstream(inFile, std::ios::in | std::ios::binary);
-    in = &ifs;
-  }
+  outFile << fileHdr;
 
-  if(outFile == "-")
-  {
-    out = &std::cout;
-  }
-  else
-  {
-    ofs = std::ofstream(outFile, std::ios::out | std::ios::binary);
-    out = &ofs;
-  }
-
-  *out << fileHdr;
-
-  while(!in->eof())
+  while(!inFile->eof())
   {
     outBts.reset();
     page++;
 
     std::string p, xs, ys, r;
-    *in >> p;
+    inFile >> p;
 
-    ignore_comments(in);
+    ignore_comments(inFile);
 
-    *in >> xs >> ys;
+    inFile >> xs >> ys;
 
     if(p == "P6")
     {
-      *in >> r;
+      inFile >> r;
       params.colorMode = PrintParameters::sRGB24;
     }
     else if(p == "P5")
     {
-      *in >> r;
+      inFile >> r;
       params.colorMode = PrintParameters::Gray8;
     }
     else if(p == "P4")
@@ -215,7 +194,7 @@ int main(int argc, char** argv)
       return 1;
     }
 
-    ignore_comments(in);
+    ignore_comments(inFile);
 
     if(verbose)
     {
@@ -226,12 +205,12 @@ int main(int argc, char** argv)
     params.paperSizeH = stoi(ys);
 
     size_t size = params.paperSizeH*params.getPaperSizeWInBytes();
-    bmpBts = Bytestream(*in, size);
+    bmpBts = Bytestream(inFile, size);
 
     bmp_to_pwg(bmpBts, outBts, page, params, verbose);
 
-    *out << outBts;
-    in->peek(); // maybe trigger eof
+    outFile << outBts;
+    inFile->peek(); // maybe trigger eof
   }
   return 0;
 }

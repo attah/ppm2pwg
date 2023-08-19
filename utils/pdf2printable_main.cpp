@@ -5,6 +5,7 @@
 #include "pdf2printable.h"
 #include "ppm2pwg.h"
 #include "argget.h"
+#include "binfile.h"
 #include "mediaposition.h"
 
 #define HELPTEXT "Options from 'resolution' and onwards only affect raster output formats.\n" \
@@ -36,8 +37,8 @@ int main(int argc, char** argv)
   int hwResY;
   bool duplex = false;
   bool tumble = false;
-  std::string infile;
-  std::string outfile;
+  std::string inFileName;
+  std::string outFileName;
 
   SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
   SwitchArg<bool> verboseOpt(verbose, {"-v", "--verbose"}, "Be verbose, print headers and progress");
@@ -90,8 +91,8 @@ int main(int argc, char** argv)
                                                                  "Media position, e.g.: main, top, left, roll-2 etc.");
   SwitchArg<std::string> mediaTypeOpt(params.mediaType, {"-mt", "--media-type"}, "Media type, e.g.: stationery, cardstock etc.");
 
-  PosArg pdfArg(infile, "PDF-file");
-  PosArg outArg(outfile, "out-file");
+  PosArg pdfArg(inFileName, "PDF-file");
+  PosArg outArg(outFileName, "out-file");
 
   ArgGet args({&helpOpt, &verboseOpt, &formatOpt, &pagesOpt,
                &copiesOpt, /*&pageCopiesOpt,*/ &paperSizeOpt, &resolutionOpt,
@@ -114,19 +115,19 @@ int main(int argc, char** argv)
 
   if(!formatOpt.isSet())
   {
-    if(ends_with(outfile, ".ps"))
+    if(ends_with(outFileName, ".ps"))
     {
       params.format = PrintParameters::Postscript;
     }
-    else if(ends_with(outfile, ".pwg"))
+    else if(ends_with(outFileName, ".pwg"))
     {
       params.format = PrintParameters::PWG;
     }
-    else if(ends_with(outfile, ".urf"))
+    else if(ends_with(outFileName, ".urf"))
     {
       params.format = PrintParameters::URF;
     }
-    else if(ends_with(outfile, ".pdf"))
+    else if(ends_with(outFileName, ".pdf"))
     {
       params.format = PrintParameters::PDF;
     }
@@ -191,23 +192,12 @@ int main(int argc, char** argv)
     }
   }
 
-  std::ofstream ofs;
-  std::ostream* out;
+  OutBinFile outFile(outFileName);
 
-  if(outfile == "-")
-  {
-    out = &std::cout;
-  }
-  else
-  {
-    ofs = std::ofstream(outfile, std::ios::out | std::ios::binary);
-    out = &ofs;
-  }
-
-  WriteFun writeFun([out](unsigned char const* buf, unsigned int len) -> bool
+  WriteFun writeFun([&outFile](unsigned char const* buf, unsigned int len) -> bool
            {
-             out->write((const char*)buf, len);
-             return out->exceptions() == std::ostream::goodbit;
+             outFile->write((const char*)buf, len);
+             return outFile->exceptions() == std::ostream::goodbit;
            });
 
   if(verbose)
@@ -216,11 +206,11 @@ int main(int argc, char** argv)
                 {
                   std::cerr << "Progress: " << page << "/" << total << "\n\n";
                 });
-    return pdf_to_printable(infile, writeFun, params, progressFun, true);
+    return pdf_to_printable(inFileName, writeFun, params, progressFun, true);
   }
   else
   {
-    return pdf_to_printable(infile, writeFun, params);
+    return pdf_to_printable(inFileName, writeFun, params);
   }
 
 }

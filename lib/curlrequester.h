@@ -72,7 +72,7 @@ class CurlIppPosterBase : public CurlRequester
 public:
   virtual CURLcode await(Bytestream* = nullptr);
 
-  bool write(const char* data, size_t size);
+  bool write(const void* data, size_t size);
   bool give(Bytestream& bts);
   size_t requestWrite(char* dest, size_t size);
 

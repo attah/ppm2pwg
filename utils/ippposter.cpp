@@ -22,8 +22,8 @@ int main(int argc, char** argv)
 
   CurlIppStreamer req(addr);
 
-  req.write((char*)(hdr.raw()), hdr.size());
-  req.write((char*)(data.raw()), data.size());
+  req.write(hdr.raw(), hdr.size());
+  req.write(data.raw(), data.size());
 
   Bytestream result;
 

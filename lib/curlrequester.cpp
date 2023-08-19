@@ -61,7 +61,7 @@ CURLcode CurlRequester::await(Bytestream* data)
   return _result;
 }
 
-bool CurlIppPosterBase::write(const char* data, size_t size)
+bool CurlIppPosterBase::write(const void* data, size_t size)
 {
   while(!_canWrite.try_lock())
   {
@@ -155,7 +155,7 @@ CurlIppPoster::CurlIppPoster(std::string addr, const Bytestream& data, bool igno
   : CurlIppPosterBase(addr, ignoreSslErrors, verbose)
 {
   curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
-  write((char*)(data.raw()), data.size());
+  write(data.raw(), data.size());
   doRun();
 }
 

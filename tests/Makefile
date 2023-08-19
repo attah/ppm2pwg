@@ -1,5 +1,5 @@
 LDFLAGS = -ldl -Wl,--export-dynamic
-CXXFLAGS = -std=c++11 -g -pedantic -Wall -Werror -Wextra -I ../bytestream
+CXXFLAGS = -std=c++17 -g -pedantic -Wall -Werror -Wextra -I ../bytestream
 TEST_INCLUDES = -I ../lib -I ../bytestream/minitest -I ../bytestream/minitest/tests
 
 VPATH = ../bytestream ../lib

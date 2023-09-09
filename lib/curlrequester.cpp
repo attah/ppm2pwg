@@ -9,6 +9,7 @@ CurlRequester::CurlRequester(std::string addr, bool ignoreSslErrors, bool verbos
 {
   curl_easy_setopt(_curl, CURLOPT_URL, addr.c_str());
   curl_easy_setopt(_curl, CURLOPT_VERBOSE, verbose);
+  curl_easy_setopt(_curl, CURLOPT_CONNECTTIMEOUT_MS, 2000);
 
   if(ignoreSslErrors)
   {

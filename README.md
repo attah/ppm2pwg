@@ -39,40 +39,41 @@ Build:
 
 ## pdf2printable vs the competition
 
-(As of 2023-07-25)
+(As of 2023-10-30)
 
 A bit of friendly comparison helps make sure the featureset is well-rounded and performance is on par.
 
 ### Basics
-|                                                      | PDF renderer    | Language    | License            |
-| ---------------------------------------------------- | --------------- | ----------- | ------------------ |
-| pdf2printable                                        | Poppler         | C++         | GPL3               |
-| [ipptransform](https://github.com/istopwg/ippsample) | XPDF or Poppler | C           | Apache 2.0         |
-| [mutool](https://mupdf.com/)                         | MuPDF           | C           | AGPL or commercial |
-| [jrender](https://github.com/HPInc/jipp)             | Apache PDFBox   | Java/Kotlin | MIT                |
+|                                                         | PDF renderer    | Language    | License            |
+| ------------------------------------------------------- | --------------- | ----------- | ------------------ |
+| pdf2printable                                           | Poppler         | C++         | GPL3               |
+| [ipptransform](https://github.com/OpenPrinting/libcups) | XPDF or Poppler | C           | Apache 2.0         |
+| [mutool](https://mupdf.com/)                            | MuPDF           | C           | AGPL or commercial |
+| [jrender](https://github.com/HPInc/jipp)                | Apache PDFBox   | Java/Kotlin | MIT                |
 
 Not in the running: cups-filters (can't get them to run outside CUPS), Android/Apple built-ins and Google Cloud Print (not available standalone).
 
 ### Format support
 
-|               | PDF | Postscript | PWG | URF | PCLm | PCL |
-| ------------- | --- | ---------- | --- | --- | ---- | --- |
-| pdf2printable | ✔   | ✔          | ✔   | ✔   | ✘    | ✘   |
-| ipptransform  | ✔   | ✘          | ✔   | ✔   | ✘    | ✔   |
-| mutool        | ✔   | ✘          | ✔   | ✘   | ✔    | ✔   |
-| jrender       | ✘   | ✘          | ✔   | ✘   | ✔    | ✘   |
+|               | PDF | Postscript   | PWG | URF | PCLm&sup1; | PCL&sup2; |
+| ------------- | --- | ------------ | --- | --- | ---------- | --------- |
+| pdf2printable | ✔   | ✔            | ✔   | ✔   | ✘          | ✘         |
+| ipptransform  | ✔   | ✔&sup3;(WIP) | ✔   | ✔   | ✘          | ✔&sup3;   |
+| mutool        | ✔   | ✘            | ✔   | ✘   | ✔          | ✔         |
+| jrender       | ✘   | ✘            | ✔   | ✘   | ✔          | ✘         |
 
 Good printers should support PDF or PWG. After that, URF is the biggest enabler.
-Postscript and PCL enable some more printers. It is not clear to me which is the bigger enabler nowadays.
-However, PCL comes in many different dialects (even beyond the versions) so it might not work across all printers.
-I have not yet seen a printer support PCLm and none of the other formats that pdf2printable supports.
+
+1. I have not yet seen a printer support PCLm and none of the other formats that pdf2printable supports.
+2. PCL comes in many different dialects (even beyond the versions) so it might not work across all printers.
+3. Pre-rasterized compatibility versions.
 
 ### Features
 
 |               | back-xform&sup1; | color modes &sup2;| rotate-to-fit | page selection | stdout    |
 | ------------- | ---------------- | ----------------- | ------------- | -------------- | --------- |
 | pdf2printable | ✔                | ✔(6)              | ✔             | ✔              | ✔(+stdin) |
-| ipptransform  | ✔                | ✔(5)              | ✘             | ✘              | ✔         |
+| ipptransform  | ✔                | ✔(5)              | ✔             | ✔              | ✔         |
 | mutool        | ✘                | ✔(3?)             | ✘             | ✔              | ✘         |
 | jrender       | ✘                | ✘(1)              | ✘             | ✘              | ✘         |
 
@@ -82,11 +83,11 @@ I have not yet seen a printer support PCLm and none of the other formats that pd
 ### Performance
 Measured with a representative 90-page document for PWG-raster at 600 DPI on a AMD 3950X.
 
-|                 | Speed (RGB) | Speed (Gray) | Size (RGB)  | Size (Gray) |
-| --------------- | ----------- | -------------| ----------- | ----------- |
-| pdf2printable   | 9s          | 9s           | 152MB       | 76MB        |
-| ipptransform    | 38s         | 38s          | 155MB       | 78MB        |
-| mutool (AA off) | 15s         | 22s          | 152MB       | 76MB        |
-| jrender         | 23s         | DNF          | 334MB&sup1; | DNF         |
+|                        | Speed (RGB) | Speed (Gray) | Size (RGB)  | Size (Gray) |
+| ---------------------- | ----------- | -------------| ----------- | ----------- |
+| pdf2printable          | 9s          | 9s           | 152MB       | 76MB        |
+| ipptransform           | 27s         | 27s          | 159MB       | 76MB        |
+| mutool (AA off)        | 15s         | 22s          | 152MB       | 76MB        |
+| jrender (600dpi patch) | 25s         | N/A          | 334MB&sup1; | N/A         |
 
 1. Antialiasing seems to be enabled and would account for the size difference. However, at these resolutions that doesn't really provide much benefit. For pdf2printable and mutool it can be optionally enabled/disabled.

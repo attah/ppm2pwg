@@ -59,7 +59,7 @@ public:
   typedef std::function<Error(std::string inFileName, WriteFun writeFun, const IppPrintJob& job, ProgressFun progressFun, bool verbose)> ConvertFun;
 
   Error finalize(std::string inputFormat, int pages=0);
-  Error run(std::string addr, std::string inFile, std::string inFormat, bool verbose);
+  Error run(std::string addr, std::string inFile, std::string inFormat, int pages=0, bool verbose=false);
   Error doPrint(std::string addr, std::string inFile, ConvertFun convertFun, Bytestream hdr, bool verbose);
 
   ConvertFun Pdf2Printable = [](std::string inFileName, WriteFun writeFun, const IppPrintJob& job, ProgressFun progressFun, bool verbose)

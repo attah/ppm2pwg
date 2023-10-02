@@ -1,10 +1,16 @@
 #include <bytestream.h>
 #include <iostream>
+#include <filesystem>
+
+#include <poppler.h>
+#include <poppler-document.h>
+
 #include "argget.h"
 #include "curlrequester.h"
 #include "ippmsg.h"
 #include "ippprintjob.h"
 #include "minimime.h"
+#include "pointer.h"
 
 #define HELPTEXT ""
 
@@ -63,7 +69,7 @@ int main(int argc, char** argv)
   bool antiAlias;
 
   std::string addr;
-  std::string infile;
+  std::string inFile;
 
   SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
   SwitchArg<bool> verboseOpt(verbose, {"-v", "--verbose"}, "Be verbose, print headers and progress");
@@ -100,7 +106,7 @@ int main(int argc, char** argv)
   SwitchArg<bool> antiAliasOpt(antiAlias, {"-aa", "--antaialias"}, "Enable antialiasing in rasterization");
 
   PosArg addrArg(addr, "printer address");
-  PosArg pdfArg(infile, "input file");
+  PosArg pdfArg(inFile, "input file");
 
   ArgGet args({&helpOpt, &verboseOpt, &pagesOpt,
                &copiesOpt, &paperSizeOpt, &resolutionOpt,
@@ -213,9 +219,9 @@ int main(int argc, char** argv)
 
   if(!mimeTypeOpt.isSet())
   {
-    if(infile != "-")
+    if(inFile != "-")
     {
-      mimeType = MiniMime::getMimeType(infile);
+      mimeType = MiniMime::getMimeType(inFile);
     }
     if(mimeType == "" || mimeType == MiniMime::OctetStream)
     {
@@ -322,7 +328,25 @@ int main(int argc, char** argv)
     ip.rightMargin.set(rightMargin);
   }
 
-  Error error = ip.run(addr, infile, mimeType, verbose);
+  int nPages = 0; // Unknown - assume multiple is the format allows
+
+  if(mimeType == MiniMime::PDF)
+  {
+    GError* error = nullptr;
+    inFile = std::filesystem::absolute(inFile);
+    std::string url("file://");
+    url.append(inFile);
+    Pointer<PopplerDocument> doc(poppler_document_new_from_file(url.c_str(), nullptr, &error), g_object_unref);
+    if(doc == nullptr)
+    {
+        std::cerr << "Failed to open PDF: " << error->message << " (" << inFile << ")" << std::endl;
+        g_error_free(error);
+        return 1;
+    }
+    nPages = poppler_document_get_n_pages(doc);
+  }
+
+  Error error = ip.run(addr, inFile, mimeType, nPages, verbose);
   if(error)
   {
     std::cerr << "Print failed: " << error.value() << std::endl;

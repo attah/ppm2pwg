@@ -351,7 +351,7 @@ void IppPrintJob::adjustRasterSettings(int pages)
   }
 }
 
-Error IppPrintJob::run(std::string addr, std::string inFile, std::string inFormat, bool verbose)
+Error IppPrintJob::run(std::string addr, std::string inFile, std::string inFormat, int pages, bool verbose)
 {
   Error error;
   try
@@ -359,7 +359,7 @@ Error IppPrintJob::run(std::string addr, std::string inFile, std::string inForma
     List<int> supportedOperations = _printerAttrs.getList<int>("operations-supported");
     std::string fileName = std::filesystem::path(inFile).filename();
 
-    error = finalize(inFormat);
+    error = finalize(inFormat, pages);
     if(error)
     {
       return error;

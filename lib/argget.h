@@ -15,7 +15,7 @@ public:
   virtual bool parse(std::list<std::string>&) = 0;
   virtual std::string docName() const = 0;
 
-  bool isSet()
+  bool isSet() const
   {
     return _set;
   }

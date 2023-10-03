@@ -38,18 +38,70 @@ std::ostream& operator<<(std::ostream& os, List<T> bl)
   return os;
 }
 
+std::string resolution_list(List<IppResolution> l)
+{
+  bool first = true;
+  std::stringstream ss;
+  for(const IppResolution& r : l)
+  {
+    if(r.units != IppResolution::DPI)
+    {
+      continue;
+    }
+    ss << (first ? "" : ",") << r.toStr();
+  }
+
+  if(ss.str().length() == 0)
+  {
+    ss << "empty";
+  }
+  return ss.str();
+}
+
+template <typename O, typename S, typename V>
+void set_or_fail(const O& opt, S& setting, V value, bool force)
+{
+  std::string docName = opt.docName() + " (ipp: " + setting.name() + ")";
+  set_or_fail(opt.isSet(), docName, "Valid values are: " + setting.supportedStr(), setting, value, force);
+}
+
+template <typename S, typename V>
+void set_or_fail(bool isSet, std::string docName, std::string inputHint, S& setting, V value, bool force)
+{
+  if(isSet)
+  {
+    if(setting.isSupportedValue(value) || force)
+    {
+      setting.set(value);
+    }
+    else
+    {
+      std::cerr << "Argument " << docName << " ";
+      if(!setting.isSupported())
+      {
+        std::cerr << "is not supported by this printer." << std::endl;
+      }
+      else
+      {
+        std::cerr << "has an invalid value. " << std::endl << inputHint << std::endl;
+      }
+      exit(1);
+    }
+  }
+}
+
 int main(int argc, char** argv)
 {
   bool help = false;
   bool verbose = false;
+  bool force = false;
   std::string pages;
   int copies;
   std::string paperSize;
   uint32_t hwRes;
   uint32_t hwResX;
   uint32_t hwResY;
-  bool duplex = false;
-  bool tumble = false;
+  std::string sides;
   std::string colorMode;
   int quality;
 
@@ -73,6 +125,8 @@ int main(int argc, char** argv)
 
   SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
   SwitchArg<bool> verboseOpt(verbose, {"-v", "--verbose"}, "Be verbose, print headers and progress");
+  SwitchArg<bool> forceOpt(verbose, {"-f", "--force"}, "Force use of unsupported options");
+
   SwitchArg<std::string> pagesOpt(pages, {"-p", "--pages"}, "What pages to process, e.g.: 1,17-42");
   SwitchArg<int> copiesOpt(copies, {"--copies"}, "Number of copies to output");
 
@@ -80,19 +134,19 @@ int main(int argc, char** argv)
   SwitchArg<uint32_t> resolutionOpt(hwRes, {"-r", "--resolution"}, "Resolution (in DPI) for rasterization");
   SwitchArg<uint32_t> resolutionXOpt(hwResX, {"-rx", "--resolution-x"}, "Resolution (in DPI) for rasterization, x-axis");
   SwitchArg<uint32_t> resolutionYOpt(hwResY, {"-ry", "--resolution-y"}, "Resolution (in DPI) for rasterization, y-axis");
-  SwitchArg<bool> duplexOpt(duplex, {"-d", "--duplex"}, "Do duplex printing");
-  SwitchArg<bool> tumbleOpt(tumble, {"-t", "--tumble"}, "Do tumbled duplex printing");
 
+  SwitchArg<std::string> sidesOpt(sides, {"-s", "--sides"}, "Sides (as per IPP)");
   SwitchArg<std::string> colorModeOpt(colorMode, {"-c", "--color-mode"}, "Color mode (as per IPP)");
   EnumSwitchArg<int> qualityOpt(quality, {{"draft", PrintParameters::DraftQuality},
                                           {"normal", PrintParameters::NormalQuality},
                                           {"high", PrintParameters::HighQuality}},
                                           {"-q", "--quality"},
                                           "Quality (draft/normal/high)");
-
   SwitchArg<std::string> scalingOpt(scaling, {"--scaling"}, "Scaling (as per IPP)");
+
   SwitchArg<std::string> formatOpt(format, {"--format"}, "Transfer format");
   SwitchArg<std::string> mimeTypeOpt(mimeType, {"--mime-type"}, "Input file mime-type");
+
   SwitchArg<std::string> mediaTypeOpt(mediaType, {"--media-type"}, "Media type (as per IPP)");
   SwitchArg<std::string> mediaSourceOpt(mediaSource, {"--media-source"}, "Media source (as per IPP)");
   SwitchArg<std::string> outputBinOpt(outputBin, {"--output-bin"}, "Output bin (as per IPP)");
@@ -108,10 +162,11 @@ int main(int argc, char** argv)
   PosArg addrArg(addr, "printer address");
   PosArg pdfArg(inFile, "input file");
 
-  ArgGet args({&helpOpt, &verboseOpt, &pagesOpt,
-               &copiesOpt, &paperSizeOpt, &resolutionOpt,
-               &resolutionXOpt, &resolutionYOpt, &duplexOpt, &tumbleOpt,
-               &colorModeOpt, &qualityOpt, &scalingOpt, &formatOpt, &mimeTypeOpt,
+  ArgGet args({&helpOpt, &verboseOpt, &forceOpt,
+               &pagesOpt, &copiesOpt, &paperSizeOpt,
+               &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
+               &sidesOpt, &colorModeOpt, &qualityOpt, &scalingOpt,
+               &formatOpt, &mimeTypeOpt,
                &mediaTypeOpt, &mediaSourceOpt, &outputBinOpt,
                &marginOpt, &topMarginOpt, &bottomMarginOpt, &leftMarginOpt, &rightMarginOpt,
                &antiAliasOpt},
@@ -156,67 +211,6 @@ int main(int argc, char** argv)
     ip.printParams.antiAlias = antiAlias;
   }
 
-  if(verbose)
-  {
-    std::cerr << "Supported settings:" << std::endl << std::endl;
-
-    std::cerr << "sides: " << ip.sides.getDefault() << std::endl;
-    std::cerr << ip.sides.getSupported() << std::endl << std::endl;
-
-    std::cerr << "media: " << ip.media.getDefault() << std::endl;
-    std::cerr << ip.media.getSupported() << std::endl;
-    std::cerr << ip.media.getPreferred() << std::endl << std::endl;
-
-    std::cerr << "copies: " << ip.copies.getDefault() << std::endl;
-    std::cerr << ip.copies.getSupportedMin() << " - "
-              << ip.copies.getSupportedMax() << std::endl << std::endl;
-
-    std::cerr << "collated copies: " << ip.multipleDocumentHandling.getDefault() << std::endl;
-    std::cerr << ip.multipleDocumentHandling.getSupported() << std::endl << std::endl;
-
-    std::cerr << "page ranges: " << ip.pageRanges.getSupported() << std::endl << std::endl;
-
-    std::cerr << "number up: " << ip.numberUp.getDefault() << std::endl;
-    std::cerr << ip.numberUp.getSupported() << std::endl << std::endl;
-
-    std::cerr << "color: " << ip.colorMode.getDefault() << std::endl;
-    std::cerr << ip.colorMode.getSupported() << std::endl << std::endl;
-
-    std::cerr << "quality: " << ip.printQuality.getDefault() << std::endl;
-    std::cerr << ip.printQuality.getSupported() << std::endl << std::endl;
-
-    std::cerr << "resolution: " << ip.resolution.getDefault() << std::endl;
-    std::cerr << ip.resolution.getSupported() << std::endl << std::endl;
-
-    std::cerr << "scaling: " << ip.scaling.getDefault() << std::endl;
-    std::cerr << ip.scaling.getSupported() << std::endl << std::endl;
-
-    std::cerr << "format: " << ip.documentFormat.getDefault() << std::endl;
-    std::cerr << ip.documentFormat.getSupported() << std::endl << std::endl;
-
-    std::cerr << "media type: " << ip.mediaType.getDefault() << std::endl;
-    std::cerr << ip.mediaType.getSupported() << std::endl << std::endl;
-
-    std::cerr << "media source: " << ip.mediaSource.getDefault() << std::endl;
-    std::cerr << ip.mediaSource.getSupported() << std::endl << std::endl;
-
-    std::cerr << "output bin: " << ip.outputBin.getDefault() << std::endl;
-    std::cerr << ip.outputBin.getSupported() << std::endl << std::endl;
-
-    std::cerr << "media top margin: " << ip.topMargin.getDefault() << std::endl;
-    std::cerr << ip.topMargin.getSupported() << std::endl << std::endl;
-
-    std::cerr << "media bottom margin: " << ip.bottomMargin.getDefault() << std::endl;
-    std::cerr << ip.bottomMargin.getSupported() << std::endl << std::endl;
-
-    std::cerr << "media left margin: " << ip.leftMargin.getDefault() << std::endl;
-    std::cerr << ip.leftMargin.getSupported() << std::endl << std::endl;
-
-    std::cerr << "media right margin: " << ip.rightMargin.getDefault() << std::endl;
-    std::cerr << ip.rightMargin.getSupported() << std::endl << std::endl;
-
-  }
-
   if(!mimeTypeOpt.isSet())
   {
     if(inFile != "-")
@@ -229,9 +223,6 @@ int main(int argc, char** argv)
       return 1;
     }
   }
-
-  // Error on unsupported - add force-option
-  // check invalid/redundant combinations
 
   if(pagesOpt.isSet())
   {
@@ -248,85 +239,56 @@ int main(int argc, char** argv)
     }
     ip.pageRanges.set(ippPageRanges);
   }
-  if(copiesOpt.isSet())
-  {
-    ip.copies.set(copies);
-  }
-  if(copiesOpt.isSet())
-  {
-    ip.copies.set(copies);
-  }
-  if(paperSizeOpt.isSet())
-  {
-    ip.media.set(paperSize);
-  }
-  if(resolutionOpt.isSet())
-  {
-    ip.resolution.set(IppResolution {hwRes, hwRes, IppResolution::DPI});
-  }
-  if(resolutionXOpt.isSet() && resolutionYOpt.isSet())
-  {
-    ip.resolution.set(IppResolution {hwResX, hwResY, IppResolution::DPI});
-  }
-  if(tumble)
-  {
-    ip.sides.set("two-sided-short-edge");
-  }
-  if(duplex)
-  {
-    ip.sides.set("two-sided-long-edge");
-  }
-  if(colorModeOpt.isSet())
-  {
-    ip.colorMode.set(colorMode);
-  }
-  if(qualityOpt.isSet())
-  {
-    ip.printQuality.set(quality);
-  }
-  if(scalingOpt.isSet())
-  {
-    ip.scaling.set(scaling);
-  }
-  if(formatOpt.isSet())
-  {
-    ip.documentFormat.set(format);
-  }
-  if(mediaTypeOpt.isSet())
-  {
-    ip.mediaType.set(mediaType);
-  }
-  if(mediaSourceOpt.isSet())
-  {
-    ip.mediaSource.set(mediaSource);
-  }
-  if(outputBinOpt.isSet())
-  {
-    ip.outputBin.set(outputBin);
-  }
+
+  set_or_fail(copiesOpt, ip.copies, copies, force);
+  set_or_fail(paperSizeOpt, ip.media, paperSize, force);
+
+  std::string resolutionDoc = resolutionOpt.docName() + " (ipp: " + ip.resolution.name() + ")";
+  std::string resolutionSupported = "Valid values are: " + resolution_list(ip.resolution.getSupported());
+  set_or_fail(resolutionOpt.isSet(), resolutionDoc, resolutionSupported,
+              ip.resolution, IppResolution {hwRes, hwRes, IppResolution::DPI}, force);
+
+  std::string resolutionDoc2 = resolutionXOpt.docName() + " and " + resolutionYOpt.docName()
+                             + " (ipp: " + ip.resolution.name() + ")";
+  set_or_fail(resolutionXOpt.isSet() && resolutionYOpt.isSet(), resolutionDoc2, resolutionSupported,
+              ip.resolution, IppResolution {hwResX, hwResY, IppResolution::DPI}, force);
+
+  set_or_fail(sidesOpt, ip.sides, sides, force);
+  set_or_fail(colorModeOpt, ip.colorMode, colorMode, force);
+  set_or_fail(qualityOpt, ip.printQuality, quality, force);
+  set_or_fail(scalingOpt, ip.scaling, scaling, force);
+  set_or_fail(formatOpt, ip.documentFormat, format, force);
+  set_or_fail(mediaTypeOpt, ip.mediaType, mediaType, force);
+  set_or_fail(mediaSourceOpt, ip.mediaSource, mediaSource, force);
+  set_or_fail(outputBinOpt, ip.outputBin, outputBin, force);
+
   if(marginOpt.isSet())
   {
-    ip.topMargin.set(margin);
-    ip.bottomMargin.set(margin);
-    ip.leftMargin.set(margin);
-    ip.rightMargin.set(margin);
+    if(!force && (!ip.topMargin.isSupported() || !ip.bottomMargin.isSupported() ||
+                  !ip.leftMargin.isSupported() || !ip.rightMargin.isSupported()))
+    {
+      std::cerr << "Argument " << marginOpt.docName() << " (ipp: margin-*) "
+                << "is not supported by this printer." << std::endl;
+      exit(1);
+    }
+    set_or_fail(true, marginOpt.docName(),
+                "Valid values for top margin are: " +  ip.topMargin.supportedStr(),
+                ip.topMargin, margin, force);
+    set_or_fail(true, marginOpt.docName(),
+                "Valid values for bottom margin are: " +  ip.bottomMargin.supportedStr(),
+                ip.bottomMargin, margin, force);
+    set_or_fail(true, marginOpt.docName(),
+                "Valid values for left margin are: " +  ip.leftMargin.supportedStr(),
+                ip.leftMargin, margin, force);
+    set_or_fail(true, marginOpt.docName(),
+                "Valid values for right margin are: " +  ip.rightMargin.supportedStr(),
+                ip.rightMargin, margin, force);
   }
-  if(topMarginOpt.isSet())
-  {
-    ip.topMargin.set(topMargin);
-  }
-  if(bottomMarginOpt.isSet())
-  {
-    ip.bottomMargin.set(bottomMargin);
-  }
-  if(leftMarginOpt.isSet())
-  {
-    ip.leftMargin.set(leftMargin);
-  }
-  if(rightMarginOpt.isSet())
-  {
-    ip.rightMargin.set(rightMargin);
-  }
+
+  set_or_fail(topMarginOpt, ip.topMargin, topMargin, force);
+  set_or_fail(bottomMarginOpt, ip.bottomMargin, bottomMargin, force);
+  set_or_fail(leftMarginOpt, ip.leftMargin, leftMargin, force);
+  set_or_fail(rightMarginOpt, ip.rightMargin, rightMargin, force);
 
   int nPages = 0; // Unknown - assume multiple is the format allows
 

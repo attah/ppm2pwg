@@ -4,6 +4,7 @@
 #include "list.h"
 #include <cstdint>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <map>
 #include <iostream>
@@ -40,6 +41,13 @@ struct IppResolution
   bool operator==(const IppResolution& other) const
   {
     return other.units == units && other.x == x && other.y == y;
+  }
+
+  std::string toStr() const
+  {
+    std::stringstream ss;
+    ss << x << "x" << y << (units == DPI ? "dpi" : units == DPCM ? "dots/cm" : "unknown");
+    return ss.str();
   }
 };
 

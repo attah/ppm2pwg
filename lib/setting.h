@@ -1,6 +1,8 @@
 #ifndef SETTING_H
 #define SETTING_H
 
+#include <sstream>
+
 template <typename T>
 class Setting
 {
@@ -10,14 +12,31 @@ public:
   Setting(IppAttrs* printerAttrs, IppAttrs* attrs, IppMsg::Tag tag, std::string name, std::string subKey = "")
   : _printerAttrs(printerAttrs), _attrs(attrs), _tag(tag), _name(name), _subKey(subKey)
   {}
+
+  std::string name()
+  {
+    return _name;
+  }
+
   virtual bool isSupported()
   {
     return _printerAttrs->has(_name+"-supported");
   }
+
+  virtual std::string supportedStr()
+  {
+    std::stringstream ss;
+    ss << _printerAttrs->at(_name+"-supported");
+    return ss.str();
+  }
+
   T getDefault(T fallback=T()) const
   {
     return _printerAttrs->get<T>(_name+"-default", fallback);
   }
+
+  virtual bool isSupportedValue(T value) = 0;
+
   void set(T value)
   {
     if(_subKey != "")
@@ -35,6 +54,7 @@ public:
       _attrs->set(_name, IppAttr(_tag, value));
     }
   }
+
   bool isSet() const
   {
     if(_subKey != "")
@@ -46,6 +66,7 @@ public:
       return _attrs->has(_name);
     }
   }
+
   void unset()
   {
     if(_subKey != "")
@@ -70,6 +91,7 @@ public:
       _attrs->erase(_name);
     }
   }
+
   T get(T fallback=T()) const
   {
     if(isSet())
@@ -88,6 +110,7 @@ public:
       return getDefault(fallback);
     }
   }
+
 protected:
   IppAttrs* _printerAttrs;
   IppAttrs* _attrs;
@@ -103,6 +126,11 @@ public:
   ChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppMsg::Tag tag, std::string name, std::string subKey = "")
   : Setting<T>(printerAttrs, attrs, tag, name, subKey)
   {}
+
+  virtual bool isSupportedValue(T value)
+  {
+    return getSupported().contains(value);
+  }
 
   List<T> getSupported() const
   {
@@ -135,10 +163,17 @@ public:
   IntegerSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppMsg::Tag tag, std::string name)
   : Setting<int>(printerAttrs, attrs, tag, name)
   {}
+
+  virtual bool isSupportedValue(int value)
+  {
+    return isSupported() && value >= getSupportedMin() && value <= getSupportedMax();
+  }
+
   int getSupportedMin()
   {
     return _printerAttrs->get<IppIntRange>(this->_name+"-supported").low;
   }
+
   int getSupportedMax()
   {
     return _printerAttrs->get<IppIntRange>(this->_name+"-supported").high;
@@ -152,6 +187,11 @@ public:
   : Setting<IppOneSetOf>(printerAttrs, attrs, tag, name)
   {}
 
+  virtual bool isSupportedValue(IppOneSetOf)
+  {
+    return isSupported();
+  }
+
   bool getSupported() const
   {
     return _printerAttrs->get<bool>(this->_name+"-supported");
@@ -164,6 +204,12 @@ public:
   IntegerChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppMsg::Tag tag, std::string name)
   : Setting<int>(printerAttrs, attrs, tag, name)
   {}
+
+  virtual bool isSupportedValue(int value)
+  {
+    return getSupported().contains(value);
+  }
+
   List<int> getSupported() const
   {
     List<int> res;

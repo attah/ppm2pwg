@@ -4,6 +4,7 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <cstdint>
 
 #define INVALID_PAGE 0
 

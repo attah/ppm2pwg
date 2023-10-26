@@ -109,7 +109,8 @@ void IppMsg::setOpAttr(std::string name, IppAttr attr)
 
 IppAttrs IppMsg::baseOpAttrs(std::string url)
 {
-  std::string name = getenv("USER");
+  char* user = getenv("USER");
+  std::string name = user ? user : "anonymous";
   IppAttrs o
   {
     {"attributes-charset",          IppAttr(IppMsg::Charset,             "utf-8")},

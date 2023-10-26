@@ -132,7 +132,7 @@ int main(int argc, char** argv)
   SwitchArg<int> copiesOpt(copies, {"--copies"}, "Number of copies to output");
   EnumSwitchArg<std::string> collatedCopiesOpt(collatedCopies, {{"yes", "separate-documents-collated-copies"},
                                                                 {"no", "separate-documents-uncollated-copies"}},
-                                               {"--collated-copies"}, "Request collated copies");
+                                               {"--collated-copies"}, "Request collated copies (yes/no)");
 
   SwitchArg<std::string> paperSizeOpt(paperSize, {"--paper-size"}, "Paper size to output, e.g.: iso_a4_210x297mm");
   SwitchArg<uint32_t> resolutionOpt(hwRes, {"-r", "--resolution"}, "Resolution (in DPI) for rasterization");

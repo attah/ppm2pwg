@@ -97,6 +97,7 @@ int main(int argc, char** argv)
   bool force = false;
   std::string pages;
   int copies;
+  std::string collatedCopies;
   std::string paperSize;
   uint32_t hwRes;
   uint32_t hwResX;
@@ -129,6 +130,9 @@ int main(int argc, char** argv)
 
   SwitchArg<std::string> pagesOpt(pages, {"-p", "--pages"}, "What pages to process, e.g.: 1,17-42");
   SwitchArg<int> copiesOpt(copies, {"--copies"}, "Number of copies to output");
+  EnumSwitchArg<std::string> collatedCopiesOpt(collatedCopies, {{"yes", "separate-documents-collated-copies"},
+                                                                {"no", "separate-documents-uncollated-copies"}},
+                                               {"--collated-copies"}, "Request collated copies");
 
   SwitchArg<std::string> paperSizeOpt(paperSize, {"--paper-size"}, "Paper size to output, e.g.: iso_a4_210x297mm");
   SwitchArg<uint32_t> resolutionOpt(hwRes, {"-r", "--resolution"}, "Resolution (in DPI) for rasterization");
@@ -163,7 +167,7 @@ int main(int argc, char** argv)
   PosArg pdfArg(inFile, "input file");
 
   ArgGet args({&helpOpt, &verboseOpt, &forceOpt,
-               &pagesOpt, &copiesOpt, &paperSizeOpt,
+               &pagesOpt, &copiesOpt, &collatedCopiesOpt, &paperSizeOpt,
                &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
                &sidesOpt, &colorModeOpt, &qualityOpt, &scalingOpt,
                &formatOpt, &mimeTypeOpt,
@@ -241,6 +245,7 @@ int main(int argc, char** argv)
   }
 
   set_or_fail(copiesOpt, ip.copies, copies, force);
+  set_or_fail(collatedCopiesOpt, ip.multipleDocumentHandling, collatedCopies, force);
   set_or_fail(paperSizeOpt, ip.media, paperSize, force);
 
   std::string resolutionDoc = resolutionOpt.docName() + " (ipp: " + ip.resolution.name() + ")";

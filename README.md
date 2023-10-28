@@ -17,7 +17,9 @@ For debugging. Similar to [rasterview](https://github.com/michaelrsweet/rastervi
 ## pdf2printable
 Takes a PDF document and makes it suitable for printing, by:
 - rotate and scale to fit as needed to a desired page size
-- convert to PDF 1.5, Postscript 2 or PWG/URF raster
+- convert to PDF 1.7&sup1;, Postscript level 2 or PWG/URF raster
+
+1. PDF 1.5 if using Cairo < 1.18.
 
 ## baselinify
 Takes a JPEG and losslessly repacks it to the baseline ecoding profile, keeping only JFIF and Exif headers.

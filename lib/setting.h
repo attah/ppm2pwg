@@ -25,9 +25,16 @@ public:
 
   virtual std::string supportedStr()
   {
-    std::stringstream ss;
-    ss << _printerAttrs->at(_name+"-supported");
-    return ss.str();
+    if(_printerAttrs->has(_name+"-supported"))
+    {
+      std::stringstream ss;
+      ss << _printerAttrs->at(_name+"-supported");
+      return ss.str();
+    }
+    else
+    {
+      return "unsupported";
+    }
   }
 
   T getDefault(T fallback=T()) const

@@ -32,6 +32,7 @@ public:
   ChoiceSetting<std::string> scaling = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppMsg::Keyword, "print-scaling");
 
   ChoiceSetting<std::string> documentFormat = ChoiceSetting<std::string>(&_printerAttrs, &opAttrs, IppMsg::MimeMediaType, "document-format");
+  ChoiceSetting<std::string> compression = ChoiceSetting<std::string>(&_printerAttrs, &opAttrs, IppMsg::Keyword, "compression");
 
   ChoiceSetting<std::string> mediaType = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppMsg::Keyword, "media-type", "media-col");
   ChoiceSetting<std::string> mediaSource = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppMsg::Keyword, "media-source", "media-col");

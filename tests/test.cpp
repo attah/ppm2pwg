@@ -1747,6 +1747,7 @@ TEST(finalize)
   ASSERT(ip.printParams.duplexMode == PrintParameters::TwoSidedLongEdge);
   ASSERT(ip.printParams.quality == PrintParameters::HighQuality);
   ASSERT(ip.printParams.colorMode == PrintParameters::Gray8);
+  ASSERT(ip.compression.get() == "");
 
   // Forget choices
   ip = IppPrintJob(printerAttrs);
@@ -1810,6 +1811,7 @@ TEST(finalize)
   ASSERT(ip.printParams.hwResH == 600);
   ASSERT(ip.printParams.backXformMode == PrintParameters::Rotated);
   ASSERT(ip.printParams.copies == 2);
+  ASSERT(ip.compression.get() == "");
 
   // Add Postscript, forget settings
   printerAttrs.set("document-format-supported",
@@ -1915,6 +1917,13 @@ TEST(finalize)
   ASSERT((ip.opAttrs == IppAttrs {{"document-format", IppAttr(IppMsg::MimeMediaType, "image/pwg-raster")}}));
   ASSERT(ip.printParams.format == PrintParameters::PWG);
   ASSERT(ip.printParams.colorMode == PrintParameters::Gray8); // Since we don't support color
+
+  // Support compression, forget choices
+  printerAttrs.set("compression-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"none", "deflate", "gzip"}));
+  ip = IppPrintJob(printerAttrs);
+  ip.finalize("application/pdf", 0);
+  // gzip has higher priority
+  ASSERT(ip.compression.get() == "gzip");
 
 }
 

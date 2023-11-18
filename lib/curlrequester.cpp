@@ -42,9 +42,7 @@ void CurlRequester::doRun()
     curl_easy_setopt(_curl, CURLOPT_WRITEDATA, &buf);
     curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, write_callback);
 
-    CURLcode res = curl_easy_perform(_curl);
-
-    _result = res;
+    _result = curl_easy_perform(_curl);
     _resultMsg = buf;
   });
 }
@@ -75,6 +73,7 @@ bool CurlIppPosterBase::write(const void* data, size_t size)
   memcpy(_data, data, size);
   _size = size;
   _offset = 0;
+  _compression = _nextCompression;
   _canRead.unlock();
   return true;
 }
@@ -103,24 +102,70 @@ size_t CurlIppPosterBase::requestWrite(char* dest, size_t size)
   if(!_reading)
   {
     _canRead.lock();
-    if(_done)
-    {
-      return 0;
-    }
     _reading = true;
   }
 
-  size_t actualSize = std::min(size, (_size - _offset));
+  size_t remaining = (_size - _offset);
+  size_t bytesWritten = 0;
 
-  memcpy(dest, (_data+_offset), actualSize);
-  _offset += actualSize;
-
-  if(_offset == _size)
+  if(_compression != Compression::None)
   {
-    _reading = false;
-    _canWrite.unlock();
+    _zstrm.next_out = (Bytef*)dest;
+    _zstrm.avail_out = size;
+    _zstrm.next_in = (_data + _offset);
+    _zstrm.avail_in = remaining;
+    deflate(&_zstrm, _done ? Z_FINISH : Z_NO_FLUSH);
+    _offset += (remaining - _zstrm.avail_in);
+    bytesWritten = size - _zstrm.avail_out;
   }
-  return actualSize;
+  else // No compression = memcpy
+  {
+    bytesWritten = std::min(size, remaining);
+    memcpy(dest, (_data+_offset), bytesWritten);
+    _offset += bytesWritten;
+  }
+
+  if(!_done)
+  {
+    if(_offset == _size)
+    { // End of input
+      _reading = false;
+      _canWrite.unlock();
+    }
+    if(bytesWritten == 0)
+    { // Compression produced no output this time,
+      // we'll most likely have gone to write mode,
+      // keep waiting.
+      return requestWrite(dest, size);
+    }
+  }
+
+  return bytesWritten;
+}
+
+void CurlIppPosterBase::setCompression(Compression compression)
+{
+  if(_nextCompression != Compression::None)
+  {
+    throw std::logic_error("unsetting/changing compression");
+  }
+  _nextCompression = compression;
+
+  _zstrm.zalloc = Z_NULL;
+  _zstrm.zfree = Z_NULL;
+  _zstrm.opaque = Z_NULL;
+
+  int level = 11;
+  if(compression == Compression::Deflate)
+  {
+    level *= -1;
+  }
+  else if(compression == Compression::Gzip)
+  {
+    level += 16;
+  }
+
+  deflateInit2(&_zstrm, Z_DEFAULT_COMPRESSION, Z_DEFLATED, level, 7, Z_DEFAULT_STRATEGY);
 }
 
 CurlIppPosterBase::CurlIppPosterBase(std::string addr, bool ignoreSslErrors, bool verbose)
@@ -130,6 +175,7 @@ CurlIppPosterBase::CurlIppPosterBase(std::string addr, bool ignoreSslErrors, boo
   _canRead.lock();
 
   curl_easy_setopt(_curl, CURLOPT_POST, 1L);
+  curl_easy_setopt(_curl, CURLOPT_UPLOAD_BUFFERSIZE, 2*1024*1024);
   curl_easy_setopt(_curl, CURLOPT_READFUNCTION, trampoline);
   curl_easy_setopt(_curl, CURLOPT_READDATA, this);
 
@@ -146,6 +192,9 @@ CURLcode CurlIppPosterBase::await(Bytestream* data)
   }
 
   _done = true;
+  _data = Array<uint8_t>(0);
+  _size = 0;
+  _offset = 0;
   _canRead.unlock();
   return CurlRequester::await(data);
 }

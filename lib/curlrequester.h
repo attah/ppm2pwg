@@ -6,10 +6,18 @@
 #endif
 
 #include <curl/curl.h>
+#include <zlib.h>
 #include "lthread.h"
 #include <array.h>
 #include <bytestream.h>
 #include <mutex>
+
+enum class Compression
+{
+  None = 0,
+  Deflate,
+  Gzip
+};
 
 class CurlRequester
 {
@@ -64,6 +72,9 @@ protected:
   CURL* _curl;
   struct curl_slist* _opts = NULL;
 
+  z_stream _zstrm;
+  Compression _nextCompression = Compression::None;
+  Compression _compression = Compression::None;
   LThread _worker;
 };
 
@@ -75,6 +86,8 @@ public:
   bool write(const void* data, size_t size);
   bool give(Bytestream& bts);
   size_t requestWrite(char* dest, size_t size);
+
+  void setCompression(Compression compression);
 
   static size_t trampoline(char* dest, size_t size, size_t nmemb, void* userp)
   {

@@ -104,16 +104,14 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
     surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24,
                                          params.getPaperSizeWInPixels(),
                                          params.getPaperSizeHInPixels());
-    Bytestream fileHdr;
     if(params.format == PrintParameters::URF)
     {
-      fileHdr = make_urf_file_hdr(seq.size());
+      outBts = make_urf_file_hdr(seq.size());
     }
     else
     {
-      fileHdr = make_pwg_file_hdr();
+      outBts = make_pwg_file_hdr();
     }
-    CHECK(writeFun(fileHdr.raw(), fileHdr.size()));
   }
   else if(params.format == PrintParameters::PDF)
   {

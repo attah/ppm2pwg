@@ -65,6 +65,19 @@ Error IppPrintJob::finalize(std::string inputFormat, int pages)
     return Error("Failed to determine traget format");
   }
 
+  if(MiniMime::isPrinterRaster(targetFormat))
+  {
+    List<std::string> compressionSupported = compression.getSupported();
+    if(compressionSupported.contains("gzip"))
+    {
+      compression.set("gzip");
+    }
+    else if(compressionSupported.contains("deflate"))
+    {
+      compression.set("deflate");
+    }
+  }
+
   if(!printParams.setPaperSize(media.get(printParams.paperSizeName)))
   {
     return Error("Invalid paper size name");
@@ -437,12 +450,21 @@ Error IppPrintJob::doPrint(std::string addr, std::string inFile, ConvertFun conv
   CurlIppStreamer cr(addr, true, verbose);
   cr.write((char*)(hdr.raw()), hdr.size());
 
+  if(compression.get() == "gzip")
+  {
+    cr.setCompression(Compression::Gzip);
+  }
+  else if(compression.get() == "deflate")
+  {
+    cr.setCompression(Compression::Deflate);
+  }
+
   WriteFun writeFun([&cr](unsigned char const* buf, unsigned int len) -> bool
-            {
-              if(len == 0)
-                return true;
-              return cr.write((const char*)buf, len);
-            });
+           {
+             if(len == 0)
+               return true;
+             return cr.write((const char*)buf, len);
+           });
 
   ProgressFun progressFun([verbose](size_t page, size_t total) -> void
               {

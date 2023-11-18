@@ -1,4 +1,4 @@
-LDFLAGS = -ldl -Wl,--export-dynamic -lcurl -ljpeg $(shell pkg-config --libs poppler-glib)
+LDFLAGS = -ldl -Wl,--export-dynamic -lcurl -ljpeg $(shell pkg-config --libs poppler-glib) -lz
 CXXFLAGS = -std=c++17 -g -pedantic -Wall -Werror -Wextra -I ../lib -I ../bytestream \
 $(shell pkg-config --cflags poppler-glib)
 TEST_INCLUDES = -I ../lib -I ../bytestream/minitest -I ../bytestream/minitest/tests

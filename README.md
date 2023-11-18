@@ -34,7 +34,7 @@ An IPP client that harnesses the above tools for converting files to be printed.
 
 Install dependencies:
 
-`sudo apt install libpoppler-dev libpoppler-glib-dev libcairo2-dev libglib2.0-dev libjpeg-dev libcurl4-openssl-dev`
+`sudo apt install libpoppler-dev libpoppler-glib-dev libcairo2-dev libglib2.0-dev libjpeg-dev libcurl4-openssl-dev zlib1g-dev`
 
 Build:
 

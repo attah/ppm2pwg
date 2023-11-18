@@ -1848,6 +1848,18 @@ TEST(finalize)
   ASSERT(ip.printParams.format == PrintParameters::PWG);
   ASSERT(ip.printParams.colorMode == PrintParameters::sRGB24);
 
+  // Forget choices
+  ip = IppPrintJob(printerAttrs);
+
+  // To be changed for single-page selection doing copies
+  ip.sides.set("two-sided-long-edge");
+  ip.copies.set(2);
+  ip.pageRanges.set({IppIntRange {17, 17}});
+
+  ip.finalize("application/pdf", 42);
+  ASSERT((ip.opAttrs == IppAttrs {{"document-format", IppAttr(IppMsg::MimeMediaType, "image/pwg-raster")}}));
+  ASSERT((ip.jobAttrs == IppAttrs {{"sides", IppAttr(IppMsg::Keyword, "one-sided")}}));
+
   // Un-support color, forget choices
   printerAttrs.set("print-color-mode-supported", IppAttr(IppMsg::Keyword, IppOneSetOf {"auto", "monochrome"}));
   ip = IppPrintJob(printerAttrs);

@@ -1,7 +1,7 @@
 #include "ippprintjob.h"
 #include "mediaposition.h"
 #include "curlrequester.h"
-
+#include <algorithm>
 #include <filesystem>
 
 inline bool startsWith(std::string s, std::string start)
@@ -336,13 +336,10 @@ void IppPrintJob::adjustRasterSettings(int pages)
 
     if(sides.get() != "one-sided")
     {
-      bool singlePageRange = false;
-      if(printParams.pageRangeList.size() == 1)
-      {
-        size_t fromPage = printParams.pageRangeList.begin()->first;
-        size_t toPage = printParams.pageRangeList.begin()->second;
-        singlePageRange = fromPage != 0 && fromPage == toPage;
-      }
+      PageSequence seq = printParams.getPageSequence(pages);
+                             // No two different elements...
+      bool singlePageRange = std::adjacent_find(seq.begin(), seq.end(), std::not_equal_to()) == seq.end();
+
       if(pages == 1 || singlePageRange)
       {
         sides.set("one-sided");

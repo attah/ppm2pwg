@@ -437,3 +437,16 @@ void IppMsg::encodeValue(Bytestream& msg, uint8_t tag, IppValue val) const
       break;
   }
 }
+
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
+  Bytestream bts(Data, Size);
+  try
+  {
+    IppMsg msg(bts);
+  }
+  catch(const std::exception& e)
+  {
+
+  }
+  return 0;
+}

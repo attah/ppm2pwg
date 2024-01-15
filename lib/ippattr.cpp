@@ -82,11 +82,14 @@ std::ostream& operator<<(std::ostream& os, const IppValue& iv)
     os << "{";
     IppCollection ippCollection = iv.get<IppCollection>();
     IppCollection::const_iterator it = ippCollection.cbegin();
-    os << "\"" << it->first << "\": " << it->second.value();
-    it++;
-    for(; it != ippCollection.cend(); it++)
+    if(it != ippCollection.cend())
     {
-      os << ", \"" << it->first << "\": " << it->second.value();
+      os << "\"" << it->first << "\": " << it->second.value();
+      it++;
+      for(; it != ippCollection.cend(); it++)
+      {
+        os << ", \"" << it->first << "\": " << it->second.value();
+      }
     }
     os << "}";
   }

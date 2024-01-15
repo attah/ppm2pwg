@@ -13,5 +13,17 @@ int main(int argc, char** argv)
 
   InBinFile inFile(argv[1]);
   Bytestream inBts(inFile);
-  IppMsg msg(inBts);
+  try
+  {
+    IppMsg msg(inBts);
+    std::cout << msg.getPrinterAttrs() << std::endl;
+    for(const IppAttrs& ia : msg.getJobAttrs())
+    {
+      std::cout << ia << std::endl;
+    }
+  }
+  catch(const std::exception& e)
+  {
+    std::cerr << "Exception caught." << std::endl;
+  }
 }

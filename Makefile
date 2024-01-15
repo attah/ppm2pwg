@@ -52,4 +52,4 @@ analyze:
 	clang++ --analyze $(CXXFLAGS) lib/*.cpp utils/*.cpp
 
 fuzz:
-	clang++ -g -O1 -fsanitize=fuzzer $(CXXFLAGS) -O1 -DFUZZ lib/ippmsg.cpp lib/ippattr.cpp bytestream/bytestream.cpp -o $@
+	clang++ -g -fsanitize=fuzzer $(CXXFLAGS) -O0 -DFUZZ lib/ippmsg.cpp lib/ippattr.cpp bytestream/bytestream.cpp -o $@

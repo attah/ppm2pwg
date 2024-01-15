@@ -30,8 +30,10 @@ IppMsg::IppMsg(Bytestream& bts)
       }
       else if (currentAttrType == UnsupportedAttrs)
       {
+#ifndef FUZZ // Too much spam for fuzzing
         std::cerr << "WARNING: unsupported attrs reported: " << std::endl
                   << attrs;
+#endif
       }
 
       if(bts >>= EndAttrs)
@@ -278,7 +280,7 @@ IppValue IppMsg::collectAttributes(List<IppAttr>& attrs) const
     }
     else
     {
-      std::cerr << "out of sync with collection" << tmpval.tag();
+      throw std::logic_error("out of sync with collection");
     }
   }
 

@@ -2,6 +2,7 @@
 #define LIST_H
 
 #include <list>
+#include <stdexcept>
 
 template <typename T>
 class List: public std::list<T>
@@ -11,7 +12,12 @@ public:
 
   T takeFront()
   {
-    T tmp = std::list<T>::front();
+    if(std::list<T>::empty())
+    {
+      throw std::logic_error("List is empty");
+    }
+
+    T tmp(std::list<T>::front());
     std::list<T>::pop_front();
     return tmp;
   }

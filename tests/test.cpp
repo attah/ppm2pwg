@@ -1150,6 +1150,53 @@ TEST(argget)
 
 }
 
+TEST(argget_subcommand)
+{
+  bool b = false;
+  SwitchArg<bool> boolopt(b, {"-b", "--bool"}, "A bool option");
+
+  std::string s;
+  SwitchArg<string> stringopt(s, {"-s", "--string"}, "A string option");
+
+  std::string a1;
+  PosArg arg1(a1, "arg1");
+
+  SubArgGet get({{"boolify", {{&boolopt}, {}}},
+                 {"stringify", {{&stringopt}, {}}},
+                 {"posify", {{}, {&arg1}}}});
+  char* argv[3] = {(char*)"myprog",
+                   (char*)"boolify",
+                   (char*)"-b"};
+
+  ASSERT(get.get_args(3, argv));
+  ASSERT(boolopt.isSet());
+  ASSERT(b);
+
+  char* argv1[4] = {(char*)"myprog",
+                    (char*)"stringify",
+                    (char*)"--string",
+                    (char*)"mystring"};
+
+  ASSERT(get.get_args(4, argv1));
+  ASSERT(stringopt.isSet());
+  ASSERT(s=="mystring");
+
+  char* argv2[3] = {(char*)"myprog",
+                    (char*)"posify",
+                    (char*)"myposarg"};
+
+  ASSERT(get.get_args(3, argv2));
+  ASSERT(arg1.isSet());
+  ASSERT(a1=="myposarg");
+
+  char* argv3[4] = {(char*)"myprog",
+                    (char*)"stringify",
+                    (char*)"-b"};
+
+  ASSERT_FALSE(get.get_args(3, argv3));
+
+}
+
 TEST(flip_logic)
 {
   PrintParameters params;

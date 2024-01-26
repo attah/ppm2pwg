@@ -234,20 +234,20 @@ private:
 
 class ArgGet
 {
-public:
-  ArgGet() = delete;
-  ArgGet(const ArgGet&) = delete;
-  ArgGet& operator=(const ArgGet&) = delete;
+friend class SubArgGet;
 
-  ArgGet(std::initializer_list<SwitchArgBase*> argDefs,
-         std::initializer_list<PosArg*> posArgDefs = {})
+public:
+  ArgGet() = default;
+  ArgGet(const ArgGet&) = default;
+  ArgGet& operator=(const ArgGet&) = default;
+
+  ArgGet(std::list<SwitchArgBase*> argDefs, std::list<PosArg*> posArgDefs = {})
   : _argDefs(argDefs), _posArgDefs(posArgDefs)
   {}
 
   bool get_args(int argc, char** argv)
   {
     std::list<std::string> argList;
-    _errMsg = std::stringstream();
 
     if(argc < 1)
     {
@@ -278,17 +278,17 @@ public:
         {
           if(argList.size() == 0)
           {
-            _errMsg << "Missing value for " << argDef->docName();
+            _errMsg = "Missing value for " + argDef->docName();
           }
           else if(argDef->errorHint() != "")
           {
-            _errMsg << argDef->errorHint()
-                    << " (" << argList.front() << ")";
+            _errMsg = argDef->errorHint()
+                    + " (" + argList.front() + ")";
           }
           else
           {
-            _errMsg << "Bad value for " << argDef->docName()
-                    << " (" << argList.front() << ")";
+            _errMsg = "Bad value for " + argDef->docName()
+                    + " (" + argList.front() + ")";
           }
           return false;
         }
@@ -297,7 +297,7 @@ public:
 
     if(argList.size() > _posArgDefs.size())
     { // Cannot consume all - fail early.
-      _errMsg << "Unknown argument: " << argList.front();
+      _errMsg = "Unknown argument: " + argList.front();
       return false;
     }
 
@@ -305,7 +305,7 @@ public:
     {
       if(!posArg->parse(argList))
       {
-        _errMsg << "Missing positional argument " << (posArg->docName());
+        _errMsg = "Missing positional argument " + (posArg->docName());
         return false;
       }
     }
@@ -316,17 +316,33 @@ public:
     }
     else
     {
-      _errMsg << "Unknown argument: " << argList.front();
+      _errMsg = "Unknown argument: " + argList.front();
       return false;
     }
   }
 
   std::string argHelp()
   {
+    std::string help = "Usage: " + _name + _argHelp();
+    return help;
+  }
+
+  std::string errmsg()
+  {
+    return _errMsg;
+  }
+
+protected:
+
+  std::string _argHelp() const
+  {
     std::stringstream help;
     size_t w = 0;
 
-    help << "Usage: " << _name << " [options]";
+    if(!_argDefs.empty())
+    {
+      help << " [options]";
+    }
     for(PosArg* posArg : _posArgDefs)
     {
       help << " " << posArg->docName();
@@ -345,21 +361,94 @@ public:
     return help.str();
   }
 
-  std::string name()
-  {
-    return _name;
-  }
-
-  std::string errmsg()
-  {
-    return _errMsg.str();
-  }
-
 private:
   std::string _name;
   std::list<SwitchArgBase*> _argDefs;
   std::list<PosArg*> _posArgDefs;
-  std::stringstream _errMsg;
+  std::string _errMsg;
+
+};
+
+class SubArgGet
+{
+public:
+  SubArgGet() = delete;
+  SubArgGet(const SubArgGet&) = delete;
+  SubArgGet& operator=(const SubArgGet&) = delete;
+
+  SubArgGet(std::map<std::string, std::pair<std::list<SwitchArgBase*>, std::list<PosArg*>>> map)
+  {
+    for(const auto& [subCommand, args] : map)
+    {
+      _subCommands[subCommand] = ArgGet(args.first, args.second);
+    }
+  }
+
+  bool get_args(int argc, char** argv)
+  {
+    std::list<std::string> argList;
+
+    if(argc < 1)
+    {
+      throw(std::logic_error("No program name"));
+    }
+    _name = argv[0];
+
+    for(int i = 1; i < argc; i++)
+    {
+      argList.push_back(argv[i]);
+    }
+
+    if(argc < 2)
+    {
+      _errMsg = "No sub-command given";
+      return false;
+    }
+    _subCommand = argv[1];
+    if(_subCommands.find(_subCommand) == _subCommands.end())
+    {
+      _errMsg = "Invalid sub-command";
+      return false;
+    }
+
+    ArgGet& argGet = _subCommands[_subCommand];
+    if(!argGet.get_args(argc-1, &argv[1]))
+    {
+      _errMsg = argGet.errmsg();
+      return false;
+    }
+
+    return true;
+  }
+
+  std::string argHelp()
+  {
+    std::stringstream help;
+
+    help << "Usage: " << _name << " <sub-command> [options]" << std::endl << std::endl;
+    for(const auto& [subCommand, argGet] : _subCommands)
+    {
+      help << _name << " " << subCommand << argGet._argHelp() << std::endl;
+    }
+    return help.str();
+  }
+
+  std::string errmsg()
+  {
+    return _errMsg;
+  }
+
+  std::string subCommand()
+  {
+    return _subCommand;
+  }
+
+private:
+  std::string _name;
+  std::string _subCommand;
+  std::map<std::string, ArgGet> _subCommands;
+  std::string _errMsg;
+
 };
 
 #endif //ARGGET_H

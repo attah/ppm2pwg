@@ -166,15 +166,17 @@ int main(int argc, char** argv)
   PosArg addrArg(addr, "printer address");
   PosArg pdfArg(inFile, "input file");
 
-  ArgGet args({&helpOpt, &verboseOpt, &forceOpt,
-               &pagesOpt, &copiesOpt, &collatedCopiesOpt, &paperSizeOpt,
-               &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
-               &sidesOpt, &colorModeOpt, &qualityOpt, &scalingOpt,
-               &formatOpt, &mimeTypeOpt,
-               &mediaTypeOpt, &mediaSourceOpt, &outputBinOpt,
-               &marginOpt, &topMarginOpt, &bottomMarginOpt, &leftMarginOpt, &rightMarginOpt,
-               &antiAliasOpt},
-              {&addrArg, &pdfArg});
+  SubArgGet args({{"get-attrs", {{&helpOpt, &verboseOpt},
+                                 {&addrArg}}},
+                  {"print", {{&helpOpt, &verboseOpt, &forceOpt,
+                              &pagesOpt, &copiesOpt, &collatedCopiesOpt, &paperSizeOpt,
+                              &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
+                              &sidesOpt, &colorModeOpt, &qualityOpt, &scalingOpt,
+                              &formatOpt, &mimeTypeOpt,
+                              &mediaTypeOpt, &mediaSourceOpt, &outputBinOpt,
+                              &marginOpt, &topMarginOpt, &bottomMarginOpt, &leftMarginOpt, &rightMarginOpt,
+                              &antiAliasOpt},
+                             {&addrArg, &pdfArg}}}});
 
   bool correctArgs = args.get_args(argc, argv);
   if(help)
@@ -188,136 +190,158 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  IppAttrs getPrinterAttrsJobAttrs = IppMsg::baseOpAttrs(addr);
-  IppMsg getPrinterAttrsMsg(IppMsg::GetPrinterAttrs, getPrinterAttrsJobAttrs);
-  Bytestream getPrinterAttrsEnc = getPrinterAttrsMsg.encode();
-
-  CurlIppPoster getPrinterAttrsReq(addr, getPrinterAttrsEnc, true, verbose);
-  getPrinterAttrsReq.write((char*)(getPrinterAttrsEnc.raw()), getPrinterAttrsEnc.size());
-  Bytestream getPrinterAttrsResult;
-  CURLcode res0 = getPrinterAttrsReq.await(&getPrinterAttrsResult);
-  IppAttrs printerAttrs;
-  if(res0 == CURLE_OK)
+  if(args.subCommand() == "get-attrs")
   {
-    IppMsg getPrinterAttrsResp(getPrinterAttrsResult);
-    printerAttrs = getPrinterAttrsResp.getPrinterAttrs();
-  }
-  else
-  {
-    std::cerr << "Could not get printer attributes: " << curl_easy_strerror(res0) << std::endl;
-    return 1;
-  }
+    IppAttrs getPrinterAttrsJobAttrs = IppMsg::baseOpAttrs(addr);
+    IppMsg getPrinterAttrsMsg(IppMsg::GetPrinterAttrs, getPrinterAttrsJobAttrs);
 
-  IppPrintJob ip(printerAttrs);
-
-  if(antiAliasOpt.isSet())
-  {
-    ip.printParams.antiAlias = antiAlias;
-  }
-
-  if(!mimeTypeOpt.isSet())
-  {
-    if(inFile != "-")
+    CurlIppPoster getPrinterAttrsReq(addr, getPrinterAttrsMsg.encode(), true, verbose);
+    Bytestream getPrinterAttrsResult;
+    CURLcode res0 = getPrinterAttrsReq.await(&getPrinterAttrsResult);
+    IppAttrs printerAttrs;
+    if(res0 == CURLE_OK)
     {
-      mimeType = MiniMime::getMimeType(inFile);
+      IppMsg getPrinterAttrsResp(getPrinterAttrsResult);
+      printerAttrs = getPrinterAttrsResp.getPrinterAttrs();
     }
-    if(mimeType == "" || mimeType == MiniMime::OctetStream)
+    else
     {
-      std::cerr << "Failed to determine input file format. (Specify with --mime-type)." << std::endl;
+      std::cerr << "Could not get printer attributes: " << curl_easy_strerror(res0) << std::endl;
       return 1;
     }
+    std::cout << printerAttrs;
   }
-
-  if(pagesOpt.isSet())
+  else if(args.subCommand() == "print")
   {
-    PageRangeList pageRanges = PrintParameters::parsePageRange(pages);
-    if(pageRanges.empty())
+    IppAttrs getPrinterAttrsJobAttrs = IppMsg::baseOpAttrs(addr);
+    IppMsg getPrinterAttrsMsg(IppMsg::GetPrinterAttrs, getPrinterAttrsJobAttrs);
+
+    CurlIppPoster getPrinterAttrsReq(addr, getPrinterAttrsMsg.encode(), true, verbose);
+    Bytestream getPrinterAttrsResult;
+    CURLcode res0 = getPrinterAttrsReq.await(&getPrinterAttrsResult);
+    IppAttrs printerAttrs;
+    if(res0 == CURLE_OK)
     {
-      print_error("Invalid page range.", args.argHelp());
+      IppMsg getPrinterAttrsResp(getPrinterAttrsResult);
+      printerAttrs = getPrinterAttrsResp.getPrinterAttrs();
+    }
+    else
+    {
+      std::cerr << "Could not get printer attributes: " << curl_easy_strerror(res0) << std::endl;
       return 1;
     }
-    IppOneSetOf ippPageRanges;
-    for(std::pair<int32_t, int32_t> pageRange : pageRanges)
+
+    IppPrintJob ip(printerAttrs);
+
+    if(antiAliasOpt.isSet())
     {
-      ippPageRanges.push_back(IppIntRange {pageRange.first, pageRange.second});
+      ip.printParams.antiAlias = antiAlias;
     }
-    ip.pageRanges.set(ippPageRanges);
-  }
 
-  set_or_fail(copiesOpt, ip.copies, copies, force);
-  set_or_fail(collatedCopiesOpt, ip.multipleDocumentHandling, collatedCopies, force);
-  set_or_fail(paperSizeOpt, ip.media, paperSize, force);
-
-  std::string resolutionDoc = resolutionOpt.docName() + " (ipp: " + ip.resolution.name() + ")";
-  std::string resolutionSupported = "Valid values are: " + resolution_list(ip.resolution.getSupported());
-  set_or_fail(resolutionOpt.isSet(), resolutionDoc, resolutionSupported,
-              ip.resolution, IppResolution {hwRes, hwRes, IppResolution::DPI}, force);
-
-  std::string resolutionDoc2 = resolutionXOpt.docName() + " and " + resolutionYOpt.docName()
-                             + " (ipp: " + ip.resolution.name() + ")";
-  set_or_fail(resolutionXOpt.isSet() && resolutionYOpt.isSet(), resolutionDoc2, resolutionSupported,
-              ip.resolution, IppResolution {hwResX, hwResY, IppResolution::DPI}, force);
-
-  set_or_fail(sidesOpt, ip.sides, sides, force);
-  set_or_fail(colorModeOpt, ip.colorMode, colorMode, force);
-  set_or_fail(qualityOpt, ip.printQuality, quality, force);
-  set_or_fail(scalingOpt, ip.scaling, scaling, force);
-  set_or_fail(formatOpt, ip.documentFormat, format, force);
-  set_or_fail(mediaTypeOpt, ip.mediaType, mediaType, force);
-  set_or_fail(mediaSourceOpt, ip.mediaSource, mediaSource, force);
-  set_or_fail(outputBinOpt, ip.outputBin, outputBin, force);
-
-  if(marginOpt.isSet())
-  {
-    if(!force && (!ip.topMargin.isSupported() || !ip.bottomMargin.isSupported() ||
-                  !ip.leftMargin.isSupported() || !ip.rightMargin.isSupported()))
+    if(!mimeTypeOpt.isSet())
     {
-      std::cerr << "Argument " << marginOpt.docName() << " (ipp: margin-*) "
-                << "is not supported by this printer." << std::endl;
-      exit(1);
-    }
-    set_or_fail(true, marginOpt.docName(),
-                "Valid values for top margin are: " +  ip.topMargin.supportedStr(),
-                ip.topMargin, margin, force);
-    set_or_fail(true, marginOpt.docName(),
-                "Valid values for bottom margin are: " +  ip.bottomMargin.supportedStr(),
-                ip.bottomMargin, margin, force);
-    set_or_fail(true, marginOpt.docName(),
-                "Valid values for left margin are: " +  ip.leftMargin.supportedStr(),
-                ip.leftMargin, margin, force);
-    set_or_fail(true, marginOpt.docName(),
-                "Valid values for right margin are: " +  ip.rightMargin.supportedStr(),
-                ip.rightMargin, margin, force);
-  }
-
-  set_or_fail(topMarginOpt, ip.topMargin, topMargin, force);
-  set_or_fail(bottomMarginOpt, ip.bottomMargin, bottomMargin, force);
-  set_or_fail(leftMarginOpt, ip.leftMargin, leftMargin, force);
-  set_or_fail(rightMarginOpt, ip.rightMargin, rightMargin, force);
-
-  int nPages = 0; // Unknown - assume multiple is the format allows
-
-  if(mimeType == MiniMime::PDF)
-  {
-    GError* error = nullptr;
-    inFile = std::filesystem::absolute(inFile);
-    std::string url("file://");
-    url.append(inFile);
-    Pointer<PopplerDocument> doc(poppler_document_new_from_file(url.c_str(), nullptr, &error), g_object_unref);
-    if(doc == nullptr)
-    {
-        std::cerr << "Failed to open PDF: " << error->message << " (" << inFile << ")" << std::endl;
-        g_error_free(error);
+      if(inFile != "-")
+      {
+        mimeType = MiniMime::getMimeType(inFile);
+      }
+      if(mimeType == "" || mimeType == MiniMime::OctetStream)
+      {
+        std::cerr << "Failed to determine input file format. (Specify with --mime-type)." << std::endl;
         return 1;
+      }
     }
-    nPages = poppler_document_get_n_pages(doc);
-  }
 
-  Error error = ip.run(addr, inFile, mimeType, nPages, verbose);
-  if(error)
-  {
-    std::cerr << "Print failed: " << error.value() << std::endl;
-    return 1;
+    if(pagesOpt.isSet())
+    {
+      PageRangeList pageRanges = PrintParameters::parsePageRange(pages);
+      if(pageRanges.empty())
+      {
+        print_error("Invalid page range.", args.argHelp());
+        return 1;
+      }
+      IppOneSetOf ippPageRanges;
+      for(std::pair<int32_t, int32_t> pageRange : pageRanges)
+      {
+        ippPageRanges.push_back(IppIntRange {pageRange.first, pageRange.second});
+      }
+      ip.pageRanges.set(ippPageRanges);
+    }
+
+    set_or_fail(copiesOpt, ip.copies, copies, force);
+    set_or_fail(collatedCopiesOpt, ip.multipleDocumentHandling, collatedCopies, force);
+    set_or_fail(paperSizeOpt, ip.media, paperSize, force);
+
+    std::string resolutionDoc = resolutionOpt.docName() + " (ipp: " + ip.resolution.name() + ")";
+    std::string resolutionSupported = "Valid values are: " + resolution_list(ip.resolution.getSupported());
+    set_or_fail(resolutionOpt.isSet(), resolutionDoc, resolutionSupported,
+                ip.resolution, IppResolution {hwRes, hwRes, IppResolution::DPI}, force);
+
+    std::string resolutionDoc2 = resolutionXOpt.docName() + " and " + resolutionYOpt.docName()
+                              + " (ipp: " + ip.resolution.name() + ")";
+    set_or_fail(resolutionXOpt.isSet() && resolutionYOpt.isSet(), resolutionDoc2, resolutionSupported,
+                ip.resolution, IppResolution {hwResX, hwResY, IppResolution::DPI}, force);
+
+    set_or_fail(sidesOpt, ip.sides, sides, force);
+    set_or_fail(colorModeOpt, ip.colorMode, colorMode, force);
+    set_or_fail(qualityOpt, ip.printQuality, quality, force);
+    set_or_fail(scalingOpt, ip.scaling, scaling, force);
+    set_or_fail(formatOpt, ip.documentFormat, format, force);
+    set_or_fail(mediaTypeOpt, ip.mediaType, mediaType, force);
+    set_or_fail(mediaSourceOpt, ip.mediaSource, mediaSource, force);
+    set_or_fail(outputBinOpt, ip.outputBin, outputBin, force);
+
+    if(marginOpt.isSet())
+    {
+      if(!force && (!ip.topMargin.isSupported() || !ip.bottomMargin.isSupported() ||
+                    !ip.leftMargin.isSupported() || !ip.rightMargin.isSupported()))
+      {
+        std::cerr << "Argument " << marginOpt.docName() << " (ipp: margin-*) "
+                  << "is not supported by this printer." << std::endl;
+        exit(1);
+      }
+      set_or_fail(true, marginOpt.docName(),
+                  "Valid values for top margin are: " +  ip.topMargin.supportedStr(),
+                  ip.topMargin, margin, force);
+      set_or_fail(true, marginOpt.docName(),
+                  "Valid values for bottom margin are: " +  ip.bottomMargin.supportedStr(),
+                  ip.bottomMargin, margin, force);
+      set_or_fail(true, marginOpt.docName(),
+                  "Valid values for left margin are: " +  ip.leftMargin.supportedStr(),
+                  ip.leftMargin, margin, force);
+      set_or_fail(true, marginOpt.docName(),
+                  "Valid values for right margin are: " +  ip.rightMargin.supportedStr(),
+                  ip.rightMargin, margin, force);
+    }
+
+    set_or_fail(topMarginOpt, ip.topMargin, topMargin, force);
+    set_or_fail(bottomMarginOpt, ip.bottomMargin, bottomMargin, force);
+    set_or_fail(leftMarginOpt, ip.leftMargin, leftMargin, force);
+    set_or_fail(rightMarginOpt, ip.rightMargin, rightMargin, force);
+
+    int nPages = 0; // Unknown - assume multiple if the format allows
+
+    if(mimeType == MiniMime::PDF)
+    {
+      GError* error = nullptr;
+      inFile = std::filesystem::absolute(inFile);
+      std::string url("file://");
+      url.append(inFile);
+      Pointer<PopplerDocument> doc(poppler_document_new_from_file(url.c_str(), nullptr, &error), g_object_unref);
+      if(doc == nullptr)
+      {
+          std::cerr << "Failed to open PDF: " << error->message << " (" << inFile << ")" << std::endl;
+          g_error_free(error);
+          return 1;
+      }
+      nPages = poppler_document_get_n_pages(doc);
+    }
+
+    Error error = ip.run(addr, inFile, mimeType, nPages, verbose);
+    if(error)
+    {
+      std::cerr << "Print failed: " << error.value() << std::endl;
+      return 1;
+    }
   }
   return 0;
 }

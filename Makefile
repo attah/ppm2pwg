@@ -3,7 +3,7 @@ $(shell pkg-config --cflags poppler-glib)
 
 VPATH = bytestream lib utils
 
-all: ppm2pwg pwg2ppm pdf2printable hexdump baselinify ippposter
+all: ppm2pwg pwg2ppm pdf2printable hexdump baselinify ippclient
 
 
 pdf2printable_mad.o: pdf2printable.cpp
@@ -39,14 +39,14 @@ baselinify_mad: bytestream.o baselinify_mad.o baselinify_main.o
 ippdecode: bytestream.o ippmsg.o ippattr.o ippdecode.o
 	$(CXX) $^ -o $@
 
-ippposter: ippmsg.o ippattr.o ippprintjob.o printparameters.o ippposter.o curlrequester.o minimime.o pdf2printable.o ppm2pwg.o baselinify.o bytestream.o
+ippclient: ippmsg.o ippattr.o ippprintjob.o printparameters.o ippclient.o curlrequester.o minimime.o pdf2printable.o ppm2pwg.o baselinify.o bytestream.o
 	$(CXX) $^ $(shell pkg-config --libs poppler-glib) -ljpeg -lcurl -o $@
 
 minimime: minimime_main.o minimime.o bytestream.o
 	$(CXX) $^ -o $@
 
 clean:
-	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad hexdump baselinify baselinify_mad ippposter minimime
+	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad hexdump baselinify baselinify_mad ippclient minimime
 
 analyze:
 	clang++ --analyze $(CXXFLAGS) lib/*.cpp utils/*.cpp

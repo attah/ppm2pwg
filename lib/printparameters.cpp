@@ -16,7 +16,7 @@ size_t PrintParameters::getPaperSizeWInPixels() const
     case Pixels:
       return paperSizeW;
     case Millimeters:
-      return round(paperSizeW * hwResW / MM_PER_IN);
+      return floor(paperSizeW * hwResW / MM_PER_IN);
     case Inches:
       return paperSizeW * hwResW;
   }
@@ -30,7 +30,7 @@ size_t PrintParameters::getPaperSizeHInPixels() const
     case Pixels:
       return paperSizeH;
     case Millimeters:
-      return round(paperSizeH * hwResH / MM_PER_IN);
+      return floor(paperSizeH * hwResH / MM_PER_IN);
     case Inches:
       return paperSizeH * hwResH;
   }

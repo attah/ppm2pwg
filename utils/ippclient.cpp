@@ -183,12 +183,12 @@ int main(int argc, char** argv)
   bool correctArgs = args.get_args(argc, argv);
   if(help)
   {
-    std::cout << args.argHelp() << std::endl << HELPTEXT << std::endl;
+    std::cout << args.argHelp(args.subCommand()) << std::endl << HELPTEXT << std::endl;
     return 0;
   }
   else if(!correctArgs)
   {
-    print_error(args.errmsg(), args.argHelp(args.subCommand()));
+    print_error(args.errmsg(), args.argHelp());
     return 1;
   }
 

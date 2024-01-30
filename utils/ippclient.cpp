@@ -188,7 +188,7 @@ int main(int argc, char** argv)
   }
   else if(!correctArgs)
   {
-    print_error(args.errmsg(), args.argHelp());
+    print_error(args.errmsg(), args.argHelp(args.subCommand()));
     return 1;
   }
 

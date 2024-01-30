@@ -421,14 +421,21 @@ public:
     return true;
   }
 
-  std::string argHelp()
+  std::string argHelp(std::string subCommand="")
   {
     std::stringstream help;
 
     help << "Usage: " << _name << " <sub-command> [options]" << std::endl << std::endl;
-    for(const auto& [subCommand, argGet] : _subCommands)
+    if(_subCommands.find(subCommand) != _subCommands.end())
     {
-      help << _name << " " << subCommand << argGet._argHelp() << std::endl;
+      help << _name << " " << subCommand << _subCommands[subCommand]._argHelp() << std::endl;
+    }
+    else
+    {
+      for(const auto& [subCommand, argGet] : _subCommands)
+      {
+        help << _name << " " << subCommand << argGet._argHelp() << std::endl;
+      }
     }
     return help.str();
   }

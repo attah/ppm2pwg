@@ -95,6 +95,7 @@ int main(int argc, char** argv)
   bool help = false;
   bool verbose = false;
   bool force = false;
+  bool oneStage = false;
   std::string pages;
   int copies;
   std::string collatedCopies;
@@ -126,7 +127,8 @@ int main(int argc, char** argv)
 
   SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
   SwitchArg<bool> verboseOpt(verbose, {"-v", "--verbose"}, "Be verbose, print headers and progress");
-  SwitchArg<bool> forceOpt(verbose, {"-f", "--force"}, "Force use of unsupported options");
+  SwitchArg<bool> forceOpt(force, {"-f", "--force"}, "Force use of unsupported options");
+  SwitchArg<bool> oneStageOpt(oneStage, {"--one-stage"}, "Force use of one-stage print job");
 
   SwitchArg<std::string> pagesOpt(pages, {"-p", "--pages"}, "What pages to process, e.g.: 1,17-42");
   SwitchArg<int> copiesOpt(copies, {"--copies"}, "Number of copies to output");
@@ -168,7 +170,7 @@ int main(int argc, char** argv)
 
   SubArgGet args({{"get-attrs", {{&helpOpt, &verboseOpt},
                                  {&addrArg}}},
-                  {"print", {{&helpOpt, &verboseOpt, &forceOpt,
+                  {"print", {{&helpOpt, &verboseOpt, &forceOpt, &oneStageOpt,
                               &pagesOpt, &copiesOpt, &collatedCopiesOpt, &paperSizeOpt,
                               &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
                               &sidesOpt, &colorModeOpt, &qualityOpt, &scalingOpt,
@@ -232,6 +234,11 @@ int main(int argc, char** argv)
     }
 
     IppPrintJob ip(printerAttrs);
+
+    if(oneStageOpt.isSet())
+    {
+      ip.oneStage = oneStage;
+    }
 
     if(antiAliasOpt.isSet())
     {

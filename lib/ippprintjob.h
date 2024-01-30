@@ -52,6 +52,7 @@ public:
     printParams = other.printParams;
     _printerAttrs = other._printerAttrs;
     targetFormat = other.targetFormat;
+    oneStage = other.oneStage;
     margins = other.margins;
     return *this;
   };
@@ -100,6 +101,8 @@ public:
   PrintParameters printParams;
 
   std::string targetFormat;
+
+  bool oneStage = false;
 
   struct Margins
   {

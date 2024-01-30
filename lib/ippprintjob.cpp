@@ -394,7 +394,9 @@ Error IppPrintJob::run(std::string addr, std::string inFile, std::string inForma
       return Error("No conversion method found for " + inFormat + " to " + targetFormat);
     }
 
-    if(supportedOperations.contains(IppMsg::CreateJob) && supportedOperations.contains(IppMsg::SendDocument))
+    if(!oneStage &&
+       supportedOperations.contains(IppMsg::CreateJob) &&
+       supportedOperations.contains(IppMsg::SendDocument))
     {
       IppAttrs createJobOpAttrs = IppMsg::baseOpAttrs(addr);
       createJobOpAttrs.set("job-name", IppAttr {IppMsg::NameWithoutLanguage, fileName});

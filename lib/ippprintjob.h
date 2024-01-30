@@ -80,6 +80,15 @@ public:
                             return Error();
                           };
 
+  ConvertFun JustUpload = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun, bool)
+                          {
+                            InBinFile in(inFileName);
+                            Bytestream inBts(in);
+                            writeFun(inBts.raw(), inBts.size());
+                            progressFun(1, 1);
+                            return Error();
+                          };
+
   std::map<ConvertKey, ConvertFun> Pipelines {{{MiniMime::PDF, MiniMime::PDF}, Pdf2Printable},
                                               {{MiniMime::PDF, MiniMime::Postscript}, Pdf2Printable},
                                               {{MiniMime::PDF, MiniMime::PWG}, Pdf2Printable},

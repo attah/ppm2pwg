@@ -380,9 +380,14 @@ Error IppPrintJob::run(std::string addr, std::string inFile, std::string inForma
     std::map<ConvertKey, ConvertFun>::iterator pit =
       Pipelines.find(ConvertKey {inFormat, targetFormat});
 
+
     if(pit != Pipelines.end())
     {
       convertFun = pit->second;
+    }
+    else if(inFormat == targetFormat)
+    {
+      convertFun = JustUpload;
     }
     else
     {

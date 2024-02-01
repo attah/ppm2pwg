@@ -481,7 +481,11 @@ Error IppPrintJob::doPrint(std::string addr, std::string inFile, ConvertFun conv
                 }
               });
 
-  convertFun(inFile, writeFun, *this, progressFun, verbose);
+  error = convertFun(inFile, writeFun, *this, progressFun, verbose);
+  if(error)
+  {
+    return error;
+  }
 
   Bytestream result;
   CURLcode cres = cr.await(&result);

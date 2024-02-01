@@ -81,6 +81,7 @@ protected:
 class CurlIppPosterBase : public CurlRequester
 {
 public:
+  ~CurlIppPosterBase();
   virtual CURLcode await(Bytestream* = nullptr);
 
   bool write(const void* data, size_t size);

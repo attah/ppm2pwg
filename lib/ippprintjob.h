@@ -60,6 +60,10 @@ public:
   ConvertFun Baselinify = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun, bool)
                           {
                             InBinFile in(inFileName);
+                            if(!in)
+                            {
+                              return Error("Failed to open input");
+                            }
                             Bytestream inBts(in);
                             Bytestream baselinified;
                             baselinify(inBts, baselinified);
@@ -72,6 +76,10 @@ public:
   ConvertFun JustUpload = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun, bool)
                           {
                             InBinFile in(inFileName);
+                            if(!in)
+                            {
+                              return Error("Failed to open input");
+                            }
                             Bytestream inBts(in);
                             writeFun(inBts.raw(), inBts.size());
                             progressFun(1, 1);

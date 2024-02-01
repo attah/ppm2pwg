@@ -42,6 +42,10 @@ public:
     *in >> t;
     return *in;
   }
+  explicit operator bool() const
+  {
+    return in->operator bool();
+  }
 private:
   std::ifstream ifs;
   std::istream* in;
@@ -79,6 +83,10 @@ public:
   std::ostream* operator->()
   {
     return out;
+  }
+  explicit operator bool() const
+  {
+    return out->operator bool();
   }
 private:
   std::ofstream ofs;

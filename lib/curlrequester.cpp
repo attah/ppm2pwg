@@ -58,6 +58,11 @@ CURLcode CurlRequester::await(Bytestream* data)
   return _result;
 }
 
+CurlIppPosterBase::~CurlIppPosterBase()
+{
+  await();
+}
+
 bool CurlIppPosterBase::write(const void* data, size_t size)
 {
   while(!_canWrite.try_lock())

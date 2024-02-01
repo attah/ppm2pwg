@@ -9,6 +9,7 @@
 #include "setting.h"
 #include "error.h"
 #include "minimime.h"
+#include "stringsplit.h"
 
 class IppPrintJob
 {
@@ -86,11 +87,34 @@ public:
                             return Error();
                           };
 
+  ConvertFun FixupText = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun, bool)
+                         {
+                           InBinFile in(inFileName);
+                           if(!in)
+                           {
+                             return Error("Failed to open input");
+                           }
+                           Bytestream inBts(in);
+                           std::string allText = inBts.getString(inBts.size());
+
+                           List<std::string> lines;
+                           for(const std::string& rnline : split_string(allText, "\r\n"))
+                           {
+                             lines += split_string(rnline, "\n");
+                           }
+                           std::string outString = join_string(lines, "\r\n");
+
+                           writeFun((uint8_t*)outString.c_str(), outString.length());
+                           progressFun(1, 1);
+                           return Error();
+                         };
+
   std::map<ConvertKey, ConvertFun> Pipelines {{{MiniMime::PDF, MiniMime::PDF}, Pdf2Printable},
                                               {{MiniMime::PDF, MiniMime::Postscript}, Pdf2Printable},
                                               {{MiniMime::PDF, MiniMime::PWG}, Pdf2Printable},
                                               {{MiniMime::PDF, MiniMime::URF}, Pdf2Printable},
-                                              {{MiniMime::JPEG, MiniMime::JPEG}, Baselinify}};
+                                              {{MiniMime::JPEG, MiniMime::JPEG}, Baselinify},
+                                              {{"text/plain", "text/plain"}, FixupText}};
 
   IppAttrs opAttrs;
   IppAttrs jobAttrs;

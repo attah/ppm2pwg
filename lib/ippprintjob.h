@@ -45,18 +45,6 @@ public:
 
   List<std::string> additionalDocumentFormats();
 
-  IppPrintJob& operator=(const IppPrintJob& other)
-  {
-    opAttrs = other.opAttrs;
-    jobAttrs = other.jobAttrs;
-    printParams = other.printParams;
-    _printerAttrs = other._printerAttrs;
-    targetFormat = other.targetFormat;
-    oneStage = other.oneStage;
-    margins = other.margins;
-    return *this;
-  };
-
   typedef std::pair<std::string, std::string> ConvertKey;
   typedef std::function<Error(std::string inFileName, WriteFun writeFun, const IppPrintJob& job, ProgressFun progressFun, bool verbose)> ConvertFun;
 

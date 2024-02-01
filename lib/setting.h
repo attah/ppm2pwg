@@ -6,9 +6,16 @@
 template <typename T>
 class Setting
 {
+  // Settings must be immune to copying/assignment,
+  // so they keep pointing to the Attrs of their parent IppPrintJob.
+  // Thus, no need to expose copying/assignment to anything else.
+protected:
+  friend class IppPrintJob;
+  Setting(Setting&) {}
+  Setting& operator=(const Setting&) {return *this;};
+
 public:
   Setting() = delete;
-  Setting& operator=(const Setting& other) = delete;
   Setting(IppAttrs* printerAttrs, IppAttrs* attrs, IppMsg::Tag tag, std::string name, std::string subKey = "")
   : _printerAttrs(printerAttrs), _attrs(attrs), _tag(tag), _name(name), _subKey(subKey)
   {}

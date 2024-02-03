@@ -39,7 +39,7 @@ baselinify_mad: bytestream.o baselinify_mad.o baselinify_main.o
 ippdecode: bytestream.o ippmsg.o ippattr.o ippdecode.o
 	$(CXX) $^ -o $@
 
-ippclient: ippmsg.o ippattr.o ippprintjob.o printparameters.o ippclient.o curlrequester.o minimime.o pdf2printable.o ppm2pwg.o baselinify.o bytestream.o
+ippclient: ippmsg.o ippattr.o ippprinter.o ippprintjob.o printparameters.o ippclient.o curlrequester.o minimime.o pdf2printable.o ppm2pwg.o baselinify.o bytestream.o
 	$(CXX) $^ $(shell pkg-config --libs poppler-glib) -ljpeg -lcurl -lz -o $@
 
 minimime: minimime_main.o minimime.o bytestream.o

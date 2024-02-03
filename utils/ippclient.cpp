@@ -6,9 +6,7 @@
 #include <poppler-document.h>
 
 #include "argget.h"
-#include "curlrequester.h"
-#include "ippmsg.h"
-#include "ippprintjob.h"
+#include "ippprinter.h"
 #include "minimime.h"
 #include "pointer.h"
 
@@ -192,48 +190,21 @@ int main(int argc, char** argv)
     return 1;
   }
 
+  IppPrinter printer(addr);
+  Error error = printer.error();
+  if(error)
+  {
+    std::cerr << "Could not get printer attributes: " << error.value() << std::endl;
+    return 1;
+  }
+
   if(args.subCommand() == "get-attrs")
   {
-    IppAttrs getPrinterAttrsJobAttrs = IppMsg::baseOpAttrs(addr);
-    IppMsg getPrinterAttrsMsg(IppMsg::GetPrinterAttrs, getPrinterAttrsJobAttrs);
-
-    CurlIppPoster getPrinterAttrsReq(addr, getPrinterAttrsMsg.encode(), true, verbose);
-    Bytestream getPrinterAttrsResult;
-    CURLcode res0 = getPrinterAttrsReq.await(&getPrinterAttrsResult);
-    IppAttrs printerAttrs;
-    if(res0 == CURLE_OK)
-    {
-      IppMsg getPrinterAttrsResp(getPrinterAttrsResult);
-      printerAttrs = getPrinterAttrsResp.getPrinterAttrs();
-    }
-    else
-    {
-      std::cerr << "Could not get printer attributes: " << curl_easy_strerror(res0) << std::endl;
-      return 1;
-    }
-    std::cout << printerAttrs;
+    std::cout << printer.attributes();
   }
   else if(args.subCommand() == "print")
   {
-    IppAttrs getPrinterAttrsJobAttrs = IppMsg::baseOpAttrs(addr);
-    IppMsg getPrinterAttrsMsg(IppMsg::GetPrinterAttrs, getPrinterAttrsJobAttrs);
-
-    CurlIppPoster getPrinterAttrsReq(addr, getPrinterAttrsMsg.encode(), true, verbose);
-    Bytestream getPrinterAttrsResult;
-    CURLcode res0 = getPrinterAttrsReq.await(&getPrinterAttrsResult);
-    IppAttrs printerAttrs;
-    if(res0 == CURLE_OK)
-    {
-      IppMsg getPrinterAttrsResp(getPrinterAttrsResult);
-      printerAttrs = getPrinterAttrsResp.getPrinterAttrs();
-    }
-    else
-    {
-      std::cerr << "Could not get printer attributes: " << curl_easy_strerror(res0) << std::endl;
-      return 1;
-    }
-
-    IppPrintJob ip(printerAttrs);
+    IppPrintJob ip = printer.createJob();
 
     if(oneStageOpt.isSet())
     {
@@ -343,7 +314,7 @@ int main(int argc, char** argv)
       nPages = poppler_document_get_n_pages(doc);
     }
 
-    Error error = ip.run(addr, inFile, mimeType, nPages, verbose);
+    error = ip.run(addr, inFile, mimeType, nPages, verbose);
     if(error)
     {
       std::cerr << "Print failed: " << error.value() << std::endl;

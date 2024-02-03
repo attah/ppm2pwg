@@ -29,7 +29,12 @@ public:
     return IppPrintJob(_printerAttrs);
   }
 
+  bool identifySupported();
+  Error identify();
+
 private:
+  Error _doRequest(IppMsg::Operation op, IppMsg& resp);
+
   std::string _addr;
   bool _verbose = false;
   bool _ignoreSslErrors = true;

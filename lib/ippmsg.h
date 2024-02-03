@@ -62,7 +62,7 @@ public:
     MemberName          = 0x4A
   };
 
-  IppMsg() = delete;
+  IppMsg() = default;
   IppMsg(Bytestream& msg);
   IppMsg(uint16_t opOrStatus, IppAttrs opAttrs, IppAttrs jobAttrs=IppAttrs(),
          uint8_t majVsn=1, uint8_t minVsn=1, IppAttrs printerAttrs=IppAttrs());
@@ -93,10 +93,10 @@ private:
   void encodeAttribute(Bytestream& msg, std::string name, IppAttr attr, bool subCollection=false) const;
   void encodeValue(Bytestream& msg, uint8_t tag, IppValue val) const;
 
-  uint16_t _opOrStatus;
+  uint16_t _opOrStatus = 0;
 
-  uint8_t _majVsn;
-  uint8_t _minVsn;
+  uint8_t _majVsn = 1;
+  uint8_t _minVsn = 1;
 
   IppAttrs _opAttrs;
   std::list<IppAttrs> _jobAttrs;

@@ -8,9 +8,33 @@ IppPrinter::IppPrinter(std::string addr) : _addr(addr)
 
 Error IppPrinter::refresh()
 {
+  IppMsg resp;
+  Error error = _doRequest(IppMsg::GetPrinterAttrs, resp);
+  _printerAttrs = resp.getPrinterAttrs();
+  return error;
+}
+
+bool IppPrinter::identifySupported()
+{
+  return _printerAttrs.has("identify-actions-supported");
+}
+
+Error IppPrinter::identify()
+{
+  if(!identifySupported())
+  {
+    return Error("Identify not supported.");
+  }
+  IppMsg resp;
+  Error error = _doRequest(IppMsg::IdentifyPrinter, resp);
+  return error;
+}
+
+Error IppPrinter::_doRequest(IppMsg::Operation op, IppMsg& resp)
+{
   Error error;
   IppAttrs getPrinterAttrsJobAttrs = IppMsg::baseOpAttrs(_addr);
-  IppMsg getPrinterAttrsMsg(IppMsg::GetPrinterAttrs, getPrinterAttrsJobAttrs);
+  IppMsg getPrinterAttrsMsg(op, getPrinterAttrsJobAttrs);
 
   CurlIppPoster getPrinterAttrsReq(_addr, getPrinterAttrsMsg.encode(), _ignoreSslErrors, _verbose);
   Bytestream getPrinterAttrsResult;
@@ -19,8 +43,7 @@ Error IppPrinter::refresh()
   {
     try
     {
-      IppMsg getPrinterAttrsResp(getPrinterAttrsResult);
-      _printerAttrs = getPrinterAttrsResp.getPrinterAttrs();
+      resp = IppMsg(getPrinterAttrsResult);
     }
     catch(const std::exception& e)
     {

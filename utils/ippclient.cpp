@@ -168,6 +168,8 @@ int main(int argc, char** argv)
 
   SubArgGet args({{"get-attrs", {{&helpOpt, &verboseOpt},
                                  {&addrArg}}},
+                  {"identify", {{&helpOpt, &verboseOpt},
+                                {&addrArg}}},
                   {"print", {{&helpOpt, &verboseOpt, &forceOpt, &oneStageOpt,
                               &pagesOpt, &copiesOpt, &collatedCopiesOpt, &paperSizeOpt,
                               &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
@@ -201,6 +203,15 @@ int main(int argc, char** argv)
   if(args.subCommand() == "get-attrs")
   {
     std::cout << printer.attributes();
+  }
+  else if(args.subCommand() == "identify")
+  {
+    error = printer.identify();
+    if(error)
+    {
+      std::cerr << "Identify failed: " << error.value() << std::endl;
+      return 1;
+    }
   }
   else if(args.subCommand() == "print")
   {

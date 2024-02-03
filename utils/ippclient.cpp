@@ -1,6 +1,7 @@
 #include <bytestream.h>
 #include <iostream>
 #include <filesystem>
+#include <regex>
 
 #include <poppler.h>
 #include <poppler-document.h>
@@ -17,22 +18,57 @@ inline void print_error(std::string hint, std::string argHelp)
   std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
 }
 
-template <typename T>
-std::ostream& operator<<(std::ostream& os, List<T> bl)
+std::string print_colors(const List<std::string>& colors)
 {
-  if(bl.size() > 0)
+  std::stringstream res;
+  std::smatch match;
+  const std::regex colorRegex("^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$");
+  for(const std::string& color : colors)
   {
-    os << "[" << bl.takeFront();
-    for(T b : bl)
+    if(std::regex_match(color, match, colorRegex))
     {
-      os << ", " << b;
+      unsigned long r = std::stoul(match[1], nullptr, 16);
+      unsigned long g = std::stoul(match[2], nullptr, 16);
+      unsigned long b = std::stoul(match[3], nullptr, 16);
+      res << "\x1b[48;2;" << r << ";" << g << ";" << b << "m" << " " << "\x1b[0m";
     }
-    os << "]";
   }
-  else
+  return res.str();
+}
+
+std::ostream& operator<<(std::ostream& os, List<IppPrinter::Supply> supplies)
+{
+  for(List<IppPrinter::Supply>::iterator supply = supplies.begin(); supply != supplies.end(); supply++)
   {
-    os << "[]";
+    std::string color = print_colors(supply->colors);
+    os << "* " << supply->name << std::endl
+       << "  " << ((color != "") ? color+" " : "")
+       << supply->getPercent() << "%" << (supply->isLow() ? "(low)" : "")
+       << " " << supply->type;
+    if(std::next(supply) != supplies.end())
+    {
+      os << std::endl;
+    }
   }
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, List<IppPrinter::Firmware> firmwares)
+{
+  for(List<IppPrinter::Firmware>::iterator firmware = firmwares.begin(); firmware != firmwares.end(); firmware++)
+  {
+    os << firmware->name << ": " << firmware->version;
+    if(std::next(firmware) != firmwares.end())
+    {
+      os << std::endl;
+    }
+  }
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, List<std::string> sl)
+{
+  os << join_string(sl, ", ");
   return os;
 }
 
@@ -54,6 +90,15 @@ std::string resolution_list(List<IppResolution> l)
     ss << "empty";
   }
   return ss.str();
+}
+
+template <typename T>
+void print_if_set(std::string title, T value)
+{
+  if(value != T())
+  {
+    std::cout << title << std::endl << value << std::endl << std::endl;
+  }
 }
 
 template <typename O, typename S, typename V>
@@ -168,6 +213,8 @@ int main(int argc, char** argv)
 
   SubArgGet args({{"get-attrs", {{&helpOpt, &verboseOpt},
                                  {&addrArg}}},
+                  {"info", {{&helpOpt, &verboseOpt},
+                            {&addrArg}}},
                   {"identify", {{&helpOpt, &verboseOpt},
                                 {&addrArg}}},
                   {"print", {{&helpOpt, &verboseOpt, &forceOpt, &oneStageOpt,
@@ -203,6 +250,21 @@ int main(int argc, char** argv)
   if(args.subCommand() == "get-attrs")
   {
     std::cout << printer.attributes();
+  }
+  else if(args.subCommand() == "info")
+  {
+    print_if_set("Name:", printer.name());
+    print_if_set("Make and model:", printer.makeAndModel());
+    print_if_set("Location:", printer.location());
+    print_if_set("UUID:", printer.uuid());
+    print_if_set("Printer state message:", printer.stateMessage());
+    print_if_set("Printer state reasons:", join_string(printer.stateReasons(), "\n"));
+    print_if_set("IPP versions supported:", join_string(printer.ippVersionsSupported(), ", "));
+    print_if_set("IPP features supported:", join_string(printer.ippFeaturesSupported(), "\n"));
+    print_if_set("Pages per minute:", printer.pagesPerMinute());
+    print_if_set("Pages per minute (color):", printer.pagesPerMinuteColor());
+    print_if_set("Supplies:", printer.supplies());
+    print_if_set("Firmware:", printer.firmware());
   }
   else if(args.subCommand() == "identify")
   {

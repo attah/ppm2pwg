@@ -10,6 +10,25 @@
 class IppPrinter
 {
 public:
+  struct Supply
+  {
+    std::string name;
+    std::string type;
+    List<std::string> colors;
+    int level = 0;
+    int lowLevel = 0;
+    int highLevel = 0;
+    int getPercent() const;
+    bool isLow() const;
+    bool operator==(const Supply& other) const;
+  };
+  struct Firmware
+  {
+    std::string name;
+    std::string version;
+    bool operator==(const Firmware& other) const;
+  };
+
   IppPrinter() = delete;
   IppPrinter(std::string addr);
   Error refresh();
@@ -28,6 +47,20 @@ public:
   {
     return IppPrintJob(_printerAttrs);
   }
+
+  std::string name();
+  std::string uuid();
+  std::string makeAndModel();
+  std::string location();
+  int state();
+  std::string stateMessage();
+  List<std::string> stateReasons();
+  List<std::string> ippVersionsSupported();
+  List<std::string> ippFeaturesSupported();
+  int pagesPerMinute();
+  int pagesPerMinuteColor();
+  List<Supply> supplies();
+  List<Firmware> firmware();
 
   bool identifySupported();
   Error identify();

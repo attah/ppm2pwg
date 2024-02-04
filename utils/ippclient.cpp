@@ -38,7 +38,7 @@ std::string print_colors(const List<std::string>& colors)
 
 std::ostream& operator<<(std::ostream& os, List<IppPrinter::Supply> supplies)
 {
-  for(List<IppPrinter::Supply>::iterator supply = supplies.begin(); supply != supplies.end(); supply++)
+  for(List<IppPrinter::Supply>::const_iterator supply = supplies.cbegin(); supply != supplies.cend(); supply++)
   {
     std::string color = print_colors(supply->colors);
     os << "* " << supply->name << std::endl
@@ -55,7 +55,7 @@ std::ostream& operator<<(std::ostream& os, List<IppPrinter::Supply> supplies)
 
 std::ostream& operator<<(std::ostream& os, List<IppPrinter::Firmware> firmwares)
 {
-  for(List<IppPrinter::Firmware>::iterator firmware = firmwares.begin(); firmware != firmwares.end(); firmware++)
+  for(List<IppPrinter::Firmware>::const_iterator firmware = firmwares.cbegin(); firmware != firmwares.cend(); firmware++)
   {
     os << firmware->name << ": " << firmware->version;
     if(std::next(firmware) != firmwares.end())
@@ -285,7 +285,7 @@ int main(int argc, char** argv)
     List<std::pair<std::string, std::string>> kvs;
     std::smatch match;
     const std::regex kvRegex("^([^=]*)=([^=]*)$");
-    for(std::string kv : split_string(attrs, ","))
+    for(const std::string& kv : split_string(attrs, ","))
     {
       if(std::regex_match(kv, match, kvRegex))
       {

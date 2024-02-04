@@ -171,7 +171,7 @@ std::ostream& operator<<(std::ostream& os, const IppValue& iv)
   {
     IppOneSetOf oneSet = iv.get<IppOneSetOf>();
     os << "[" << oneSet.takeFront();
-    for(IppValue iv2 : oneSet)
+    for(const IppValue& iv2 : oneSet)
     {
       os << ", " << iv2;
     }

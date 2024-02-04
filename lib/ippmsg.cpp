@@ -87,7 +87,7 @@ Bytestream IppMsg::encode() const
     }
   }
   encodeAttributes(ipp, opAttrs);
-  for(IppAttrs attrs : _jobAttrs)
+  for(const IppAttrs& attrs : _jobAttrs)
   {
     if (!attrs.empty()) {
       ipp << (uint8_t)IppTag::JobAttrs;
@@ -319,7 +319,7 @@ std::string IppMsg::consumeAttributes(IppAttrs& attrs, Bytestream& data) const
   {
     IppOneSetOf tmpOneSet;
     tmpOneSet.push_back(value);
-    for(IppAttr a : unnamed)
+    for(const IppAttr& a : unnamed)
     {
       tmpOneSet.push_back(a.value());
     }
@@ -334,13 +334,13 @@ std::string IppMsg::consumeAttributes(IppAttrs& attrs, Bytestream& data) const
 
 void IppMsg::encodeAttributes(Bytestream& msg, const IppAttrs& attrs) const
 {
-  for(std::pair<const std::string, IppAttr>  attr : attrs)
+  for(const std::pair<const std::string, IppAttr>& attr : attrs)
   {
     encodeAttribute(msg, attr.first, attr.second);
   }
 }
 
-void IppMsg::encodeAttribute(Bytestream& msg, std::string name, IppAttr attr, bool subCollection) const
+void IppMsg::encodeAttribute(Bytestream& msg, std::string name, const IppAttr& attr, bool subCollection) const
 {
   IppTag tag = attr.tag();
   if(subCollection)
@@ -367,7 +367,7 @@ void IppMsg::encodeAttribute(Bytestream& msg, std::string name, IppAttr attr, bo
   }
 }
 
-void IppMsg::encodeValue(Bytestream& msg, IppTag tag, IppValue val) const
+void IppMsg::encodeValue(Bytestream& msg, IppTag tag, const IppValue& val) const
 {
   switch(tag)
   {

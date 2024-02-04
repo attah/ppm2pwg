@@ -64,8 +64,8 @@ private:
   IppValue collectAttributes(List<IppAttr>& attrs) const;
   std::string consumeAttributes(IppAttrs& attrs, Bytestream& data) const;
   void encodeAttributes(Bytestream& msg, const IppAttrs& attrs) const;
-  void encodeAttribute(Bytestream& msg, std::string name, IppAttr attr, bool subCollection=false) const;
-  void encodeValue(Bytestream& msg, IppTag tag, IppValue val) const;
+  void encodeAttribute(Bytestream& msg, std::string name, const IppAttr& attr, bool subCollection=false) const;
+  void encodeValue(Bytestream& msg, IppTag tag, const IppValue& val) const;
 
   uint16_t _opOrStatus = 0;
 

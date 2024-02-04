@@ -85,20 +85,20 @@ List<IppPrinter::Supply> IppPrinter::supplies()
   List<int> lowLevels = _printerAttrs.getList<int>("marker-low-levels");
   List<int> highLevels = _printerAttrs.getList<int>("marker-high-levels");
 
-  List<std::string>::iterator name = names.begin();
-  List<std::string>::iterator type = types.begin();
-  List<std::string>::iterator color = colors.begin();
-  List<int>::iterator level = levels.begin();
-  List<int>::iterator lowLevel = lowLevels.begin();
-  List<int>::iterator highLevel = highLevels.begin();
+  List<std::string>::const_iterator name = names.cbegin();
+  List<std::string>::const_iterator type = types.cbegin();
+  List<std::string>::const_iterator color = colors.cbegin();
+  List<int>::const_iterator level = levels.cbegin();
+  List<int>::const_iterator lowLevel = lowLevels.cbegin();
+  List<int>::const_iterator highLevel = highLevels.cbegin();
 
   for(;
-      name != names.end() && type != types.end() && color != colors.end() &&
-      level != levels.end() && lowLevel != lowLevels.end() && highLevel != highLevels.end();
+      name != names.cend() && type != types.cend() && color != colors.cend() &&
+      level != levels.cend() && lowLevel != lowLevels.cend() && highLevel != highLevels.cend();
       name++, type++, color++, level++, lowLevel++, highLevel++)
   {
     List<std::string> colorList;
-    for(std::string colorString : split_string(*color, "#"))
+    for(const std::string& colorString : split_string(*color, "#"))
     {
       colorList.push_back("#" + colorString);
     }
@@ -113,8 +113,8 @@ List<IppPrinter::Firmware> IppPrinter::firmware()
   List<std::string> names = _printerAttrs.getList<std::string>("printer-firmware-name");
   List<std::string> versions = _printerAttrs.getList<std::string>("printer-firmware-string-version");
 
-  for(List<std::string>::iterator name = names.begin(), version = versions.begin();
-      name != names.end() && version != versions.end();
+  for(List<std::string>::const_iterator name = names.cbegin(), version = versions.cbegin();
+      name != names.cend() && version != versions.cend();
       name++, version++)
   {
     firmware.push_back({*name, *version});

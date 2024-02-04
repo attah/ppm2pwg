@@ -146,7 +146,7 @@ Error IppPrintJob::finalize(std::string inputFormat, int pages)
   // Effected locally for PDF (and upstream formats)
   if(inputFormat == MiniMime::PDF)
   {
-    for(IppIntRange range : jobAttrs.getList<IppIntRange>("page-ranges"))
+    for(const IppIntRange& range : jobAttrs.getList<IppIntRange>("page-ranges"))
     {
       printParams.pageRangeList.push_back({range.low, range.high});
     }
@@ -243,7 +243,7 @@ void IppPrintJob::adjustRasterSettings(int pages)
     uint32_t AdjustedHwResX = printParams.hwResW;
     uint32_t AdjustedHwResY = printParams.hwResH;
 
-    for(IppResolution res : _printerAttrs.getList<IppResolution>("pwg-raster-document-resolution-supported"))
+    for(const IppResolution& res : _printerAttrs.getList<IppResolution>("pwg-raster-document-resolution-supported"))
     {
       if(res.units != IppResolution::DPI)
       {

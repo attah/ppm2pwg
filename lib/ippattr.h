@@ -114,6 +114,7 @@ public:
 
   IppTag tag() const {return _tag;}
   IppValue value() const {return *this;}
+  static IppAttr fromString(std::string string, IppTag tag);
 
 private:
   IppTag _tag;

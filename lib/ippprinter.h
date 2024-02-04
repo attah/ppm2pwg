@@ -61,12 +61,15 @@ public:
   int pagesPerMinuteColor();
   List<Supply> supplies();
   List<Firmware> firmware();
+  List<std::string> settableAttributes();
 
   bool identifySupported();
   Error identify();
+  Error setAttributes(List<std::pair<std::string, std::string>> attrStrs);
 
 private:
   Error _doRequest(IppMsg::Operation op, IppMsg& resp);
+  Error _doRequest(const IppMsg& req, IppMsg& resp);
 
   std::string _addr;
   bool _verbose = false;

@@ -69,6 +69,60 @@ IppOneSetOf IppAttr::asList() const
   }
 }
 
+IppAttr IppAttr::fromString(std::string string, IppTag tag)
+{
+  switch(tag)
+  {
+    case IppTag::OpAttrs:
+    case IppTag::JobAttrs:
+    case IppTag::EndAttrs:
+    case IppTag::PrinterAttrs:
+      throw std::logic_error("Unexpected tag");
+    case IppTag::Integer:
+    case IppTag::Enum:
+    {
+      return IppAttr(tag, std::stoi(string));
+    }
+    case IppTag::Boolean:
+    {
+      if(string == "true")
+      {
+        return IppAttr(tag, true);
+      }
+      else if(string == "false")
+      {
+        return IppAttr(tag, false);
+      }
+      else
+      {
+        throw std::out_of_range("Bool not given as true or false");
+      }
+    }
+    // TODO:
+    case IppTag::DateTime:
+    case IppTag::Resolution:
+    case IppTag::IntegerRange:
+    case IppTag::OctetStringUnknown:
+      throw std::logic_error("Unhandled tag");
+    case IppTag::TextWithLanguage:
+    case IppTag::NameWithLanguage:
+    case IppTag::TextWithoutLanguage:
+    case IppTag::NameWithoutLanguage:
+    case IppTag::Keyword:
+    case IppTag::Uri:
+    case IppTag::UriScheme:
+    case IppTag::Charset:
+    case IppTag::NaturalLanguage:
+    case IppTag::MimeMediaType:
+    {
+      return IppAttr(tag, string);
+    }
+    case IppTag::BeginCollection:
+    default:
+      throw std::logic_error("Unhandled tag");
+  }
+}
+
 std::ostream& operator<<(std::ostream& os, const IppIntRange& ir)
 {
   os << "{\"min\": " << ir.low << ", \"max\": " << ir.high << "}";

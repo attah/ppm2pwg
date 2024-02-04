@@ -29,6 +29,9 @@ public:
     PausePrinter    = 0x0010,
     ResumePrinter   = 0x0011,
     PurgeJobs       = 0x0012,
+    SetPrinterAttrs = 0x0013,
+    SetJobAttrs     = 0x0014,
+    GetPrinterSupportedValues = 0x0015,
     IdentifyPrinter = 0x003C
   };
 

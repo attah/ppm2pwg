@@ -436,7 +436,6 @@ void IppMsg::encodeValue(Bytestream& msg, IppTag tag, IppValue val) const
     default:
       std::cerr << "uncaught tag " << +(uint8_t)tag;
       throw std::logic_error("Uncaught tag");
-      break;
   }
 }
 

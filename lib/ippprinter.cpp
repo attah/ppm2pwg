@@ -122,9 +122,14 @@ List<IppPrinter::Firmware> IppPrinter::firmware()
   return firmware;
 }
 
+List<std::string> IppPrinter::settableAttributes()
+{
+  return _printerAttrs.getList<std::string>("printer-settable-attributes-supported");
+}
+
 int IppPrinter::Supply::getPercent() const
 {
-  return (level*100.0)/highLevel;
+  return (level*100.0)/(highLevel != 0 ? highLevel : 100);
 }
 
 bool IppPrinter::Supply::isLow() const
@@ -159,13 +164,44 @@ Error IppPrinter::identify()
   return error;
 }
 
+Error IppPrinter::setAttributes(List<std::pair<std::string, std::string>> attrStrs)
+{
+  Error err;
+  IppAttrs attrs;
+  for(const auto& [name, value] : attrStrs)
+  {
+    if(_printerAttrs.has(name))
+    {
+      IppTag tag = _printerAttrs.at(name).tag();
+      try
+      {
+        attrs.set(name, IppAttr::fromString(value, tag));
+      }
+      catch(const std::exception& e)
+      {
+        return Error(e.what());
+      }
+    }
+  }
+  IppAttrs opAttrs = IppMsg::baseOpAttrs(_addr);
+  IppMsg req(IppMsg::SetPrinterAttrs, opAttrs, {}, 1, 1, attrs);
+  IppMsg resp;
+  err = _doRequest(req, resp);
+  return err;
+}
+
 Error IppPrinter::_doRequest(IppMsg::Operation op, IppMsg& resp)
 {
-  Error error;
-  IppAttrs getPrinterAttrsJobAttrs = IppMsg::baseOpAttrs(_addr);
-  IppMsg getPrinterAttrsMsg(op, getPrinterAttrsJobAttrs);
+  IppAttrs opAttrs = IppMsg::baseOpAttrs(_addr);
+  IppMsg req(op, opAttrs);
+  return _doRequest(req, resp);
+}
 
-  CurlIppPoster getPrinterAttrsReq(_addr, getPrinterAttrsMsg.encode(), _ignoreSslErrors, _verbose);
+Error IppPrinter::_doRequest(const IppMsg& req, IppMsg& resp)
+{
+  Error error;
+
+  CurlIppPoster getPrinterAttrsReq(_addr, req.encode(), _ignoreSslErrors, _verbose);
   Bytestream getPrinterAttrsResult;
   CURLcode res0 = getPrinterAttrsReq.await(&getPrinterAttrsResult);
   if(res0 == CURLE_OK)

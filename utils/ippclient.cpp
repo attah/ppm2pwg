@@ -166,6 +166,7 @@ int main(int argc, char** argv)
   bool antiAlias;
 
   std::string addr;
+  std::string attrs;
   std::string inFile;
 
   SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
@@ -209,14 +210,17 @@ int main(int argc, char** argv)
   SwitchArg<bool> antiAliasOpt(antiAlias, {"-aa", "--antaialias"}, "Enable antialiasing in rasterization");
 
   PosArg addrArg(addr, "printer address");
+  PosArg attrsArg(attrs, "name=value[,name=value]");
   PosArg pdfArg(inFile, "input file");
 
-  SubArgGet args({{"get-attrs", {{&helpOpt, &verboseOpt},
-                                 {&addrArg}}},
-                  {"info", {{&helpOpt, &verboseOpt},
+  SubArgGet args({{"info", {{&helpOpt, &verboseOpt},
                             {&addrArg}}},
                   {"identify", {{&helpOpt, &verboseOpt},
                                 {&addrArg}}},
+                  {"get-attrs", {{&helpOpt, &verboseOpt},
+                                 {&addrArg}}},
+                  {"set-attrs", {{&helpOpt, &verboseOpt},
+                                 {&addrArg, &attrsArg}}},
                   {"print", {{&helpOpt, &verboseOpt, &forceOpt, &oneStageOpt,
                               &pagesOpt, &copiesOpt, &collatedCopiesOpt, &paperSizeOpt,
                               &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
@@ -247,11 +251,7 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  if(args.subCommand() == "get-attrs")
-  {
-    std::cout << printer.attributes();
-  }
-  else if(args.subCommand() == "info")
+  if(args.subCommand() == "info")
   {
     print_if_set("Name:", printer.name());
     print_if_set("Make and model:", printer.makeAndModel());
@@ -265,6 +265,7 @@ int main(int argc, char** argv)
     print_if_set("Pages per minute (color):", printer.pagesPerMinuteColor());
     print_if_set("Supplies:", printer.supplies());
     print_if_set("Firmware:", printer.firmware());
+    print_if_set("Settable attributes:", join_string(printer.settableAttributes(), "\n"));
   }
   else if(args.subCommand() == "identify")
   {
@@ -272,6 +273,34 @@ int main(int argc, char** argv)
     if(error)
     {
       std::cerr << "Identify failed: " << error.value() << std::endl;
+      return 1;
+    }
+  }
+  else if(args.subCommand() == "get-attrs")
+  {
+    std::cout << printer.attributes();
+  }
+  else if(args.subCommand() == "set-attrs")
+  {
+    List<std::pair<std::string, std::string>> kvs;
+    std::smatch match;
+    const std::regex kvRegex("^([^=]*)=([^=]*)$");
+    for(std::string kv : split_string(attrs, ","))
+    {
+      if(std::regex_match(kv, match, kvRegex))
+      {
+        kvs.push_back({match[1], match[2]});
+      }
+      else
+      {
+        std::cerr << "Bad key:value: " << kv << std::endl;
+        return 1;
+      }
+    }
+    error = printer.setAttributes(kvs);
+    if(error)
+    {
+      std::cerr << "Set attributes failed: " << error.value() << std::endl;
       return 1;
     }
   }

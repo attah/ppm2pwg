@@ -16,7 +16,7 @@ protected:
 
 public:
   Setting() = delete;
-  Setting(IppAttrs* printerAttrs, IppAttrs* attrs, IppMsg::Tag tag, std::string name, std::string subKey = "")
+  Setting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag, std::string name, std::string subKey = "")
   : _printerAttrs(printerAttrs), _attrs(attrs), _tag(tag), _name(name), _subKey(subKey)
   {}
 
@@ -61,7 +61,7 @@ public:
         col = _attrs->at(_subKey).get<IppCollection>();
       }
       col.set(_name, IppAttr(_tag, value));
-      _attrs->set(_subKey, IppAttr(IppMsg::BeginCollection, col));
+      _attrs->set(_subKey, IppAttr(IppTag::BeginCollection, col));
     }
     else
     {
@@ -97,7 +97,7 @@ public:
       }
       else
       {
-        _attrs->set(_subKey, IppAttr(IppMsg::BeginCollection, col));
+        _attrs->set(_subKey, IppAttr(IppTag::BeginCollection, col));
       }
     }
     else
@@ -128,7 +128,7 @@ public:
 protected:
   IppAttrs* _printerAttrs;
   IppAttrs* _attrs;
-  IppMsg::Tag _tag;
+  IppTag _tag;
   std::string _name;
   std::string _subKey;
 };
@@ -137,7 +137,7 @@ template <typename T>
 class ChoiceSetting : public Setting<T>
 {
 public:
-  ChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppMsg::Tag tag, std::string name, std::string subKey = "")
+  ChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag, std::string name, std::string subKey = "")
   : Setting<T>(printerAttrs, attrs, tag, name, subKey)
   {}
 
@@ -157,7 +157,7 @@ template <typename T>
 class PreferredChoiceSetting : public ChoiceSetting<T>
 {
 public:
-  PreferredChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppMsg::Tag tag, std::string name, std::string pref)
+  PreferredChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag, std::string name, std::string pref)
   : ChoiceSetting<T>(printerAttrs, attrs, tag, name), _pref(pref)
   {}
 
@@ -174,7 +174,7 @@ private:
 class IntegerSetting : public Setting<int>
 {
 public:
-  IntegerSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppMsg::Tag tag, std::string name)
+  IntegerSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag, std::string name)
   : Setting<int>(printerAttrs, attrs, tag, name)
   {}
 
@@ -197,7 +197,7 @@ public:
 class IntegerRangeListSetting : public Setting<IppOneSetOf>
 {
 public:
-  IntegerRangeListSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppMsg::Tag tag, std::string name)
+  IntegerRangeListSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag, std::string name)
   : Setting<IppOneSetOf>(printerAttrs, attrs, tag, name)
   {}
 
@@ -215,7 +215,7 @@ public:
 class IntegerChoiceSetting : public Setting<int>
 {
 public:
-  IntegerChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppMsg::Tag tag, std::string name)
+  IntegerChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag, std::string name)
   : Setting<int>(printerAttrs, attrs, tag, name)
   {}
 

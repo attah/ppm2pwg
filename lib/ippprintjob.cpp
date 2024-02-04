@@ -102,12 +102,12 @@ Error IppPrintJob::finalize(std::string inputFormat, int pages)
     int x = printParams.getPaperSizeWInMillimeters()*100;
     int y = printParams.getPaperSizeHInMillimeters()*100;
 
-    IppCollection dimensions {{"x-dimension", IppAttr(IppMsg::Integer, x)},
-                              {"y-dimension", IppAttr(IppMsg::Integer, y)}};
+    IppCollection dimensions {{"x-dimension", IppAttr(IppTag::Integer, x)},
+                              {"y-dimension", IppAttr(IppTag::Integer, y)}};
 
     IppCollection mediaCol = jobAttrs.get<IppCollection>("media-col");
-    mediaCol.set("media-size", IppAttr(IppMsg::BeginCollection, dimensions));
-    jobAttrs.set("media-col", IppAttr(IppMsg::BeginCollection, mediaCol));
+    mediaCol.set("media-size", IppAttr(IppTag::BeginCollection, dimensions));
+    jobAttrs.set("media-col", IppAttr(IppTag::BeginCollection, mediaCol));
     media.unset();
   }
 
@@ -399,7 +399,7 @@ Error IppPrintJob::run(std::string addr, std::string inFile, std::string inForma
        supportedOperations.contains(IppMsg::SendDocument))
     {
       IppAttrs createJobOpAttrs = IppMsg::baseOpAttrs(addr);
-      createJobOpAttrs.set("job-name", IppAttr {IppMsg::NameWithoutLanguage, fileName});
+      createJobOpAttrs.set("job-name", IppAttr {IppTag::NameWithoutLanguage, fileName});
 
       IppMsg createJobMsg(IppMsg::CreateJob, createJobOpAttrs, jobAttrs);
       CurlIppPoster createJobReq(addr, createJobMsg.encode(), true, verbose);
@@ -420,8 +420,8 @@ Error IppPrintJob::run(std::string addr, std::string inFile, std::string inForma
           int jobId = createJobRespJobAttrs.get<int>("job-id");
           IppAttrs sendDocumentOpAttrs = IppMsg::baseOpAttrs(addr);
           sendDocumentOpAttrs.insert(opAttrs.begin(), opAttrs.end());
-          sendDocumentOpAttrs.set("job-id", IppAttr {IppMsg::Integer, jobId});
-          sendDocumentOpAttrs.set("last-document", IppAttr {IppMsg::Boolean, true});
+          sendDocumentOpAttrs.set("job-id", IppAttr {IppTag::Integer, jobId});
+          sendDocumentOpAttrs.set("last-document", IppAttr {IppTag::Boolean, true});
           IppMsg sendDocumentMsg(IppMsg::SendDocument, sendDocumentOpAttrs);
           error = doPrint(addr, inFile, convertFun, sendDocumentMsg.encode(), verbose);
         }
@@ -439,7 +439,7 @@ Error IppPrintJob::run(std::string addr, std::string inFile, std::string inForma
     {
       IppAttrs printJobOpAttrs = IppMsg::baseOpAttrs(addr);
       printJobOpAttrs.insert(opAttrs.begin(), opAttrs.end());
-      printJobOpAttrs.set("job-name", IppAttr {IppMsg::NameWithoutLanguage, fileName});
+      printJobOpAttrs.set("job-name", IppAttr {IppTag::NameWithoutLanguage, fileName});
       IppMsg printJobMsg(IppMsg::PrintJob, printJobOpAttrs, jobAttrs);
       error = doPrint(addr, inFile, convertFun, printJobMsg.encode(), verbose);
     }

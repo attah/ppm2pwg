@@ -14,15 +14,43 @@ struct IppOneSetOf;
 struct IppCollection;
 class IppAttr;
 
+enum class IppTag : uint8_t
+{
+  OpAttrs             = 0x01,
+  JobAttrs            = 0x02,
+  EndAttrs            = 0x03,
+  PrinterAttrs        = 0x04,
+  UnsupportedAttrs    = 0x05,
+  Unsupported         = 0x10,
+  Integer             = 0x21,
+  Boolean             = 0x22,
+  Enum                = 0x23,
+  OctetStringUnknown  = 0x30,
+  DateTime            = 0x31,
+  Resolution          = 0x32,
+  IntegerRange        = 0x33,
+  BeginCollection     = 0x34,
+  TextWithLanguage    = 0x35,
+  NameWithLanguage    = 0x36,
+  EndCollection       = 0x37,
+  TextWithoutLanguage = 0x41,
+  NameWithoutLanguage = 0x42,
+  Keyword             = 0x44,
+  Uri                 = 0x45,
+  UriScheme           = 0x46,
+  Charset             = 0x47,
+  NaturalLanguage     = 0x48,
+  MimeMediaType       = 0x49,
+  MemberName          = 0x4A
+};
+
 struct IppIntRange
 {
   int32_t low = 0;
   int32_t high = 0;
 
-  bool operator==(const IppIntRange& other) const
-  {
-    return other.low == low && other.high == high;
-  }
+  bool operator==(const IppIntRange& other) const;
+  std::string toStr() const;
 };
 
 struct IppResolution
@@ -38,17 +66,8 @@ struct IppResolution
   uint32_t y = 0;
   uint8_t units = Invalid;
 
-  bool operator==(const IppResolution& other) const
-  {
-    return other.units == units && other.x == x && other.y == y;
-  }
-
-  std::string toStr() const
-  {
-    std::stringstream ss;
-    ss << x << "x" << y << (units == DPI ? "dpi" : units == DPCM ? "dots/cm" : "unknown");
-    return ss.str();
-  }
+  bool operator==(const IppResolution& other) const;
+  std::string toStr() const;
 };
 
 struct IppDateTime
@@ -64,19 +83,8 @@ struct IppDateTime
   uint8_t utcHOffset = 0;
   uint8_t utcMOffset = 0;
 
-  bool operator==(const IppDateTime& other) const
-  {
-    return other.year == year &&
-           other.month == month &&
-           other.day == day &&
-           other.hour == hour &&
-           other.minutes == minutes &&
-           other.seconds == seconds &&
-           other.deciSeconds == deciSeconds &&
-           other.plusMinus == plusMinus &&
-           other.utcHOffset == utcHOffset &&
-           other.utcMOffset == utcMOffset;
-  }
+  bool operator==(const IppDateTime& other) const;
+  std::string toStr() const;
 };
 
 using IppValue = Polymorph<std::string, int, bool,
@@ -102,13 +110,13 @@ public:
   IppOneSetOf asList() const;
 
   template <typename T>
-  IppAttr(uint8_t tag, T value) : IppValue(value), _tag(tag) {}
+  IppAttr(IppTag tag, T value) : IppValue(value), _tag(tag) {}
 
-  uint8_t tag() const {return _tag;}
+  IppTag tag() const {return _tag;}
   IppValue value() const {return *this;}
 
 private:
-  uint8_t _tag;
+  IppTag _tag;
 
 };
 

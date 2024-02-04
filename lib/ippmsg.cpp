@@ -10,25 +10,25 @@ IppMsg::IppMsg(Bytestream& bts)
   bts >> _majVsn >> _minVsn >> _opOrStatus >> reqId;
 
   IppAttrs attrs;
-  Tag currentAttrType = EndAttrs;
+  IppTag currentAttrType = IppTag::EndAttrs;
 
   while(!bts.atEnd())
   {
-    if(bts.peekU8() <= UnsupportedAttrs)
+    if(bts.peekU8() <= (uint8_t)IppTag::UnsupportedAttrs)
     {
-      if(currentAttrType == OpAttrs)
+      if(currentAttrType == IppTag::OpAttrs)
       {
         _opAttrs = attrs;
       }
-      else if (currentAttrType == JobAttrs)
+      else if (currentAttrType == IppTag::JobAttrs)
       {
         _jobAttrs.push_back(attrs);
       }
-      else if (currentAttrType == PrinterAttrs)
+      else if (currentAttrType == IppTag::PrinterAttrs)
       {
         _printerAttrs = attrs;
       }
-      else if (currentAttrType == UnsupportedAttrs)
+      else if (currentAttrType == IppTag::UnsupportedAttrs)
       {
 #ifndef FUZZ // Too much spam for fuzzing
         std::cerr << "WARNING: unsupported attrs reported: " << std::endl
@@ -36,12 +36,12 @@ IppMsg::IppMsg(Bytestream& bts)
 #endif
       }
 
-      if(bts >>= EndAttrs)
+      if(bts >>= (uint8_t)IppTag::EndAttrs)
       {
         break;
       }
 
-      currentAttrType = (Tag)bts.getU8();
+      currentAttrType = (IppTag)bts.getU8();
       attrs = IppAttrs();
     }
     else
@@ -68,7 +68,7 @@ Bytestream IppMsg::encode() const
   ipp << _majVsn << _minVsn;
   ipp << _opOrStatus;
   ipp << _reqId++;
-  ipp << OpAttrs;
+  ipp << (uint8_t)IppTag::OpAttrs;
 
   IppAttrs opAttrs = _opAttrs;
 
@@ -92,15 +92,15 @@ Bytestream IppMsg::encode() const
   for(IppAttrs attrs : _jobAttrs)
   {
     if (!attrs.empty()) {
-      ipp << JobAttrs;
+      ipp << (uint8_t)IppTag::JobAttrs;
       encodeAttributes(ipp, attrs);
     }
   }
   if (!_printerAttrs.empty()) {
-    ipp << PrinterAttrs;
+    ipp << (uint8_t)IppTag::PrinterAttrs;
     encodeAttributes(ipp, _printerAttrs);
   }
-  ipp << EndAttrs;
+  ipp << (uint8_t)IppTag::EndAttrs;
   return ipp;
 }
 
@@ -115,28 +115,28 @@ IppAttrs IppMsg::baseOpAttrs(std::string url)
   std::string name = user ? user : "anonymous";
   IppAttrs o
   {
-    {"attributes-charset",          IppAttr(IppMsg::Charset,             "utf-8")},
-    {"attributes-natural-language", IppAttr(IppMsg::NaturalLanguage,     "en-us")},
-    {"printer-uri",                 IppAttr(IppMsg::Uri,                 url)},
-    {"requesting-user-name",        IppAttr(IppMsg::NameWithoutLanguage, name)},
+    {"attributes-charset",          IppAttr(IppTag::Charset,             "utf-8")},
+    {"attributes-natural-language", IppAttr(IppTag::NaturalLanguage,     "en-us")},
+    {"printer-uri",                 IppAttr(IppTag::Uri,                 url)},
+    {"requesting-user-name",        IppAttr(IppTag::NameWithoutLanguage, name)},
   };
   return o;
 }
 
-IppValue IppMsg::decodeValue(uint8_t tag, Bytestream& data) const
+IppValue IppMsg::decodeValue(IppTag tag, Bytestream& data) const
 {
   uint16_t tmpLen;
 
   switch (tag)
   {
-    case OpAttrs:
-    case JobAttrs:
-    case EndAttrs:
-    case PrinterAttrs:
-    case UnsupportedAttrs:
+    case IppTag::OpAttrs:
+    case IppTag::JobAttrs:
+    case IppTag::EndAttrs:
+    case IppTag::PrinterAttrs:
+    case IppTag::UnsupportedAttrs:
       throw std::logic_error("Unexpected tag");
-    case Integer:
-    case Enum:
+    case IppTag::Integer:
+    case IppTag::Enum:
     {
       uint32_t tmp_u32=0;
       if(!(data >>= (uint16_t)0))
@@ -145,7 +145,7 @@ IppValue IppMsg::decodeValue(uint8_t tag, Bytestream& data) const
       }
       return IppValue((int)tmp_u32);
     }
-    case Boolean:
+    case IppTag::Boolean:
     {
       uint8_t tmp_bool=0;
       if(!(data >>= (uint16_t)0))
@@ -154,7 +154,7 @@ IppValue IppMsg::decodeValue(uint8_t tag, Bytestream& data) const
       }
       return IppValue((bool)tmp_bool);
     }
-    case DateTime:
+    case IppTag::DateTime:
     {
       IppDateTime tmpDateTime;
       if(!(data >>= (uint16_t)0))
@@ -165,7 +165,7 @@ IppValue IppMsg::decodeValue(uint8_t tag, Bytestream& data) const
       }
       return IppValue(tmpDateTime);
     }
-    case Resolution:
+    case IppTag::Resolution:
     {
       IppResolution tmpResolution;
       if(!(data >>= (uint16_t)0))
@@ -174,7 +174,7 @@ IppValue IppMsg::decodeValue(uint8_t tag, Bytestream& data) const
       }
       return IppValue(tmpResolution);
     }
-    case IntegerRange:
+    case IppTag::IntegerRange:
     {
       IppIntRange tmpIntegerRange;
       if(!(data >>= (uint16_t)0))
@@ -183,17 +183,17 @@ IppValue IppMsg::decodeValue(uint8_t tag, Bytestream& data) const
       }
       return IppValue(tmpIntegerRange);
     }
-    case OctetStringUnknown:
-    case TextWithLanguage:
-    case NameWithLanguage:
-    case TextWithoutLanguage:
-    case NameWithoutLanguage:
-    case Keyword:
-    case Uri:
-    case UriScheme:
-    case Charset:
-    case NaturalLanguage:
-    case MimeMediaType:
+    case IppTag::OctetStringUnknown:
+    case IppTag::TextWithLanguage:
+    case IppTag::NameWithLanguage:
+    case IppTag::TextWithoutLanguage:
+    case IppTag::NameWithoutLanguage:
+    case IppTag::Keyword:
+    case IppTag::Uri:
+    case IppTag::UriScheme:
+    case IppTag::Charset:
+    case IppTag::NaturalLanguage:
+    case IppTag::MimeMediaType:
     default:
     {
       std::string tmp_str;
@@ -206,11 +206,11 @@ IppValue IppMsg::decodeValue(uint8_t tag, Bytestream& data) const
 
 List<IppAttr> IppMsg::getUnnamedAttributes(Bytestream& data) const
 {
-  uint8_t tag;
+  IppTag tag;
   List<IppAttr> attrs;
   while(data.remaining())
   {
-    data >> tag;
+    tag = (IppTag)data.getU8();
     if(data >>= (uint16_t)0)
     {
       attrs.push_back(IppAttr(tag, decodeValue(tag, data)));
@@ -231,14 +231,14 @@ IppValue IppMsg::collectAttributes(List<IppAttr>& attrs) const
   while(!attrs.empty())
   {
     IppAttr tmpval = attrs.takeFront();
-    uint8_t tag = tmpval.tag();
-    if(tag == MemberName)
+    IppTag tag = tmpval.tag();
+    if(tag == IppTag::MemberName)
     {
       std::string key = tmpval.get<std::string>();
       tmpval = attrs.takeFront();
-      if(tmpval.tag() == BeginCollection)
+      if(tmpval.tag() == IppTag::BeginCollection)
       {
-        resVal.insert({key, IppAttr(BeginCollection, collectAttributes(attrs))});
+        resVal.insert({key, IppAttr(IppTag::BeginCollection, collectAttributes(attrs))});
       }
       else
       { // This should be general data attributes
@@ -260,7 +260,7 @@ IppValue IppMsg::collectAttributes(List<IppAttr>& attrs) const
         }
       }
     }
-    else if(tag == EndCollection)
+    else if(tag == IppTag::EndCollection)
     {
       resArr.push_back(resVal);
       resVal = IppCollection();
@@ -268,7 +268,7 @@ IppValue IppMsg::collectAttributes(List<IppAttr>& attrs) const
       { // end of collection
         break;
       }
-      else if(attrs.front().tag() == BeginCollection)
+      else if(attrs.front().tag() == IppTag::BeginCollection)
       { // this is a 1setOf
         attrs.pop_front();
         continue;
@@ -296,17 +296,17 @@ IppValue IppMsg::collectAttributes(List<IppAttr>& attrs) const
 
 std::string IppMsg::consumeAttributes(IppAttrs& attrs, Bytestream& data) const
 {
-  uint8_t tag;
+  IppTag tag = (IppTag)data.getU8();
   uint16_t tmpLen;
   std::string name;
 
-  data >> tag >> tmpLen;
+  data >> tmpLen;
   data/tmpLen >> name;
 
   IppValue value = decodeValue(tag, data);
   List<IppAttr> unnamed = getUnnamedAttributes(data);
 
-  if(tag == BeginCollection)
+  if(tag == IppTag::BeginCollection)
   {
     value = collectAttributes(unnamed);
   }
@@ -338,14 +338,14 @@ void IppMsg::encodeAttributes(Bytestream& msg, const IppAttrs& attrs) const
 
 void IppMsg::encodeAttribute(Bytestream& msg, std::string name, IppAttr attr, bool subCollection) const
 {
-  uint8_t tag = attr.tag();
+  IppTag tag = attr.tag();
   if(subCollection)
   {
-    msg << MemberName << (uint16_t)0 << (uint16_t)name.length() << name;
+    msg << (uint8_t)IppTag::MemberName << (uint16_t)0 << (uint16_t)name.length() << name;
     name = "";
   }
 
-  msg << tag << uint16_t(name.length()) << name;
+  msg << (uint8_t)tag << uint16_t(name.length()) << name;
 
   if(attr.value().is<IppOneSetOf>())
   {
@@ -353,7 +353,7 @@ void IppMsg::encodeAttribute(Bytestream& msg, std::string name, IppAttr attr, bo
     encodeValue(msg, tag, oneSet.takeFront());
     while(!oneSet.empty())
     {
-      msg << tag << uint16_t(0);
+      msg << (uint8_t)tag << uint16_t(0);
       encodeValue(msg, tag, oneSet.takeFront());
     }
   }
@@ -363,29 +363,29 @@ void IppMsg::encodeAttribute(Bytestream& msg, std::string name, IppAttr attr, bo
   }
 }
 
-void IppMsg::encodeValue(Bytestream& msg, uint8_t tag, IppValue val) const
+void IppMsg::encodeValue(Bytestream& msg, IppTag tag, IppValue val) const
 {
   switch(tag)
   {
-    case OpAttrs:
-    case JobAttrs:
-    case EndAttrs:
-    case PrinterAttrs:
+    case IppTag::OpAttrs:
+    case IppTag::JobAttrs:
+    case IppTag::EndAttrs:
+    case IppTag::PrinterAttrs:
       throw std::logic_error("Unexpected tag");
-    case Integer:
-    case Enum:
+    case IppTag::Integer:
+    case IppTag::Enum:
     {
       uint32_t tmp_u32 = val.get<int>();
       msg << (uint16_t)4 << tmp_u32;
       break;
     }
-    case Boolean:
+    case IppTag::Boolean:
     {
       uint8_t tmp_u8 = val.get<bool>();
       msg << (uint16_t)1 << tmp_u8;
       break;
     }
-    case DateTime:
+    case IppTag::DateTime:
     {
       IppDateTime tmpDateTime = val.get<IppDateTime>();
       msg << (uint16_t)11 << tmpDateTime.year << tmpDateTime.month << tmpDateTime.day
@@ -393,19 +393,19 @@ void IppMsg::encodeValue(Bytestream& msg, uint8_t tag, IppValue val) const
           << tmpDateTime.plusMinus << tmpDateTime.utcHOffset << tmpDateTime.utcMOffset;
       break;
     }
-    case Resolution:
+    case IppTag::Resolution:
     {
       IppResolution tmpRes = val.get<IppResolution>();
       msg << (uint16_t)9 << tmpRes.x << tmpRes.y << tmpRes.units;
       break;
     }
-    case IntegerRange:
+    case IppTag::IntegerRange:
     {
       IppIntRange tmpRange = val.get<IppIntRange>();
       msg << (uint16_t)8 << tmpRange.low << tmpRange.high;
       break;
     }
-    case BeginCollection:
+    case IppTag::BeginCollection:
     {
       msg << (uint16_t)0; // length of value
       IppCollection collection = val.get<IppCollection>();
@@ -413,20 +413,20 @@ void IppMsg::encodeValue(Bytestream& msg, uint8_t tag, IppValue val) const
       {
         encodeAttribute(msg, x.first, x.second, true);
       }
-      msg << EndCollection << (uint16_t)0 << (uint16_t)0;
+      msg << (uint8_t)IppTag::EndCollection << (uint16_t)0 << (uint16_t)0;
       break;
     }
-    case OctetStringUnknown:
-    case TextWithLanguage:
-    case NameWithLanguage:
-    case TextWithoutLanguage:
-    case NameWithoutLanguage:
-    case Keyword:
-    case Uri:
-    case UriScheme:
-    case Charset:
-    case NaturalLanguage:
-    case MimeMediaType:
+    case IppTag::OctetStringUnknown:
+    case IppTag::TextWithLanguage:
+    case IppTag::NameWithLanguage:
+    case IppTag::TextWithoutLanguage:
+    case IppTag::NameWithoutLanguage:
+    case IppTag::Keyword:
+    case IppTag::Uri:
+    case IppTag::UriScheme:
+    case IppTag::Charset:
+    case IppTag::NaturalLanguage:
+    case IppTag::MimeMediaType:
     {
       std::string tmpstr = val.get<std::string>();
       msg << uint16_t(tmpstr.length());
@@ -434,7 +434,7 @@ void IppMsg::encodeValue(Bytestream& msg, uint8_t tag, IppValue val) const
       break;
     }
     default:
-      std::cerr << "uncaught tag " << tag;
+      std::cerr << "uncaught tag " << +(uint8_t)tag;
       throw std::logic_error("Uncaught tag");
       break;
   }

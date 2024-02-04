@@ -32,36 +32,6 @@ public:
     IdentifyPrinter = 0x003C
   };
 
-  enum Tag : uint8_t
-  {
-    OpAttrs             = 0x01,
-    JobAttrs            = 0x02,
-    EndAttrs            = 0x03,
-    PrinterAttrs        = 0x04,
-    UnsupportedAttrs    = 0x05,
-    Unsupported         = 0x10,
-    Integer             = 0x21,
-    Boolean             = 0x22,
-    Enum                = 0x23,
-    OctetStringUnknown  = 0x30,
-    DateTime            = 0x31,
-    Resolution          = 0x32,
-    IntegerRange        = 0x33,
-    BeginCollection     = 0x34,
-    TextWithLanguage    = 0x35,
-    NameWithLanguage    = 0x36,
-    EndCollection       = 0x37,
-    TextWithoutLanguage = 0x41,
-    NameWithoutLanguage = 0x42,
-    Keyword             = 0x44,
-    Uri                 = 0x45,
-    UriScheme           = 0x46,
-    Charset             = 0x47,
-    NaturalLanguage     = 0x48,
-    MimeMediaType       = 0x49,
-    MemberName          = 0x4A
-  };
-
   IppMsg() = default;
   IppMsg(Bytestream& msg);
   IppMsg(uint16_t opOrStatus, IppAttrs opAttrs, IppAttrs jobAttrs=IppAttrs(),
@@ -85,13 +55,13 @@ public:
   }
 
 private:
-  IppValue decodeValue(uint8_t tag, Bytestream& data) const;
+  IppValue decodeValue(IppTag tag, Bytestream& data) const;
   List<IppAttr> getUnnamedAttributes(Bytestream& data) const;
   IppValue collectAttributes(List<IppAttr>& attrs) const;
   std::string consumeAttributes(IppAttrs& attrs, Bytestream& data) const;
   void encodeAttributes(Bytestream& msg, const IppAttrs& attrs) const;
   void encodeAttribute(Bytestream& msg, std::string name, IppAttr attr, bool subCollection=false) const;
-  void encodeValue(Bytestream& msg, uint8_t tag, IppValue val) const;
+  void encodeValue(Bytestream& msg, IppTag tag, IppValue val) const;
 
   uint16_t _opOrStatus = 0;
 

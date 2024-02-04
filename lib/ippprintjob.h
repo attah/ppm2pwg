@@ -17,32 +17,32 @@ public:
   IppPrintJob(IppAttrs printerAttrs) : _printerAttrs(printerAttrs)
   {}
 
-  ChoiceSetting<std::string> sides = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppMsg::Keyword, "sides");
-  PreferredChoiceSetting<std::string> media = PreferredChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppMsg::Keyword, "media", "ready");
+  ChoiceSetting<std::string> sides = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppTag::Keyword, "sides");
+  PreferredChoiceSetting<std::string> media = PreferredChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppTag::Keyword, "media", "ready");
 
-  IntegerSetting copies = IntegerSetting(&_printerAttrs, &jobAttrs, IppMsg::Integer, "copies");
-  ChoiceSetting<std::string> multipleDocumentHandling = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppMsg::Keyword, "multiple-document-handling");
+  IntegerSetting copies = IntegerSetting(&_printerAttrs, &jobAttrs, IppTag::Integer, "copies");
+  ChoiceSetting<std::string> multipleDocumentHandling = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppTag::Keyword, "multiple-document-handling");
 
-  IntegerRangeListSetting pageRanges = IntegerRangeListSetting(&_printerAttrs, &jobAttrs, IppMsg::IntegerRange, "page-ranges");
+  IntegerRangeListSetting pageRanges = IntegerRangeListSetting(&_printerAttrs, &jobAttrs, IppTag::IntegerRange, "page-ranges");
 
-  IntegerChoiceSetting numberUp = IntegerChoiceSetting(&_printerAttrs, &jobAttrs, IppMsg::Integer, "number-up");
+  IntegerChoiceSetting numberUp = IntegerChoiceSetting(&_printerAttrs, &jobAttrs, IppTag::Integer, "number-up");
 
-  ChoiceSetting<std::string> colorMode = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppMsg::Keyword, "print-color-mode");
-  ChoiceSetting<int> printQuality = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppMsg::Enum, "print-quality");
-  ChoiceSetting<IppResolution> resolution = ChoiceSetting<IppResolution>(&_printerAttrs, &jobAttrs, IppMsg::Resolution, "printer-resolution");
-  ChoiceSetting<std::string> scaling = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppMsg::Keyword, "print-scaling");
+  ChoiceSetting<std::string> colorMode = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppTag::Keyword, "print-color-mode");
+  ChoiceSetting<int> printQuality = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppTag::Enum, "print-quality");
+  ChoiceSetting<IppResolution> resolution = ChoiceSetting<IppResolution>(&_printerAttrs, &jobAttrs, IppTag::Resolution, "printer-resolution");
+  ChoiceSetting<std::string> scaling = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppTag::Keyword, "print-scaling");
 
-  ChoiceSetting<std::string> documentFormat = ChoiceSetting<std::string>(&_printerAttrs, &opAttrs, IppMsg::MimeMediaType, "document-format");
-  ChoiceSetting<std::string> compression = ChoiceSetting<std::string>(&_printerAttrs, &opAttrs, IppMsg::Keyword, "compression");
+  ChoiceSetting<std::string> documentFormat = ChoiceSetting<std::string>(&_printerAttrs, &opAttrs, IppTag::MimeMediaType, "document-format");
+  ChoiceSetting<std::string> compression = ChoiceSetting<std::string>(&_printerAttrs, &opAttrs, IppTag::Keyword, "compression");
 
-  ChoiceSetting<std::string> mediaType = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppMsg::Keyword, "media-type", "media-col");
-  ChoiceSetting<std::string> mediaSource = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppMsg::Keyword, "media-source", "media-col");
-  ChoiceSetting<std::string> outputBin = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppMsg::Keyword, "output-bin");
+  ChoiceSetting<std::string> mediaType = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppTag::Keyword, "media-type", "media-col");
+  ChoiceSetting<std::string> mediaSource = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppTag::Keyword, "media-source", "media-col");
+  ChoiceSetting<std::string> outputBin = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppTag::Keyword, "output-bin");
 
-  ChoiceSetting<int> topMargin = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppMsg::Integer, "media-top-margin", "media-col");
-  ChoiceSetting<int> bottomMargin = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppMsg::Integer, "media-bottom-margin", "media-col");
-  ChoiceSetting<int> leftMargin = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppMsg::Integer, "media-left-margin", "media-col");
-  ChoiceSetting<int> rightMargin = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppMsg::Integer, "media-right-margin", "media-col");
+  ChoiceSetting<int> topMargin = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppTag::Integer, "media-top-margin", "media-col");
+  ChoiceSetting<int> bottomMargin = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppTag::Integer, "media-bottom-margin", "media-col");
+  ChoiceSetting<int> leftMargin = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppTag::Integer, "media-left-margin", "media-col");
+  ChoiceSetting<int> rightMargin = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppTag::Integer, "media-right-margin", "media-col");
 
   List<std::string> additionalDocumentFormats();
 

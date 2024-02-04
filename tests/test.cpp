@@ -1349,7 +1349,7 @@ TEST(ippprintjob_support)
      {"media-right-margin-supported", IppAttr(IppTag::Integer, 4)},
     };
 
-  IppMsg getAttrsMsg(0, IppAttrs(), IppAttrs(), 1, 1, printerAttrs);
+  IppMsg getAttrsMsg(0, IppAttrs(), IppAttrs(), printerAttrs);
   Bytestream encoded = getAttrsMsg.encode();
   IppMsg msg2(encoded);
 

@@ -28,6 +28,11 @@ public:
     std::string version;
     bool operator==(const Firmware& other) const;
   };
+  struct Version
+  {
+    uint8_t minor = 1;
+    uint8_t major = 1;
+  };
 
   IppPrinter() = delete;
   IppPrinter(std::string addr);
@@ -62,6 +67,7 @@ public:
   List<Supply> supplies();
   List<Firmware> firmware();
   List<std::string> settableAttributes();
+  List<Version> getVersions();
 
   bool identifySupported();
   Error identify();

@@ -51,12 +51,10 @@ IppMsg::IppMsg(Bytestream& bts)
   }
 }
 
-IppMsg::IppMsg(uint16_t opOrStatus, IppAttrs opAttrs, IppAttrs jobAttrs,
-               uint8_t majVsn, uint8_t minVsn, IppAttrs printerAttrs)
+IppMsg::IppMsg(uint16_t opOrStatus, IppAttrs opAttrs,
+               IppAttrs jobAttrs, IppAttrs printerAttrs)
 {
   _opOrStatus = opOrStatus;
-  _majVsn = majVsn;
-  _minVsn = minVsn;
   _opAttrs = opAttrs;
   _jobAttrs = {jobAttrs};
   _printerAttrs = printerAttrs;
@@ -107,6 +105,12 @@ Bytestream IppMsg::encode() const
 void IppMsg::setOpAttr(std::string name, IppAttr attr)
 {
   _opAttrs.insert({name, attr});
+}
+
+void IppMsg::setVersion(uint8_t majVsn, uint8_t minVsn)
+{
+  _majVsn = majVsn;
+  _minVsn = minVsn;
 }
 
 IppAttrs IppMsg::baseOpAttrs(std::string url)

@@ -402,6 +402,10 @@ Error IppPrintJob::run(std::string addr, std::string inFile, std::string inForma
       createJobOpAttrs.set("job-name", IppAttr {IppTag::NameWithoutLanguage, fileName});
 
       IppMsg createJobMsg(IppMsg::CreateJob, createJobOpAttrs, jobAttrs);
+      if(_printerAttrs.getList<std::string>("ipp-versions-supported").contains("2.0"))
+      {
+        createJobMsg.setVersion(2, 0);
+      }
       CurlIppPoster createJobReq(addr, createJobMsg.encode(), true, verbose);
 
       Bytestream createJobResult;
@@ -423,6 +427,10 @@ Error IppPrintJob::run(std::string addr, std::string inFile, std::string inForma
           sendDocumentOpAttrs.set("job-id", IppAttr {IppTag::Integer, jobId});
           sendDocumentOpAttrs.set("last-document", IppAttr {IppTag::Boolean, true});
           IppMsg sendDocumentMsg(IppMsg::SendDocument, sendDocumentOpAttrs);
+          if(_printerAttrs.getList<std::string>("ipp-versions-supported").contains("2.0"))
+          {
+            sendDocumentMsg.setVersion(2, 0);
+          }
           error = doPrint(addr, inFile, convertFun, sendDocumentMsg.encode(), verbose);
         }
         else
@@ -441,6 +449,10 @@ Error IppPrintJob::run(std::string addr, std::string inFile, std::string inForma
       printJobOpAttrs.insert(opAttrs.begin(), opAttrs.end());
       printJobOpAttrs.set("job-name", IppAttr {IppTag::NameWithoutLanguage, fileName});
       IppMsg printJobMsg(IppMsg::PrintJob, printJobOpAttrs, jobAttrs);
+      if(_printerAttrs.getList<std::string>("ipp-versions-supported").contains("2.0"))
+      {
+        printJobMsg.setVersion(2, 0);
+      }
       error = doPrint(addr, inFile, convertFun, printJobMsg.encode(), verbose);
     }
   }

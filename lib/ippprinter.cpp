@@ -184,7 +184,7 @@ Error IppPrinter::setAttributes(List<std::pair<std::string, std::string>> attrSt
     }
   }
   IppAttrs opAttrs = IppMsg::baseOpAttrs(_addr);
-  IppMsg req(IppMsg::SetPrinterAttrs, opAttrs, {}, 1, 1, attrs);
+  IppMsg req(IppMsg::SetPrinterAttrs, opAttrs, {}, attrs);
   IppMsg resp;
   err = _doRequest(req, resp);
   return err;

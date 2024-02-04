@@ -37,8 +37,8 @@ public:
 
   IppMsg() = default;
   IppMsg(Bytestream& msg);
-  IppMsg(uint16_t opOrStatus, IppAttrs opAttrs, IppAttrs jobAttrs=IppAttrs(),
-         uint8_t majVsn=1, uint8_t minVsn=1, IppAttrs printerAttrs=IppAttrs());
+  IppMsg(uint16_t opOrStatus, IppAttrs opAttrs,
+         IppAttrs jobAttrs=IppAttrs(), IppAttrs printerAttrs=IppAttrs());
   IppMsg(const IppMsg& other) = default;
   ~IppMsg() = default;
 
@@ -49,6 +49,7 @@ public:
 
   Bytestream encode() const;
   void setOpAttr(std::string name, IppAttr attr);
+  void setVersion(uint8_t majVsn, uint8_t minVsn);
 
   static IppAttrs baseOpAttrs(std::string url);
 

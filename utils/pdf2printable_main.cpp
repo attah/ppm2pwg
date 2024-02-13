@@ -32,9 +32,9 @@ int main(int argc, char** argv)
   bool verbose = false;
   std::string pages;
   std::string paperSize;
-  int hwRes;
-  int hwResX;
-  int hwResY;
+  int hwRes = 0;
+  int hwResX = 0;
+  int hwResY = 0;
   bool duplex = false;
   bool tumble = false;
   std::string inFileName;

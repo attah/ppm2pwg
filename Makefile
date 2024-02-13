@@ -51,5 +51,8 @@ clean:
 analyze:
 	clang++ --analyze $(CXXFLAGS) lib/*.cpp utils/*.cpp
 
+tidy:
+	clang-tidy lib/*.cpp utils/*.cpp -- $(CXXFLAGS)
+
 fuzz:
 	clang++ -g -fsanitize=fuzzer $(CXXFLAGS) -O0 -DFUZZ lib/ippmsg.cpp lib/ippattr.cpp bytestream/bytestream.cpp -o $@

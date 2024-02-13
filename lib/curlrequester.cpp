@@ -27,7 +27,7 @@ CurlRequester::CurlRequester(std::string addr, bool ignoreSslErrors, bool verbos
 
 CurlRequester::~CurlRequester()
 {
-  await();
+  CurlRequester::await();
   curl_slist_free_all(_opts);
   curl_easy_cleanup(_curl);
 }
@@ -60,7 +60,7 @@ CURLcode CurlRequester::await(Bytestream* data)
 
 CurlIppPosterBase::~CurlIppPosterBase()
 {
-  await();
+  CurlIppPosterBase::await();
 }
 
 bool CurlIppPosterBase::write(const void* data, size_t size)

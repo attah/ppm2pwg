@@ -1,6 +1,7 @@
 #include "ippprinter.h"
 #include "curlrequester.h"
 #include "stringsplit.h"
+#include <filesystem>
 
 IppPrinter::IppPrinter(std::string addr) : _addr(addr)
 {
@@ -12,6 +13,131 @@ Error IppPrinter::refresh()
   IppMsg resp;
   Error error = _doRequest(IppMsg::GetPrinterAttrs, resp);
   _printerAttrs = resp.getPrinterAttrs();
+  return error;
+}
+
+Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inFormat, int pages, bool verbose)
+{
+  Error error;
+  try
+  {
+    List<int> supportedOperations = _printerAttrs.getList<int>("operations-supported");
+    std::string fileName = std::filesystem::path(inFile).filename();
+
+    error = job.finalize(inFormat, pages);
+    if(error)
+    {
+      return error;
+    }
+
+    std::optional<Converter::ConvertFun> convertFun = Converter::instance().getConvertFun(inFormat, job.targetFormat);
+
+    if(!convertFun)
+    {
+      return Error("No conversion method found for " + inFormat + " to " + job.targetFormat);
+    }
+
+    if(!job.oneStage &&
+       supportedOperations.contains(IppMsg::CreateJob) &&
+       supportedOperations.contains(IppMsg::SendDocument))
+    {
+      IppAttrs createJobOpAttrs = {{"job-name", {IppTag::NameWithoutLanguage, fileName}}};
+      IppMsg createJobMsg = _mkMsg(IppMsg::CreateJob, createJobOpAttrs, job.jobAttrs);
+      IppMsg createJobResp;
+      error = _doRequest(createJobMsg, createJobResp);
+
+      if(error)
+      {
+        error = std::string("Create job failed: ") + error.value();
+      }
+      else
+      {
+        IppAttrs createJobRespJobAttrs;
+        if(!createJobResp.getJobAttrs().empty())
+        {
+          createJobRespJobAttrs = createJobResp.getJobAttrs().front();
+        }
+        if(createJobResp.getStatus() <= 0xff && createJobRespJobAttrs.has("job-id"))
+        {
+          int jobId = createJobRespJobAttrs.get<int>("job-id");
+          IppAttrs sendDocumentOpAttrs = job.opAttrs;
+          sendDocumentOpAttrs.set("job-id", IppAttr {IppTag::Integer, jobId});
+          sendDocumentOpAttrs.set("last-document", IppAttr {IppTag::Boolean, true});
+          IppMsg sendDocumentMsg = _mkMsg(IppMsg::SendDocument, sendDocumentOpAttrs);
+          error = doPrint(job, inFile, convertFun.value(), sendDocumentMsg.encode(), verbose);
+        }
+        else
+        {
+          error = "Create job failed: " + createJobResp.getOpAttrs().get<std::string>("status-message", "unknown");
+        }
+      }
+    }
+    else
+    {
+      IppAttrs printJobOpAttrs = job.opAttrs;
+      printJobOpAttrs.set("job-name", IppAttr {IppTag::NameWithoutLanguage, fileName});
+      IppMsg printJobMsg = _mkMsg(IppMsg::PrintJob, printJobOpAttrs, job.jobAttrs);
+      error = doPrint(job, inFile, convertFun.value(), printJobMsg.encode(), verbose);
+    }
+  }
+  catch(const std::exception& e)
+  {
+    error = std::string("Exception caught while printing: ") + e.what();
+  }
+  return error;
+}
+
+Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream hdr, bool verbose)
+{
+  Error error;
+  CurlIppStreamer cr(_addr, true, verbose);
+  cr.write((char*)(hdr.raw()), hdr.size());
+
+  if(job.compression.get() == "gzip")
+  {
+    cr.setCompression(Compression::Gzip);
+  }
+  else if(job.compression.get() == "deflate")
+  {
+    cr.setCompression(Compression::Deflate);
+  }
+
+  WriteFun writeFun([&cr](unsigned char const* buf, unsigned int len) -> bool
+           {
+             if(len == 0)
+               return true;
+             return cr.write((const char*)buf, len);
+           });
+
+  ProgressFun progressFun([verbose](size_t page, size_t total) -> void
+              {
+                if(verbose)
+                {
+                  std::cerr << page << "/" << total << std::endl;
+                }
+              });
+
+  error = convertFun(inFile, writeFun, job, progressFun, verbose);
+  if(error)
+  {
+    return error;
+  }
+
+  Bytestream result;
+  CURLcode cres = cr.await(&result);
+  if(cres == CURLE_OK)
+  {
+    IppMsg response(result);
+    if(response.getStatus() > 0xff)
+    {
+      error = "Print job failed: " + response.getOpAttrs().get<std::string>("status-message", "unknown");
+    }
+  }
+  else
+  {
+    error = curl_easy_strerror(cres);
+  }
+
   return error;
 }
 
@@ -183,8 +309,7 @@ Error IppPrinter::setAttributes(List<std::pair<std::string, std::string>> attrSt
       }
     }
   }
-  IppAttrs opAttrs = IppMsg::baseOpAttrs(_addr);
-  IppMsg req(IppMsg::SetPrinterAttrs, opAttrs, {}, attrs);
+  IppMsg req = _mkMsg(IppMsg::SetPrinterAttrs, {}, {}, attrs);
   IppMsg resp;
   err = _doRequest(req, resp);
   return err;
@@ -192,8 +317,7 @@ Error IppPrinter::setAttributes(List<std::pair<std::string, std::string>> attrSt
 
 Error IppPrinter::_doRequest(IppMsg::Operation op, IppMsg& resp)
 {
-  IppAttrs opAttrs = IppMsg::baseOpAttrs(_addr);
-  IppMsg req(op, opAttrs);
+  IppMsg req = _mkMsg(op);
   return _doRequest(req, resp);
 }
 
@@ -201,14 +325,14 @@ Error IppPrinter::_doRequest(const IppMsg& req, IppMsg& resp)
 {
   Error error;
 
-  CurlIppPoster getPrinterAttrsReq(_addr, req.encode(), _ignoreSslErrors, _verbose);
-  Bytestream getPrinterAttrsResult;
-  CURLcode res0 = getPrinterAttrsReq.await(&getPrinterAttrsResult);
+  CurlIppPoster reqPoster(_addr, req.encode(), _ignoreSslErrors, _verbose);
+  Bytestream respBts;
+  CURLcode res0 = reqPoster.await(&respBts);
   if(res0 == CURLE_OK)
   {
     try
     {
-      resp = IppMsg(getPrinterAttrsResult);
+      resp = IppMsg(respBts);
     }
     catch(const std::exception& e)
     {
@@ -220,4 +344,17 @@ Error IppPrinter::_doRequest(const IppMsg& req, IppMsg& resp)
     error = curl_easy_strerror(res0);
   }
   return error;
+}
+
+IppMsg IppPrinter::_mkMsg(uint16_t opOrStatus, IppAttrs opAttrs, IppAttrs jobAttrs, IppAttrs printerAttrs)
+{
+  IppAttrs baseOpAttrs = IppMsg::baseOpAttrs(_addr);
+  opAttrs.insert(baseOpAttrs.begin(), baseOpAttrs.end());
+
+  IppMsg msg(opOrStatus, opAttrs, jobAttrs, printerAttrs);
+  if(ippVersionsSupported().contains("2.0"))
+  {
+    msg.setVersion(2, 0);
+  }
+  return msg;
 }

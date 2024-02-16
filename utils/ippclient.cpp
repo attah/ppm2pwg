@@ -306,16 +306,16 @@ int main(int argc, char** argv)
   }
   else if(args.subCommand() == "print")
   {
-    IppPrintJob ip = printer.createJob();
+    IppPrintJob job = printer.createJob();
 
     if(oneStageOpt.isSet())
     {
-      ip.oneStage = oneStage;
+      job.oneStage = oneStage;
     }
 
     if(antiAliasOpt.isSet())
     {
-      ip.printParams.antiAlias = antiAlias;
+      job.printParams.antiAlias = antiAlias;
     }
 
     if(!mimeTypeOpt.isSet())
@@ -344,59 +344,59 @@ int main(int argc, char** argv)
       {
         ippPageRanges.push_back(IppIntRange {pageRange.first, pageRange.second});
       }
-      ip.pageRanges.set(ippPageRanges);
+      job.pageRanges.set(ippPageRanges);
     }
 
-    set_or_fail(copiesOpt, ip.copies, copies, force);
-    set_or_fail(collatedCopiesOpt, ip.multipleDocumentHandling, collatedCopies, force);
-    set_or_fail(paperSizeOpt, ip.media, paperSize, force);
+    set_or_fail(copiesOpt, job.copies, copies, force);
+    set_or_fail(collatedCopiesOpt, job.multipleDocumentHandling, collatedCopies, force);
+    set_or_fail(paperSizeOpt, job.media, paperSize, force);
 
-    std::string resolutionDoc = resolutionOpt.docName() + " (ipp: " + ip.resolution.name() + ")";
-    std::string resolutionSupported = "Valid values are: " + resolution_list(ip.resolution.getSupported());
+    std::string resolutionDoc = resolutionOpt.docName() + " (ipp: " + job.resolution.name() + ")";
+    std::string resolutionSupported = "Valid values are: " + resolution_list(job.resolution.getSupported());
     set_or_fail(resolutionOpt.isSet(), resolutionDoc, resolutionSupported,
-                ip.resolution, IppResolution {hwRes, hwRes, IppResolution::DPI}, force);
+                job.resolution, IppResolution {hwRes, hwRes, IppResolution::DPI}, force);
 
     std::string resolutionDoc2 = resolutionXOpt.docName() + " and " + resolutionYOpt.docName()
-                              + " (ipp: " + ip.resolution.name() + ")";
+                              + " (ipp: " + job.resolution.name() + ")";
     set_or_fail(resolutionXOpt.isSet() && resolutionYOpt.isSet(), resolutionDoc2, resolutionSupported,
-                ip.resolution, IppResolution {hwResX, hwResY, IppResolution::DPI}, force);
+                job.resolution, IppResolution {hwResX, hwResY, IppResolution::DPI}, force);
 
-    set_or_fail(sidesOpt, ip.sides, sides, force);
-    set_or_fail(colorModeOpt, ip.colorMode, colorMode, force);
-    set_or_fail(qualityOpt, ip.printQuality, quality, force);
-    set_or_fail(scalingOpt, ip.scaling, scaling, force);
-    set_or_fail(formatOpt, ip.documentFormat, format, force);
-    set_or_fail(mediaTypeOpt, ip.mediaType, mediaType, force);
-    set_or_fail(mediaSourceOpt, ip.mediaSource, mediaSource, force);
-    set_or_fail(outputBinOpt, ip.outputBin, outputBin, force);
+    set_or_fail(sidesOpt, job.sides, sides, force);
+    set_or_fail(colorModeOpt, job.colorMode, colorMode, force);
+    set_or_fail(qualityOpt, job.printQuality, quality, force);
+    set_or_fail(scalingOpt, job.scaling, scaling, force);
+    set_or_fail(formatOpt, job.documentFormat, format, force);
+    set_or_fail(mediaTypeOpt, job.mediaType, mediaType, force);
+    set_or_fail(mediaSourceOpt, job.mediaSource, mediaSource, force);
+    set_or_fail(outputBinOpt, job.outputBin, outputBin, force);
 
     if(marginOpt.isSet())
     {
-      if(!force && (!ip.topMargin.isSupported() || !ip.bottomMargin.isSupported() ||
-                    !ip.leftMargin.isSupported() || !ip.rightMargin.isSupported()))
+      if(!force && (!job.topMargin.isSupported() || !job.bottomMargin.isSupported() ||
+                    !job.leftMargin.isSupported() || !job.rightMargin.isSupported()))
       {
         std::cerr << "Argument " << marginOpt.docName() << " (ipp: margin-*) "
                   << "is not supported by this printer." << std::endl;
         exit(1);
       }
       set_or_fail(true, marginOpt.docName(),
-                  "Valid values for top margin are: " +  ip.topMargin.supportedStr(),
-                  ip.topMargin, margin, force);
+                  "Valid values for top margin are: " +  job.topMargin.supportedStr(),
+                  job.topMargin, margin, force);
       set_or_fail(true, marginOpt.docName(),
-                  "Valid values for bottom margin are: " +  ip.bottomMargin.supportedStr(),
-                  ip.bottomMargin, margin, force);
+                  "Valid values for bottom margin are: " +  job.bottomMargin.supportedStr(),
+                  job.bottomMargin, margin, force);
       set_or_fail(true, marginOpt.docName(),
-                  "Valid values for left margin are: " +  ip.leftMargin.supportedStr(),
-                  ip.leftMargin, margin, force);
+                  "Valid values for left margin are: " +  job.leftMargin.supportedStr(),
+                  job.leftMargin, margin, force);
       set_or_fail(true, marginOpt.docName(),
-                  "Valid values for right margin are: " +  ip.rightMargin.supportedStr(),
-                  ip.rightMargin, margin, force);
+                  "Valid values for right margin are: " +  job.rightMargin.supportedStr(),
+                  job.rightMargin, margin, force);
     }
 
-    set_or_fail(topMarginOpt, ip.topMargin, topMargin, force);
-    set_or_fail(bottomMarginOpt, ip.bottomMargin, bottomMargin, force);
-    set_or_fail(leftMarginOpt, ip.leftMargin, leftMargin, force);
-    set_or_fail(rightMarginOpt, ip.rightMargin, rightMargin, force);
+    set_or_fail(topMarginOpt, job.topMargin, topMargin, force);
+    set_or_fail(bottomMarginOpt, job.bottomMargin, bottomMargin, force);
+    set_or_fail(leftMarginOpt, job.leftMargin, leftMargin, force);
+    set_or_fail(rightMarginOpt, job.rightMargin, rightMargin, force);
 
     int nPages = 0; // Unknown - assume multiple if the format allows
 
@@ -416,7 +416,8 @@ int main(int argc, char** argv)
       nPages = poppler_document_get_n_pages(doc);
     }
 
-    error = ip.run(addr, inFile, mimeType, nPages, verbose);
+    error = printer.runJob(job, inFile, mimeType, nPages, verbose);
+
     if(error)
     {
       std::cerr << "Print failed: " << error.value() << std::endl;

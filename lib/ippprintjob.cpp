@@ -1,8 +1,7 @@
 #include "ippprintjob.h"
 #include "mediaposition.h"
 #include "curlrequester.h"
-#include <algorithm>
-#include <filesystem>
+#include "converter.h"
 
 inline bool startsWith(std::string s, std::string start)
 {
@@ -200,7 +199,7 @@ Error IppPrintJob::finalize(std::string inputFormat, int pages)
 std::string IppPrintJob::determineTargetFormat(std::string inputFormat)
 {
   std::string targetFormat = documentFormat.get(MiniMime::OctetStream);
-  bool canConvert = Pipelines.find({inputFormat, targetFormat}) != Pipelines.end();
+  bool canConvert = Converter::instance().canConvert(inputFormat, targetFormat);
 
   if(!documentFormat.isSet() && !canConvert)
   { // User made no choice, and we don't know the target format - treat as if auto
@@ -211,18 +210,14 @@ std::string IppPrintJob::determineTargetFormat(std::string inputFormat)
   {
     List<std::string> supportedFormats = documentFormat.getSupported();
     supportedFormats += additionalDocumentFormats();
-
-    if(supportedFormats.contains(inputFormat))
-    { // If we have a supported format in, assume we can send it as-is
-      targetFormat = inputFormat;
+    std::optional<std::string> betterFormat = Converter::instance().getTargetFormat(inputFormat, supportedFormats);
+    if(betterFormat)
+    {
+      targetFormat = betterFormat.value();
     }
-    for(const std::pair<const ConvertKey, ConvertFun>& p : Pipelines)
-    { // Try to find a convert-pipeline (preferred over sending as-is)
-      if(p.first.first == inputFormat && supportedFormats.contains(p.first.second))
-      {
-        targetFormat = p.first.second;
-        break;
-      }
+    else if(supportedFormats.contains(inputFormat))
+    { // Last-resort: if we have a supported format in, assume we can send it as-is
+      targetFormat = inputFormat;
     }
   }
   return targetFormat;
@@ -359,160 +354,4 @@ void IppPrintJob::adjustRasterSettings(int pages)
       }
     }
   }
-}
-
-Error IppPrintJob::run(std::string addr, std::string inFile, std::string inFormat, int pages, bool verbose)
-{
-  Error error;
-  try
-  {
-    List<int> supportedOperations = _printerAttrs.getList<int>("operations-supported");
-    std::string fileName = std::filesystem::path(inFile).filename();
-
-    error = finalize(inFormat, pages);
-    if(error)
-    {
-      return error;
-    }
-
-    ConvertFun convertFun;
-
-    std::map<ConvertKey, ConvertFun>::iterator pit =
-      Pipelines.find(ConvertKey {inFormat, targetFormat});
-
-
-    if(pit != Pipelines.end())
-    {
-      convertFun = pit->second;
-    }
-    else if(inFormat == targetFormat)
-    {
-      convertFun = JustUpload;
-    }
-    else
-    {
-      return Error("No conversion method found for " + inFormat + " to " + targetFormat);
-    }
-
-    if(!oneStage &&
-       supportedOperations.contains(IppMsg::CreateJob) &&
-       supportedOperations.contains(IppMsg::SendDocument))
-    {
-      IppAttrs createJobOpAttrs = IppMsg::baseOpAttrs(addr);
-      createJobOpAttrs.set("job-name", IppAttr {IppTag::NameWithoutLanguage, fileName});
-
-      IppMsg createJobMsg(IppMsg::CreateJob, createJobOpAttrs, jobAttrs);
-      if(_printerAttrs.getList<std::string>("ipp-versions-supported").contains("2.0"))
-      {
-        createJobMsg.setVersion(2, 0);
-      }
-      CurlIppPoster createJobReq(addr, createJobMsg.encode(), true, verbose);
-
-      Bytestream createJobResult;
-      CURLcode res = createJobReq.await(&createJobResult);
-
-      if(res == CURLE_OK)
-      {
-        IppMsg createJobResp(createJobResult);
-        IppAttrs createJobRespJobAttrs;
-        if(!createJobResp.getJobAttrs().empty())
-        {
-          createJobRespJobAttrs = createJobResp.getJobAttrs().front();
-        }
-        if(createJobResp.getStatus() <= 0xff && createJobRespJobAttrs.has("job-id"))
-        {
-          int jobId = createJobRespJobAttrs.get<int>("job-id");
-          IppAttrs sendDocumentOpAttrs = IppMsg::baseOpAttrs(addr);
-          sendDocumentOpAttrs.insert(opAttrs.begin(), opAttrs.end());
-          sendDocumentOpAttrs.set("job-id", IppAttr {IppTag::Integer, jobId});
-          sendDocumentOpAttrs.set("last-document", IppAttr {IppTag::Boolean, true});
-          IppMsg sendDocumentMsg(IppMsg::SendDocument, sendDocumentOpAttrs);
-          if(_printerAttrs.getList<std::string>("ipp-versions-supported").contains("2.0"))
-          {
-            sendDocumentMsg.setVersion(2, 0);
-          }
-          error = doPrint(addr, inFile, convertFun, sendDocumentMsg.encode(), verbose);
-        }
-        else
-        {
-          error = "Create job failed: " + createJobResp.getOpAttrs().get<std::string>("status-message", "unknown");
-        }
-      }
-      else
-      {
-        error = std::string("Create job failed: ") + curl_easy_strerror(res);
-      }
-    }
-    else
-    {
-      IppAttrs printJobOpAttrs = IppMsg::baseOpAttrs(addr);
-      printJobOpAttrs.insert(opAttrs.begin(), opAttrs.end());
-      printJobOpAttrs.set("job-name", IppAttr {IppTag::NameWithoutLanguage, fileName});
-      IppMsg printJobMsg(IppMsg::PrintJob, printJobOpAttrs, jobAttrs);
-      if(_printerAttrs.getList<std::string>("ipp-versions-supported").contains("2.0"))
-      {
-        printJobMsg.setVersion(2, 0);
-      }
-      error = doPrint(addr, inFile, convertFun, printJobMsg.encode(), verbose);
-    }
-  }
-  catch(const std::exception& e)
-  {
-    error = std::string("Exception caught while printing: ") + e.what();
-  }
-  return error;
-}
-
-Error IppPrintJob::doPrint(std::string addr, std::string inFile, ConvertFun convertFun, Bytestream hdr, bool verbose)
-{
-  Error error;
-  CurlIppStreamer cr(addr, true, verbose);
-  cr.write((char*)(hdr.raw()), hdr.size());
-
-  if(compression.get() == "gzip")
-  {
-    cr.setCompression(Compression::Gzip);
-  }
-  else if(compression.get() == "deflate")
-  {
-    cr.setCompression(Compression::Deflate);
-  }
-
-  WriteFun writeFun([&cr](unsigned char const* buf, unsigned int len) -> bool
-           {
-             if(len == 0)
-               return true;
-             return cr.write((const char*)buf, len);
-           });
-
-  ProgressFun progressFun([verbose](size_t page, size_t total) -> void
-              {
-                if(verbose)
-                {
-                  std::cerr << page << "/" << total << std::endl;
-                }
-              });
-
-  error = convertFun(inFile, writeFun, *this, progressFun, verbose);
-  if(error)
-  {
-    return error;
-  }
-
-  Bytestream result;
-  CURLcode cres = cr.await(&result);
-  if(cres == CURLE_OK)
-  {
-    IppMsg response(result);
-    if(response.getStatus() > 0xff)
-    {
-      error = "Print job failed: " + response.getOpAttrs().get<std::string>("status-message", "unknown");
-    }
-  }
-  else
-  {
-    error = curl_easy_strerror(cres);
-  }
-
-  return error;
 }

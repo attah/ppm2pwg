@@ -2,6 +2,7 @@
 #define IPPPRINTER_H
 
 #include <string>
+#include "converter.h"
 #include "error.h"
 #include "ippattr.h"
 #include "ippmsg.h"
@@ -53,6 +54,8 @@ public:
     return IppPrintJob(_printerAttrs);
   }
 
+  Error runJob(IppPrintJob job, std::string inFile, std::string inFormat, int pages, bool verbose);
+
   std::string name();
   std::string uuid();
   std::string makeAndModel();
@@ -76,6 +79,7 @@ public:
 private:
   Error _doRequest(IppMsg::Operation op, IppMsg& resp);
   Error _doRequest(const IppMsg& req, IppMsg& resp);
+  IppMsg _mkMsg(uint16_t opOrStatus, IppAttrs opAttrs=IppAttrs(), IppAttrs jobAttrs=IppAttrs(), IppAttrs printerAttrs=IppAttrs());
 
   std::string _addr;
   bool _verbose = false;
@@ -83,6 +87,8 @@ private:
 
   Error _error;
   IppAttrs _printerAttrs;
+
+  Error doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream hdr, bool verbose);
 
 };
 

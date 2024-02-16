@@ -2,20 +2,32 @@
 #define IPPPARAMETERS_H
 
 #include "printparameters.h"
-#include "pdf2printable.h"
-#include "baselinify.h"
 #include "ippmsg.h"
-#include "binfile.h"
 #include "setting.h"
 #include "error.h"
-#include "minimime.h"
-#include "stringsplit.h"
 
 class IppPrintJob
 {
 public:
   IppPrintJob(IppAttrs printerAttrs) : _printerAttrs(printerAttrs)
   {}
+
+  IppPrintJob& operator=(const IppPrintJob& other)
+  {
+    opAttrs = other.opAttrs;
+    jobAttrs = other.jobAttrs;
+    printParams = other.printParams;
+    _printerAttrs = other._printerAttrs;
+    targetFormat = other.targetFormat;
+    oneStage = other.oneStage;
+    margins = other.margins;
+    return *this;
+  };
+
+  IppPrintJob(const IppPrintJob& other)
+  {
+    *this = other;
+  }
 
   ChoiceSetting<std::string> sides = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppTag::Keyword, "sides");
   PreferredChoiceSetting<std::string> media = PreferredChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppTag::Keyword, "media", "ready");
@@ -45,76 +57,7 @@ public:
   ChoiceSetting<int> rightMargin = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppTag::Integer, "media-right-margin", "media-col");
 
   List<std::string> additionalDocumentFormats();
-
-  typedef std::pair<std::string, std::string> ConvertKey;
-  typedef std::function<Error(std::string inFileName, WriteFun writeFun, const IppPrintJob& job, ProgressFun progressFun, bool verbose)> ConvertFun;
-
   Error finalize(std::string inputFormat, int pages=0);
-  Error run(std::string addr, std::string inFile, std::string inFormat, int pages=0, bool verbose=false);
-  Error doPrint(std::string addr, std::string inFile, ConvertFun convertFun, Bytestream hdr, bool verbose);
-
-  ConvertFun Pdf2Printable = [](std::string inFileName, WriteFun writeFun, const IppPrintJob& job, ProgressFun progressFun, bool verbose)
-                             {
-                               return pdf_to_printable(inFileName, writeFun, job.printParams, progressFun, verbose);
-                             };
-
-  ConvertFun Baselinify = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun, bool)
-                          {
-                            InBinFile in(inFileName);
-                            if(!in)
-                            {
-                              return Error("Failed to open input");
-                            }
-                            Bytestream inBts(in);
-                            Bytestream baselinified;
-                            baselinify(inBts, baselinified);
-                            writeFun(baselinified.raw(), baselinified.size());
-                            progressFun(1, 1);
-                            // We'll check on the cURL status in just a bit, so no point in returning errors here.
-                            return Error();
-                          };
-
-  ConvertFun JustUpload = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun, bool)
-                          {
-                            InBinFile in(inFileName);
-                            if(!in)
-                            {
-                              return Error("Failed to open input");
-                            }
-                            Bytestream inBts(in);
-                            writeFun(inBts.raw(), inBts.size());
-                            progressFun(1, 1);
-                            return Error();
-                          };
-
-  ConvertFun FixupText = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun, bool)
-                         {
-                           InBinFile in(inFileName);
-                           if(!in)
-                           {
-                             return Error("Failed to open input");
-                           }
-                           Bytestream inBts(in);
-                           std::string allText = inBts.getString(inBts.size());
-
-                           List<std::string> lines;
-                           for(const std::string& rnline : split_string(allText, "\r\n"))
-                           {
-                             lines += split_string(rnline, "\n");
-                           }
-                           std::string outString = join_string(lines, "\r\n");
-
-                           writeFun((uint8_t*)outString.c_str(), outString.length());
-                           progressFun(1, 1);
-                           return Error();
-                         };
-
-  std::map<ConvertKey, ConvertFun> Pipelines {{{MiniMime::PDF, MiniMime::PDF}, Pdf2Printable},
-                                              {{MiniMime::PDF, MiniMime::Postscript}, Pdf2Printable},
-                                              {{MiniMime::PDF, MiniMime::PWG}, Pdf2Printable},
-                                              {{MiniMime::PDF, MiniMime::URF}, Pdf2Printable},
-                                              {{MiniMime::JPEG, MiniMime::JPEG}, Baselinify},
-                                              {{"text/plain", "text/plain"}, FixupText}};
 
   IppAttrs opAttrs;
   IppAttrs jobAttrs;

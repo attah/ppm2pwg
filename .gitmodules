@@ -1,3 +1,6 @@
 [submodule "bytestream"]
 	path = bytestream
 	url = https://github.com/attah/bytestream
+[submodule "json11"]
+	path = json11
+	url = https://github.com/attah/json11.git

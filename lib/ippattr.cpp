@@ -18,6 +18,11 @@ std::string IppIntRange::toStr() const
   return ss.str();
 }
 
+Json::object IppIntRange::toJSON() const
+{
+  return Json::object {{"low", low}, {"high", high}};
+}
+
 bool IppResolution::operator==(const IppResolution& other) const
 {
   return other.units == units && other.x == x && other.y == y;
@@ -28,6 +33,11 @@ std::string IppResolution::toStr() const
   std::stringstream ss;
   ss << x << "x" << y << (units == DPI ? "dpi" : units == DPCM ? "dots/cm" : "unknown");
   return ss.str();
+}
+
+Json::object IppResolution::toJSON() const
+{
+  return Json::object {{"x", (int)x}, {"y", (int)y}, {"units", units}};
 }
 
 bool IppDateTime::operator==(const IppDateTime& other) const
@@ -48,13 +58,18 @@ std::string IppDateTime::toStr() const
 {
   // 2000-01-02T00:00:57 GMT+0200
   std::stringstream ss;
-  ss << "\"" << std::setfill('0') << std::setw(4) << year << "-"
+  ss << std::setfill('0') << std::setw(4) << year << "-"
      << std::setw(2) << +month << "-" << std::setw(2) << +day
      << "T" << std::setw(2) << +hour << ":"
      << std::setw(2) << +minutes << ":" << std::setw(2) << +seconds
      << "." << std::setw(3) << deciSeconds*100 << " GMT" << plusMinus
-     << std::setw(2) << +utcHOffset << std::setw(2) << +utcMOffset << "\"";
+     << std::setw(2) << +utcHOffset << std::setw(2) << +utcMOffset;
   return ss.str();
+}
+
+Json IppDateTime::toJSON() const
+{
+  return toStr();
 }
 
 IppOneSetOf IppAttr::asList() const
@@ -121,6 +136,60 @@ IppAttr IppAttr::fromString(std::string string, IppTag tag)
     default:
       throw std::logic_error("Unhandled tag");
   }
+}
+
+Json IppAttr::toJSON() const
+{
+  return Json::object {{"tag", (int)tag()}, {"value", valueToJSON(value())}};
+}
+
+Json IppAttr::valueToJSON(IppValue value)
+{
+  Json j;
+  if(value.is<std::string>())
+  {
+    j = value.get<std::string>();
+  }
+  else if(value.is<int>())
+  {
+    j = value.get<int>();
+  }
+  else if(value.is<bool>())
+  {
+    j = value.get<bool>();
+  }
+  else if(value.is<IppIntRange>())
+  {
+    j = value.get<IppIntRange>().toJSON();
+  }
+  else if(value.is<IppResolution>())
+  {
+    j = value.get<IppResolution>().toJSON();
+  }
+  else if(value.is<IppDateTime>())
+  {
+    j = value.get<IppDateTime>().toJSON();
+  }
+  else if(value.is<IppOneSetOf>())
+  {
+    Json::array arr;
+    IppOneSetOf oneSet = value.get<IppOneSetOf>();
+    for(const IppValue& v : oneSet)
+    {
+      arr.push_back(valueToJSON(v));
+    }
+    j = arr;
+  }
+  else if(value.is<IppCollection>())
+  {
+    Json::object obj;
+    for(const auto& [k, v] : value.get<IppCollection>())
+    {
+      obj[k] = v.toJSON();
+    }
+    j = obj;
+  }
+  return j;
 }
 
 std::ostream& operator<<(std::ostream& os, const IppIntRange& ir)
@@ -201,29 +270,6 @@ std::ostream& operator<<(std::ostream& os, const IppValue& iv)
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const IppAttrs& as)
-{
-  if(as.empty())
-  {
-    os << "{}" << std::endl;
-    return os;
-  }
-
-  IppAttrs::const_iterator it = as.cbegin();
-  os << "{"
-     << "\"" << it->first << "\": {\"tag\": " << +(uint8_t)(it->second.tag())
-     << ", \"value\": " << it->second.value() << "}";
-  it++;
-  for(; it != as.cend(); it++)
-  {
-    os << "," << std::endl
-       << "\"" << it->first << "\": {\"tag\": " << +(uint8_t)(it->second.tag())
-       << ", \"value\": " << it->second.value() << "}";
-  }
-  os << "}" << std::endl;
-  return os;
-}
-
 bool IppCollection::has(std::string key) const
 {
   return find(key) != end();
@@ -232,4 +278,14 @@ bool IppCollection::has(std::string key) const
 void IppCollection::set(std::string key, IppAttr value)
 {
   insert_or_assign(key, value);
+}
+
+Json IppAttrs::toJSON() const
+{
+  Json::object json;
+  for(const auto& [key, value] : *this)
+  {
+    json[key] = value.toJSON();
+  }
+  return json;
 }

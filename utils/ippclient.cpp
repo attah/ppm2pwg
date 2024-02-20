@@ -278,7 +278,7 @@ int main(int argc, char** argv)
   }
   else if(args.subCommand() == "get-attrs")
   {
-    std::cout << printer.attributes();
+    std::cout << printer.attributes().toJSON().dump();
   }
   else if(args.subCommand() == "set-attrs")
   {

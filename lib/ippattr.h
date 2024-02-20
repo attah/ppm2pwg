@@ -9,6 +9,9 @@
 #include <map>
 #include <iostream>
 #include "polymorph.h"
+#include "json11.hpp"
+
+using namespace json11;
 
 struct IppOneSetOf;
 struct IppCollection;
@@ -51,6 +54,7 @@ struct IppIntRange
 
   bool operator==(const IppIntRange& other) const;
   std::string toStr() const;
+  Json::object toJSON() const;
 };
 
 struct IppResolution
@@ -68,6 +72,7 @@ struct IppResolution
 
   bool operator==(const IppResolution& other) const;
   std::string toStr() const;
+  Json::object toJSON() const;
 };
 
 struct IppDateTime
@@ -85,6 +90,7 @@ struct IppDateTime
 
   bool operator==(const IppDateTime& other) const;
   std::string toStr() const;
+  Json toJSON() const;
 };
 
 using IppValue = Polymorph<std::string, int, bool,
@@ -116,7 +122,11 @@ public:
   IppValue value() const {return *this;}
   static IppAttr fromString(std::string string, IppTag tag);
 
+  Json toJSON() const;
+
 private:
+  static Json valueToJSON(IppValue value);
+
   IppTag _tag;
 
 };
@@ -158,6 +168,9 @@ struct IppAttrs: public std::map<std::string, IppAttr>
     }
     return res;
   }
+
+  Json toJSON() const;
+
 };
 
 std::ostream& operator<<(std::ostream& os, const IppIntRange& iv);

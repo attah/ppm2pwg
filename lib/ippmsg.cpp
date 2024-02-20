@@ -32,7 +32,7 @@ IppMsg::IppMsg(Bytestream& bts)
       {
 #ifndef FUZZ // Too much spam for fuzzing
         std::cerr << "WARNING: unsupported attrs reported: " << std::endl
-                  << attrs;
+                  << attrs.toJSON().dump();
 #endif
       }
 

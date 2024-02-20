@@ -201,7 +201,7 @@ int main(int argc, char** argv)
   SwitchArg<std::string> mediaTypeOpt(mediaType, {"--media-type"}, "Media type (as per IPP)");
   SwitchArg<std::string> mediaSourceOpt(mediaSource, {"--media-source"}, "Media source (as per IPP)");
   SwitchArg<std::string> outputBinOpt(outputBin, {"--output-bin"}, "Output bin (as per IPP)");
-  SwitchArg<int> finishingsOpt(finishing, {"--finishings"}, "Finishing to apply");
+  SwitchArg<int> finishingsOpt(finishing, {"--finishings"}, "Finishing to apply (as per IPP)");
 
   SwitchArg<int> marginOpt(margin, {"-m", "--margin"}, "Margin (as per IPP)");
   SwitchArg<int> topMarginOpt(topMargin, {"-tm", "--top-margin"}, "Top margin (as per IPP)");

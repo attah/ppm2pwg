@@ -157,6 +157,7 @@ int main(int argc, char** argv)
   std::string mediaSource;
   std::string outputBin;
 
+  int finishing;
   int margin;
   int topMargin;
   int bottomMargin;
@@ -200,6 +201,7 @@ int main(int argc, char** argv)
   SwitchArg<std::string> mediaTypeOpt(mediaType, {"--media-type"}, "Media type (as per IPP)");
   SwitchArg<std::string> mediaSourceOpt(mediaSource, {"--media-source"}, "Media source (as per IPP)");
   SwitchArg<std::string> outputBinOpt(outputBin, {"--output-bin"}, "Output bin (as per IPP)");
+  SwitchArg<int> finishingsOpt(finishing, {"--finishings"}, "Finishing to apply");
 
   SwitchArg<int> marginOpt(margin, {"-m", "--margin"}, "Margin (as per IPP)");
   SwitchArg<int> topMarginOpt(topMargin, {"-tm", "--top-margin"}, "Top margin (as per IPP)");
@@ -226,7 +228,7 @@ int main(int argc, char** argv)
                               &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
                               &sidesOpt, &colorModeOpt, &qualityOpt, &scalingOpt,
                               &formatOpt, &mimeTypeOpt,
-                              &mediaTypeOpt, &mediaSourceOpt, &outputBinOpt,
+                              &mediaTypeOpt, &mediaSourceOpt, &outputBinOpt, &finishingsOpt,
                               &marginOpt, &topMarginOpt, &bottomMarginOpt, &leftMarginOpt, &rightMarginOpt,
                               &antiAliasOpt},
                              {&addrArg, &pdfArg}}}});
@@ -369,6 +371,7 @@ int main(int argc, char** argv)
     set_or_fail(mediaTypeOpt, job.mediaType, mediaType, force);
     set_or_fail(mediaSourceOpt, job.mediaSource, mediaSource, force);
     set_or_fail(outputBinOpt, job.outputBin, outputBin, force);
+    set_or_fail(finishingsOpt, job.finishings, finishing, force);
 
     if(marginOpt.isSet())
     {

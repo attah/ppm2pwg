@@ -50,6 +50,7 @@ public:
   ChoiceSetting<std::string> mediaType = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppTag::Keyword, "media-type", "media-col");
   ChoiceSetting<std::string> mediaSource = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppTag::Keyword, "media-source", "media-col");
   ChoiceSetting<std::string> outputBin = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppTag::Keyword, "output-bin");
+  ChoiceSetting<int> finishings = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppTag::Enum, "finishings");
 
   ChoiceSetting<int> topMargin = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppTag::Integer, "media-top-margin", "media-col");
   ChoiceSetting<int> bottomMargin = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppTag::Integer, "media-bottom-margin", "media-col");

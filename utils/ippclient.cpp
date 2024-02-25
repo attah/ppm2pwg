@@ -261,13 +261,16 @@ int main(int argc, char** argv)
     print_if_set("UUID:", printer.uuid());
     print_if_set("Printer state message:", printer.stateMessage());
     print_if_set("Printer state reasons:", join_string(printer.stateReasons(), "\n"));
-    print_if_set("IPP versions supported:", join_string(printer.ippVersionsSupported(), ", "));
-    print_if_set("IPP features supported:", join_string(printer.ippFeaturesSupported(), "\n"));
+    print_if_set("IPP versions:", join_string(printer.ippVersionsSupported(), ", "));
+    print_if_set("IPP features:", join_string(printer.ippFeaturesSupported(), "\n"));
     print_if_set("Pages per minute:", printer.pagesPerMinute());
     print_if_set("Pages per minute (color):", printer.pagesPerMinuteColor());
     print_if_set("Supplies:", printer.supplies());
     print_if_set("Firmware:", printer.firmware());
     print_if_set("Settable attributes:", join_string(printer.settableAttributes(), "\n"));
+    print_if_set("Document formats (native):", join_string(printer.documentFormats(), "\n"));
+    print_if_set("Document formats (guessed):", join_string(printer.additionalDocumentFormats(), "\n"));
+    print_if_set("Document formats (with conversion)", join_string(printer.possibleInputFormats(), "\n"));
   }
   else if(args.subCommand() == "identify")
   {

@@ -4,37 +4,8 @@
 #include "converter.h"
 #include "stringutils.h"
 
-List<std::string> IppPrintJob::additionalDocumentFormats()
-{
-  List<std::string> additionalFormats;
-  std::string printerDeviceId = _printerAttrs.get<std::string>("printer-device-id");
-  if(!documentFormat.getSupported().contains(MiniMime::PDF) &&
-     string_contains(printerDeviceId, "PDF"))
-  {
-    additionalFormats.push_back(MiniMime::PDF);
-  }
-  if(!documentFormat.getSupported().contains(MiniMime::Postscript) &&
-     (string_contains(printerDeviceId, "POSTSCRIPT") || string_contains(printerDeviceId, "PostScript")))
-  {
-    additionalFormats.push_back(MiniMime::Postscript);
-  }
-  if(!documentFormat.getSupported().contains(MiniMime::PWG) &&
-     string_contains(printerDeviceId, "PWG"))
-  {
-    additionalFormats.push_back(MiniMime::PWG);
-  }
-  if(!documentFormat.getSupported().contains(MiniMime::URF) &&
-     (string_contains(printerDeviceId, "URF") || string_contains(printerDeviceId, "AppleRaster")))
-  {
-    additionalFormats.push_back(MiniMime::URF);
-  }
-  return additionalFormats;
-}
-
 Error IppPrintJob::finalize(std::string inputFormat, int pages)
 {
-  // handle additional formats
-
   targetFormat = determineTargetFormat(inputFormat);
   // Only set if regular supported format - else set OctetSteam
   if(documentFormat.getSupported().contains(targetFormat))
@@ -196,7 +167,7 @@ std::string IppPrintJob::determineTargetFormat(std::string inputFormat)
   if(targetFormat == MiniMime::OctetStream)
   {
     List<std::string> supportedFormats = documentFormat.getSupported();
-    supportedFormats += additionalDocumentFormats();
+    supportedFormats += _additionalDocumentFormats;
     std::optional<std::string> betterFormat = Converter::instance().getTargetFormat(inputFormat, supportedFormats);
     if(betterFormat)
     {

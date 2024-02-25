@@ -9,7 +9,8 @@
 class IppPrintJob
 {
 public:
-  IppPrintJob(IppAttrs printerAttrs) : _printerAttrs(printerAttrs)
+  IppPrintJob(IppAttrs printerAttrs, List<std::string> additionalDocumentFormats = {})
+  : _printerAttrs(printerAttrs), _additionalDocumentFormats(additionalDocumentFormats)
   {}
 
   IppPrintJob& operator=(const IppPrintJob& other)
@@ -57,7 +58,6 @@ public:
   ChoiceSetting<int> leftMargin = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppTag::Integer, "media-left-margin", "media-col");
   ChoiceSetting<int> rightMargin = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppTag::Integer, "media-right-margin", "media-col");
 
-  List<std::string> additionalDocumentFormats();
   Error finalize(std::string inputFormat, int pages=0);
 
   IppAttrs opAttrs;
@@ -85,6 +85,7 @@ private:
   void adjustRasterSettings(int pages);
 
   IppAttrs _printerAttrs;
+  List<std::string> _additionalDocumentFormats;
 };
 
 #endif // IPPPARAMETERS_H

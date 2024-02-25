@@ -7,6 +7,7 @@
 #include "argget.h"
 #include "lthread.h"
 #include "ippmsg.h"
+#include "ippprinter.h"
 #include "ippprintjob.h"
 #include "json11.hpp"
 #include <cstring>
@@ -1932,42 +1933,42 @@ TEST(finalize)
 TEST(additional_formats)
 {
   IppAttrs printerAttrs;
-  IppPrintJob ip(printerAttrs);
+  IppPrinter ip(printerAttrs);
   ASSERT(ip.additionalDocumentFormats() == List<std::string>());
 
   printerAttrs.set("printer-device-id", IppAttr(IppTag::TextWithoutLanguage, "MANUFACTURER:Xerox;COMMAND SET:PDF,URF,JPEG;MODEL:WorkCentre 6515;URF:IS4-20,IFU20,OB10,CP255,DM1,MT1,PQ4-5,RS600,W8,SRGB24,V1.4,FN3"));
-  ip = IppPrintJob(printerAttrs);
+  ip = IppPrinter(printerAttrs);
   ASSERT(ip.additionalDocumentFormats() == List<std::string>({"application/pdf", "image/urf"}));
 
   printerAttrs.set("printer-device-id", IppAttr(IppTag::TextWithoutLanguage, "MFG:Canon;CMD:URF;MDL:SELPHY CP1300;CLS:PRINTER;URF:W8,SRGB24,V1.4,RS300,IS7,MT11,PQ4,OB9,IFU0,OFU0,CP99;"));
-  ip = IppPrintJob(printerAttrs);
+  ip = IppPrinter(printerAttrs);
   ASSERT(ip.additionalDocumentFormats() == List<std::string>({"image/urf"}));
 
   printerAttrs.set("printer-device-id", IppAttr(IppTag::TextWithoutLanguage, "MANUFACTURER:Xerox;COMMAND SET:PCL 6 Emulation, PostScript Level 3 Emulation, URF, PWG, NPAP, PJL;MODEL:C230 Color Printer;CLS:PRINTER;DES:Xerox(R) C230 Color Printer;CID:XR_PCL6_XCPT_Color_A4;COMMENT:ECP1.0, LV_0924, LP_9D15, LF_00C7;"));
-  ip = IppPrintJob(printerAttrs);
+  ip = IppPrinter(printerAttrs);
   ASSERT(ip.additionalDocumentFormats() == List<std::string>({"application/postscript", "image/pwg-raster", "image/urf"}));
 
   printerAttrs.set("printer-device-id", IppAttr(IppTag::TextWithoutLanguage, "MFG:EPSON;CMD:ESCPL2,BDC,D4,D4PX,ESCPR7,END4,GENEP,PWGRaster,URF;MDL:SC-P900 Series;CLS:PRINTER;DES:EPSON SC-P900 Series;CID:EpsonRGB;RID:02;DDS:401900;ELG:13F0;SN:583757503030333448;URF:CP1,PQ3-4-5,OB9,OFU0,RS360-720,SRGB24,ADOBERGB24-48,W8,IS18-20-21-22,V1.4,MT1-10-11;"));
-  ip = IppPrintJob(printerAttrs);
+  ip = IppPrinter(printerAttrs);
   ASSERT(ip.additionalDocumentFormats() == List<std::string>({"image/pwg-raster", "image/urf"}));
 
   printerAttrs.set("printer-device-id", IppAttr(IppTag::TextWithoutLanguage, "MFG:HP;CMD:PJL,PML,PWG_RASTER,URP;MDL:HP LaserJet MFP M28-M31;CLS:PRINTER;DES:HP LaserJet MFP M28w;MEM:MEM=279MB;PRN:W2G55A;S:0300000000000000000000000000000000;COMMENT:RES=600x2;LEDMDIS:USB#ff#04#01;CID:HPLJPCLMSMV1;MCT:MF;MCL:FL;MCV:2.0;"));
-  ip = IppPrintJob(printerAttrs);
+  ip = IppPrinter(printerAttrs);
   ASSERT(ip.additionalDocumentFormats() == List<std::string>({"image/pwg-raster"}));
 
   printerAttrs.set("printer-device-id", IppAttr(IppTag::TextWithoutLanguage, "MFG:HP;MDL:DeskJet 3700 series;CMD:PCL3GUI,PJL,Automatic,JPEG,PCLM,AppleRaster,PWGRaster,DW-PCL,802.11,DESKJET,DYN;CLS:PRINTER;DES:T8X04B;CID:HPDeskjet_P976D;LEDMDIS:USB#FF#CC#00,USB#07#01#02,USB#FF#04#01;SN:CN69R3D24J06H3;S:038000C480a00001002c0000000c1400046;Z:05000001000008,12000,17000000000000,181;"));
-  ip = IppPrintJob(printerAttrs);
+  ip = IppPrinter(printerAttrs);
   ASSERT(ip.additionalDocumentFormats() == List<std::string>({"image/pwg-raster", "image/urf"}));
 
   printerAttrs = IppAttrs();
-  ip = IppPrintJob(printerAttrs);
+  ip = IppPrinter(printerAttrs);
   ASSERT(ip.additionalDocumentFormats() == List<std::string>());
 
   printerAttrs.set("document-format-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"application/octet-stream",
                                                                                       "application/postscript",
                                                                                       "image/urf"}));
   printerAttrs.set("printer-device-id", IppAttr(IppTag::TextWithoutLanguage, "MFG:OKI DATA c332.js-CORP;CMD:PCL,XPS,IBMPPR,EPSONFX,POSTSCRIPT,PDF,PCLXL,HIPERMIP,URF;MDL:C332;CLS:PRINTER;DES:OKI c332.js-C332;CID:OK_N_B800;"));
-  ip = IppPrintJob(printerAttrs);
+  ip = IppPrinter(printerAttrs);
   ASSERT(ip.additionalDocumentFormats() == List<std::string>({"application/pdf"}));
 
 }

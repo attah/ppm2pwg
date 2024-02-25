@@ -288,6 +288,44 @@ List<std::string> IppPrinter::settableAttributes()
   return _printerAttrs.getList<std::string>("printer-settable-attributes-supported");
 }
 
+List<std::string> IppPrinter::documentFormats()
+{
+  return _printerAttrs.getList<std::string>("document-format-supported");
+}
+
+List<std::string> IppPrinter::additionalDocumentFormats()
+{
+  List<std::string> additionalFormats;
+  List<std::string> baseFormats = documentFormats();
+  std::string printerDeviceId = _printerAttrs.get<std::string>("printer-device-id");
+  if(!baseFormats.contains(MiniMime::PDF) &&
+     string_contains(printerDeviceId, "PDF"))
+  {
+    additionalFormats.push_back(MiniMime::PDF);
+  }
+  if(!baseFormats.contains(MiniMime::Postscript) &&
+     (string_contains(printerDeviceId, "POSTSCRIPT") || string_contains(printerDeviceId, "PostScript")))
+  {
+    additionalFormats.push_back(MiniMime::Postscript);
+  }
+  if(!baseFormats.contains(MiniMime::PWG) &&
+     string_contains(printerDeviceId, "PWG"))
+  {
+    additionalFormats.push_back(MiniMime::PWG);
+  }
+  if(!baseFormats.contains(MiniMime::URF) &&
+     (string_contains(printerDeviceId, "URF") || string_contains(printerDeviceId, "AppleRaster")))
+  {
+    additionalFormats.push_back(MiniMime::URF);
+  }
+  return additionalFormats;
+}
+
+List<std::string> IppPrinter::possibleInputFormats()
+{
+  return Converter::instance().possibleInputFormats(documentFormats() += additionalDocumentFormats());
+}
+
 int IppPrinter::Supply::getPercent() const
 {
   return (level*100.0)/(highLevel != 0 ? highLevel : 100);

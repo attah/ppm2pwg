@@ -29,14 +29,11 @@ public:
     std::string version;
     bool operator==(const Firmware& other) const;
   };
-  struct Version
-  {
-    uint8_t minor = 1;
-    uint8_t major = 1;
-  };
 
   IppPrinter() = delete;
   IppPrinter(std::string addr);
+  IppPrinter(IppAttrs printerAttrs) : _printerAttrs(printerAttrs)
+  {}
   Error refresh();
 
   IppAttrs attributes()
@@ -51,7 +48,7 @@ public:
 
   IppPrintJob createJob()
   {
-    return IppPrintJob(_printerAttrs);
+    return IppPrintJob(_printerAttrs, additionalDocumentFormats());
   }
 
   Error runJob(IppPrintJob job, std::string inFile, std::string inFormat, int pages, bool verbose);
@@ -70,7 +67,9 @@ public:
   List<Supply> supplies();
   List<Firmware> firmware();
   List<std::string> settableAttributes();
-  List<Version> getVersions();
+  List<std::string> documentFormats();
+  List<std::string> additionalDocumentFormats();
+  List<std::string> possibleInputFormats();
 
   bool identifySupported();
   Error identify();

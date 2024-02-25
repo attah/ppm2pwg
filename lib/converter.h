@@ -129,4 +129,17 @@ public:
     }
     return targetFormat;
   }
+
+  List<std::string> possibleInputFormats(List<std::string> supportedFormats)
+  {
+    List<std::string> inputFormats;
+    for(const std::pair<const ConvertKey, ConvertFun>& p : Pipelines)
+    {
+      if(supportedFormats.contains(p.first.second) && !inputFormats.contains(p.first.first))
+      {
+        inputFormats.push_back(p.first.first);
+      }
+    }
+    return inputFormats;
+  }
 };

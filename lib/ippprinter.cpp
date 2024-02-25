@@ -24,7 +24,7 @@ Error IppPrinter::refresh()
       if(bts.peekS8() == '{')
       {
         std::string errStr;
-        Json json = Json::parse((char*)bts.raw(), errStr);
+        Json json = Json::parse(bts.getString(bts.size()), errStr);
         if(!errStr.empty())
         {
           return Error(errStr);
@@ -48,6 +48,7 @@ Error IppPrinter::refresh()
     error = _doRequest(IppMsg::GetPrinterAttrs, resp);
     _printerAttrs = resp.getPrinterAttrs();
   }
+  _applyOverrides();
   return error;
 }
 
@@ -502,4 +503,45 @@ IppMsg IppPrinter::_mkMsg(uint16_t opOrStatus, IppAttrs opAttrs, IppAttrs jobAtt
     msg.setVersion(2, 0);
   }
   return msg;
+}
+
+#ifndef CONFIG_DIR
+#define CONFIG_DIR std::string("/home/") + getenv("USER") + "/.ppm2pwg"
+#endif
+
+void IppPrinter::_applyOverrides()
+{
+  try
+  {
+    std::ifstream ifs(CONFIG_DIR + "/overrides", std::ios::in | std::ios::binary);
+    Bytestream bts(ifs);
+    std::string errStr;
+    Json overridesJson = Json::parse(bts.getString(bts.size()), errStr);
+    if(errStr != "")
+    {
+      std::cerr << "Bad overrides file: " << errStr << std::endl;
+    }
+    for(const auto& [matchAttrName, matchAttr] : overridesJson.object_items())
+    {
+      for(const auto& [matchAttrValue, overrideObj] : matchAttr.object_items())
+      {
+        if(_printerAttrs.has(matchAttrName) && _printerAttrs.at(matchAttrName).get<std::string>() == matchAttrValue)
+        {
+          IppAttrs overrideAttrs = IppAttrs::fromJSON(overrideObj.object_items());
+          if(_verbose)
+          {
+            std::cerr << "Overriding printer attributes: " << overrideAttrs.toJSON().dump() << std::endl;
+          }
+          for(const auto& [name, attr] : overrideAttrs)
+          {
+            _printerAttrs.insert_or_assign(name, attr);
+          }
+        }
+      }
+    }
+  }
+  catch(const std::exception& e)
+  {
+      std::cerr << "Exception applying overrides: " << e.what() << std::endl;
+  }
 }

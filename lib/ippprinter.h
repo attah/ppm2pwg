@@ -88,6 +88,7 @@ private:
   Error _doRequest(IppMsg::Operation op, IppMsg& resp);
   Error _doRequest(const IppMsg& req, IppMsg& resp);
   IppMsg _mkMsg(uint16_t opOrStatus, IppAttrs opAttrs=IppAttrs(), IppAttrs jobAttrs=IppAttrs(), IppAttrs printerAttrs=IppAttrs());
+  void _applyOverrides();
 
   std::string _addr;
   bool _verbose = false;

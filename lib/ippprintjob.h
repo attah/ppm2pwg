@@ -60,6 +60,9 @@ public:
 
   Error finalize(std::string inputFormat, int pages=0);
 
+  void restoreSettings();
+  bool saveSettings();
+
   IppAttrs opAttrs;
   IppAttrs jobAttrs;
   PrintParameters printParams;

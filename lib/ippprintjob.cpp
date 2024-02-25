@@ -3,6 +3,8 @@
 #include "curlrequester.h"
 #include "converter.h"
 #include "stringutils.h"
+#include "configdir.h"
+#include <filesystem>
 
 Error IppPrintJob::finalize(std::string inputFormat, int pages)
 {
@@ -312,4 +314,58 @@ void IppPrintJob::adjustRasterSettings(int pages)
       }
     }
   }
+}
+
+std::filesystem::path settings_dir()
+{
+  return std::filesystem::path(CONFIG_DIR) / "saved_settings";
+}
+
+void IppPrintJob::restoreSettings()
+{
+  if(_printerAttrs.has("printer-uuid"))
+  {
+    std::string uuid = _printerAttrs.get<std::string>("printer-uuid");
+    std::ifstream ifs = std::ifstream(settings_dir() / uuid, std::ios::in | std::ios::binary);
+    if(ifs)
+    {
+      Bytestream bts(ifs);
+      std::string errStr;
+      Json::object jsonObj = Json::parse(bts.getString(bts.size()), errStr).object_items();
+      Json::object opJson = jsonObj["op-attrs"].object_items();
+      Json::object jobJson = jsonObj["job-attrs"].object_items();
+      IppAttrs savedOpSettings = IppAttrs::fromJSON(opJson);
+      IppAttrs savedJobSettings = IppAttrs::fromJSON(jobJson);
+      for(const auto& [name, attr] : savedOpSettings)
+      {
+        opAttrs.insert_or_assign(name, attr);
+      }
+      for(const auto& [name, attr] : savedJobSettings)
+      {
+        jobAttrs.insert_or_assign(name, attr);
+      }
+    }
+  }
+}
+
+bool IppPrintJob::saveSettings()
+{
+  if(_printerAttrs.has("printer-uuid"))
+  {
+    std::string uuid = _printerAttrs.get<std::string>("printer-uuid");
+    std::filesystem::create_directories(settings_dir());
+    std::ofstream ofs = std::ofstream(settings_dir() / uuid, std::ios::out | std::ios::binary);
+    Json::object json;
+    if(!opAttrs.empty())
+    {
+      json["op-attrs"] = opAttrs.toJSON();
+    }
+    if(!jobAttrs.empty())
+    {
+      json["job-attrs"] = jobAttrs.toJSON();
+    }
+    ofs << Json(json).dump();
+    return true;
+  }
+  return false;
 }

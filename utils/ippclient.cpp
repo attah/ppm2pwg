@@ -180,6 +180,7 @@ int main(int argc, char** argv)
   int rightMargin;
 
   bool antiAlias;
+  bool save;
 
   int id;
 
@@ -227,6 +228,7 @@ int main(int argc, char** argv)
   SwitchArg<int> rightMarginOpt(rightMargin, {"-rm", "--right-margin"}, "Right margin (as per IPP)");
 
   SwitchArg<bool> antiAliasOpt(antiAlias, {"-aa", "--antaialias"}, "Enable antialiasing in rasterization");
+  SwitchArg<bool> saveOpt(save, {"--save"}, "Save options as local defaults for future jobs");
 
   SwitchArg<int> idOpt(id, {"--id"}, "Id of print job.");
 
@@ -253,7 +255,7 @@ int main(int argc, char** argv)
                               &formatOpt, &mimeTypeOpt,
                               &mediaTypeOpt, &mediaSourceOpt, &outputBinOpt, &finishingsOpt,
                               &marginOpt, &topMarginOpt, &bottomMarginOpt, &leftMarginOpt, &rightMarginOpt,
-                              &antiAliasOpt},
+                              &antiAliasOpt, &saveOpt},
                              {&addrArg, &pdfArg}}}});
 
   bool correctArgs = args.get_args(argc, argv);
@@ -360,6 +362,10 @@ int main(int argc, char** argv)
   else if(args.subCommand() == "print")
   {
     IppPrintJob job = printer.createJob();
+    if(!save)
+    {
+      job.restoreSettings();
+    }
 
     if(oneStageOpt.isSet())
     {
@@ -470,6 +476,14 @@ int main(int argc, char** argv)
       nPages = poppler_document_get_n_pages(doc);
     }
 
+    if(save)
+    {
+      if(!job.saveSettings())
+      {
+        std::cerr << "Could not save settings. Aborting." << std::endl;
+        return 1;
+      }
+    }
     error = printer.runJob(job, inFile, mimeType, nPages, verbose);
 
     if(error)

@@ -1,6 +1,7 @@
 #include "ippprinter.h"
 #include "curlrequester.h"
 #include "stringutils.h"
+#include "configdir.h"
 #include <filesystem>
 
 IppPrinter::IppPrinter(std::string addr) : _addr(addr)
@@ -505,10 +506,6 @@ IppMsg IppPrinter::_mkMsg(uint16_t opOrStatus, IppAttrs opAttrs, IppAttrs jobAtt
   }
   return msg;
 }
-
-#ifndef CONFIG_DIR
-#define CONFIG_DIR std::string("/home/") + getenv("USER") + "/.ppm2pwg"
-#endif
 
 void IppPrinter::_applyOverrides()
 {

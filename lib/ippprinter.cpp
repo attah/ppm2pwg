@@ -71,48 +71,54 @@ Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inForm
     {
       return Error("No conversion method found for " + inFormat + " to " + job.targetFormat);
     }
-
-    if(!job.oneStage &&
-       supportedOperations.contains(IppMsg::CreateJob) &&
-       supportedOperations.contains(IppMsg::SendDocument))
+    else if(string_starts_with(_addr, "file://"))
     {
-      IppAttrs createJobOpAttrs = {{"job-name", {IppTag::NameWithoutLanguage, fileName}}};
-      IppMsg createJobMsg = _mkMsg(IppMsg::CreateJob, createJobOpAttrs, job.jobAttrs);
-      IppMsg createJobResp;
-      error = _doRequest(createJobMsg, createJobResp);
-
-      if(error)
-      {
-        error = std::string("Create job failed: ") + error.value();
-      }
-      else
-      {
-        IppAttrs createJobRespJobAttrs;
-        if(!createJobResp.getJobAttrs().empty())
-        {
-          createJobRespJobAttrs = createJobResp.getJobAttrs().front();
-        }
-        if(createJobResp.getStatus() <= 0xff && createJobRespJobAttrs.has("job-id"))
-        {
-          int jobId = createJobRespJobAttrs.get<int>("job-id");
-          IppAttrs sendDocumentOpAttrs = job.opAttrs;
-          sendDocumentOpAttrs.set("job-id", IppAttr {IppTag::Integer, jobId});
-          sendDocumentOpAttrs.set("last-document", IppAttr {IppTag::Boolean, true});
-          IppMsg sendDocumentMsg = _mkMsg(IppMsg::SendDocument, sendDocumentOpAttrs);
-          error = doPrint(job, inFile, convertFun.value(), sendDocumentMsg.encode(), verbose);
-        }
-        else
-        {
-          error = "Create job failed: " + createJobResp.getOpAttrs().get<std::string>("status-message", "unknown");
-        }
-      }
+      doPrintToFile(job, inFile, convertFun.value(), verbose);
     }
     else
     {
-      IppAttrs printJobOpAttrs = job.opAttrs;
-      printJobOpAttrs.set("job-name", IppAttr {IppTag::NameWithoutLanguage, fileName});
-      IppMsg printJobMsg = _mkMsg(IppMsg::PrintJob, printJobOpAttrs, job.jobAttrs);
-      error = doPrint(job, inFile, convertFun.value(), printJobMsg.encode(), verbose);
+      if(!job.oneStage &&
+        supportedOperations.contains(IppMsg::CreateJob) &&
+        supportedOperations.contains(IppMsg::SendDocument))
+      {
+        IppAttrs createJobOpAttrs = {{"job-name", {IppTag::NameWithoutLanguage, fileName}}};
+        IppMsg createJobMsg = _mkMsg(IppMsg::CreateJob, createJobOpAttrs, job.jobAttrs);
+        IppMsg createJobResp;
+        error = _doRequest(createJobMsg, createJobResp);
+
+        if(error)
+        {
+          error = std::string("Create job failed: ") + error.value();
+        }
+        else
+        {
+          IppAttrs createJobRespJobAttrs;
+          if(!createJobResp.getJobAttrs().empty())
+          {
+            createJobRespJobAttrs = createJobResp.getJobAttrs().front();
+          }
+          if(createJobResp.getStatus() <= 0xff && createJobRespJobAttrs.has("job-id"))
+          {
+            int jobId = createJobRespJobAttrs.get<int>("job-id");
+            IppAttrs sendDocumentOpAttrs = job.opAttrs;
+            sendDocumentOpAttrs.set("job-id", IppAttr {IppTag::Integer, jobId});
+            sendDocumentOpAttrs.set("last-document", IppAttr {IppTag::Boolean, true});
+            IppMsg sendDocumentMsg = _mkMsg(IppMsg::SendDocument, sendDocumentOpAttrs);
+            error = doPrint(job, inFile, convertFun.value(), sendDocumentMsg.encode(), verbose);
+          }
+          else
+          {
+            error = "Create job failed: " + createJobResp.getOpAttrs().get<std::string>("status-message", "unknown");
+          }
+        }
+      }
+      else
+      {
+        IppAttrs printJobOpAttrs = job.opAttrs;
+        printJobOpAttrs.set("job-name", IppAttr {IppTag::NameWithoutLanguage, fileName});
+        IppMsg printJobMsg = _mkMsg(IppMsg::PrintJob, printJobOpAttrs, job.jobAttrs);
+        error = doPrint(job, inFile, convertFun.value(), printJobMsg.encode(), verbose);
+      }
     }
   }
   catch(const std::exception& e)
@@ -174,6 +180,34 @@ Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::Conve
   }
 
   return error;
+}
+
+Error IppPrinter::doPrintToFile(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, bool verbose)
+{
+  std::string fileName = std::filesystem::path(inFile).filename();
+  std::filesystem::path tmpFile = std::filesystem::temp_directory_path() / ("ippclient-debug-" + fileName);
+  std::ofstream ofs(tmpFile, std::ios::out | std::ios::binary);
+
+  WriteFun writeFun([&ofs](unsigned char const* buf, unsigned int len) -> bool
+           {
+             ofs.write((char*)buf, len);
+             return (bool)ofs;
+           });
+
+  ProgressFun progressFun([verbose](size_t page, size_t total) -> void
+              {
+                if(verbose)
+                {
+                  std::cerr << page << "/" << total << std::endl;
+                }
+              });
+  Error error = convertFun(inFile, writeFun, job, progressFun, verbose);
+  if(error)
+  {
+    return error;
+  }
+  std::cerr << "Wrote " << tmpFile.native() << std::endl;
+  return Error();
 }
 
 std::string IppPrinter::name()

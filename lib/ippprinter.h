@@ -97,6 +97,7 @@ private:
   IppAttrs _printerAttrs;
 
   Error doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream hdr, bool verbose);
+  Error doPrintToFile(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, bool verbose);
 
 };
 

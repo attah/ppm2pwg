@@ -82,6 +82,7 @@ public:
   Error identify();
   Error setAttributes(List<std::pair<std::string, std::string>> attrStrs);
   Error getJobs(List<JobInfo>& jobInfos);
+  Error cancelJob(int jobId);
 
 private:
   Error _doRequest(IppMsg::Operation op, IppMsg& resp);

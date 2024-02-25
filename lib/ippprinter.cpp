@@ -365,7 +365,7 @@ Error IppPrinter::identify()
 
 Error IppPrinter::setAttributes(List<std::pair<std::string, std::string>> attrStrs)
 {
-  Error err;
+  Error error;
   IppAttrs attrs;
   for(const auto& [name, value] : attrStrs)
   {
@@ -384,8 +384,8 @@ Error IppPrinter::setAttributes(List<std::pair<std::string, std::string>> attrSt
   }
   IppMsg req = _mkMsg(IppMsg::SetPrinterAttrs, {}, {}, attrs);
   IppMsg resp;
-  err = _doRequest(req, resp);
-  return err;
+  error = _doRequest(req, resp);
+  return error;
 }
 
 Error IppPrinter::getJobs(List<IppPrinter::JobInfo>& jobInfos)
@@ -404,6 +404,24 @@ Error IppPrinter::getJobs(List<IppPrinter::JobInfo>& jobInfos)
                                 jobAttrs.get<std::string>("job-name"),
                                 jobAttrs.get<int>("job-state"),
                                 jobAttrs.get<std::string>("job-printer-state-message")});
+  }
+  return error;
+}
+
+Error IppPrinter::cancelJob(int jobId)
+{
+  Error error;
+  IppAttrs cancelJobOpAttrs = {{"job-id", {IppTag::Integer, jobId}}};
+  IppMsg req = _mkMsg(IppMsg::CancelJob, cancelJobOpAttrs);
+  IppMsg resp;
+  error = _doRequest(req, resp);
+  if(error)
+  {
+    return error;
+  }
+  if(resp.getStatus() > 0xff)
+  {
+    error = resp.getOpAttrs().get<std::string>("status-message", "unknown");
   }
   return error;
 }

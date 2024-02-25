@@ -181,6 +181,8 @@ int main(int argc, char** argv)
 
   bool antiAlias;
 
+  int id;
+
   std::string addr;
   std::string attrs;
   std::string inFile;
@@ -226,6 +228,8 @@ int main(int argc, char** argv)
 
   SwitchArg<bool> antiAliasOpt(antiAlias, {"-aa", "--antaialias"}, "Enable antialiasing in rasterization");
 
+  SwitchArg<int> idOpt(id, {"--id"}, "Id of print job.");
+
   PosArg addrArg(addr, "printer address");
   PosArg attrsArg(attrs, "name=value[,name=value]");
   PosArg pdfArg(inFile, "input file");
@@ -240,6 +244,8 @@ int main(int argc, char** argv)
                                  {&addrArg, &attrsArg}}},
                   {"get-jobs", {{&helpOpt, &verboseOpt},
                                 {&addrArg}}},
+                  {"cancel-job", {{&helpOpt, &verboseOpt, &idOpt},
+                                  {&addrArg}}},
                   {"print", {{&helpOpt, &verboseOpt, &forceOpt, &oneStageOpt,
                               &pagesOpt, &copiesOpt, &collatedCopiesOpt, &paperSizeOpt,
                               &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
@@ -332,10 +338,24 @@ int main(int argc, char** argv)
     error = printer.getJobs(jobInfos);
     if(error)
     {
-      std::cerr << "Get-jobs attributes failed: " << error.value() << std::endl;
+      std::cerr << "Get-jobs failed: " << error.value() << std::endl;
       return 1;
     }
     std::cout << jobInfos;
+  }
+  else if(args.subCommand() == "cancel-job")
+  {
+    if(!idOpt.isSet())
+    {
+        std::cerr << "Please specify a job id with --id." << std::endl;
+        return 1;
+    }
+    error = printer.cancelJob(id);
+    if(error)
+    {
+      std::cerr << "Cancel-job failed: " << error.value() << std::endl;
+      return 1;
+    }
   }
   else if(args.subCommand() == "print")
   {

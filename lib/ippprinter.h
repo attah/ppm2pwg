@@ -29,6 +29,13 @@ public:
     std::string version;
     bool operator==(const Firmware& other) const;
   };
+  struct JobInfo
+  {
+    int id = 0;
+    std::string name;
+    int state = 0;
+    std::string stateMessage;
+  };
 
   IppPrinter() = delete;
   IppPrinter(std::string addr);
@@ -74,6 +81,7 @@ public:
   bool identifySupported();
   Error identify();
   Error setAttributes(List<std::pair<std::string, std::string>> attrStrs);
+  Error getJobs(List<JobInfo>& jobInfos);
 
 private:
   Error _doRequest(IppMsg::Operation op, IppMsg& resp);

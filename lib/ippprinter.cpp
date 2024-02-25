@@ -388,6 +388,26 @@ Error IppPrinter::setAttributes(List<std::pair<std::string, std::string>> attrSt
   return err;
 }
 
+Error IppPrinter::getJobs(List<IppPrinter::JobInfo>& jobInfos)
+{
+  IppAttrs getJobsOpAttrs = {{"requested-attributes", {IppTag::Keyword, "all"}}};
+  IppMsg req = _mkMsg(IppMsg::GetJobs, getJobsOpAttrs);
+  IppMsg resp;
+  Error error = _doRequest(req, resp);
+  if(error)
+  {
+    return error;
+  }
+  for(const IppAttrs& jobAttrs : resp.getJobAttrs())
+  {
+    jobInfos.push_back(JobInfo {jobAttrs.get<int>("job-id"),
+                                jobAttrs.get<std::string>("job-name"),
+                                jobAttrs.get<int>("job-state"),
+                                jobAttrs.get<std::string>("job-printer-state-message")});
+  }
+  return error;
+}
+
 Error IppPrinter::_doRequest(IppMsg::Operation op, IppMsg& resp)
 {
   IppMsg req = _mkMsg(op);

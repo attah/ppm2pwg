@@ -92,6 +92,21 @@ std::string resolution_list(List<IppResolution> l)
   return ss.str();
 }
 
+std::ostream& operator<<(std::ostream& os, List<IppPrinter::JobInfo> jobInfos)
+{
+  for(const IppPrinter::JobInfo& jobInfo : jobInfos)
+  {
+    os << jobInfo.id << ": " << jobInfo.name << std::endl;
+    os << "State: " << jobInfo.state;
+    if(jobInfo.stateMessage != "")
+    {
+      os << " (" << jobInfo.stateMessage << ")";
+    }
+    os << std::endl;
+  }
+  return os;
+}
+
 template <typename T>
 void print_if_set(std::string title, T value)
 {
@@ -223,6 +238,8 @@ int main(int argc, char** argv)
                                  {&addrArg}}},
                   {"set-attrs", {{&helpOpt, &verboseOpt},
                                  {&addrArg, &attrsArg}}},
+                  {"get-jobs", {{&helpOpt, &verboseOpt},
+                                {&addrArg}}},
                   {"print", {{&helpOpt, &verboseOpt, &forceOpt, &oneStageOpt,
                               &pagesOpt, &copiesOpt, &collatedCopiesOpt, &paperSizeOpt,
                               &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
@@ -308,6 +325,17 @@ int main(int argc, char** argv)
       std::cerr << "Set attributes failed: " << error.value() << std::endl;
       return 1;
     }
+  }
+  else if(args.subCommand() == "get-jobs")
+  {
+    List<IppPrinter::JobInfo> jobInfos;
+    error = printer.getJobs(jobInfos);
+    if(error)
+    {
+      std::cerr << "Get-jobs attributes failed: " << error.value() << std::endl;
+      return 1;
+    }
+    std::cout << jobInfos;
   }
   else if(args.subCommand() == "print")
   {

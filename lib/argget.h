@@ -376,10 +376,11 @@ public:
   SubArgGet(const SubArgGet&) = delete;
   SubArgGet& operator=(const SubArgGet&) = delete;
 
-  SubArgGet(std::map<std::string, std::pair<std::list<SwitchArgBase*>, std::list<PosArg*>>> map)
+  SubArgGet(std::list<std::pair<std::string, std::pair<std::list<SwitchArgBase*>, std::list<PosArg*>>>> map)
   {
     for(const auto& [subCommand, args] : map)
     {
+      _order.push_back(subCommand);
       _subCommands[subCommand] = ArgGet(args.first, args.second);
     }
   }
@@ -432,9 +433,9 @@ public:
     }
     else
     {
-      for(const auto& [subCommand, argGet] : _subCommands)
+      for(std::string subCommand : _order)
       {
-        help << _name << " " << subCommand << argGet._argHelp() << std::endl;
+        help << _name << " " << subCommand << _subCommands.at(subCommand)._argHelp() << std::endl;
       }
     }
     return help.str();
@@ -454,6 +455,7 @@ private:
   std::string _name;
   std::string _subCommand;
   std::map<std::string, ArgGet> _subCommands;
+  std::list<std::string> _order;
   std::string _errMsg;
 
 };

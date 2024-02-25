@@ -186,7 +186,8 @@ Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::Conve
 Error IppPrinter::doPrintToFile(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, bool verbose)
 {
   std::string fileName = std::filesystem::path(inFile).filename();
-  std::filesystem::path tmpFile = std::filesystem::temp_directory_path() / ("ippclient-debug-" + fileName);
+  std::string ext = MiniMime::defaultExtension(job.targetFormat);
+  std::filesystem::path tmpFile = std::filesystem::temp_directory_path() / ("ippclient-debug-" + fileName + ext);
   std::ofstream ofs(tmpFile, std::ios::out | std::ios::binary);
 
   WriteFun writeFun([&ofs](unsigned char const* buf, unsigned int len) -> bool

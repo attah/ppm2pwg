@@ -27,6 +27,7 @@ public:
   static bool isImage(std::string mimeType);
   static bool isPrinterRaster(std::string mimeType);
   static bool isMultiPage(std::string mimeType);
+  static std::string defaultExtension(std::string mimeType);
 };
 
 #endif // MINIMIME_H

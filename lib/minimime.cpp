@@ -3,6 +3,7 @@
 #include <bytestream.h>
 #include <fstream>
 #include <set>
+#include <map>
 
 const std::string MiniMime::OctetStream = "application/octet-stream";
 
@@ -81,4 +82,17 @@ bool MiniMime::isMultiPage(std::string mimeType)
 {
   static std::set<std::string> multiPageFormats({PDF, Postscript, PWG, URF});
   return multiPageFormats.find(mimeType) != multiPageFormats.end();
+}
+
+std::string MiniMime::defaultExtension(std::string mimeType)
+{
+  static std::map<std::string, std::string> extensions {{PDF, ".pdf"},
+                                                        {Postscript, ".ps"},
+                                                        {PWG, ".pwg"},
+                                                        {URF, ".urf"},
+                                                        {PNG, ".png"},
+                                                        {GIF, "gif"},
+                                                        {JPEG, ".jpg"},
+                                                        {TIFF, ".tiff"}};
+  return extensions.at(mimeType);
 }

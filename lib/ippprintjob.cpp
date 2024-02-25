@@ -2,42 +2,29 @@
 #include "mediaposition.h"
 #include "curlrequester.h"
 #include "converter.h"
-
-inline bool startsWith(std::string s, std::string start)
-{
-  if(start.length() <= s.length())
-  {
-    return s.substr(0, start.length()) == start;
-  }
-  return false;
-}
-
-inline bool contains(std::string s, std::string what)
-{
-  return s.find(what) != std::string::npos;
-}
+#include "stringutils.h"
 
 List<std::string> IppPrintJob::additionalDocumentFormats()
 {
   List<std::string> additionalFormats;
   std::string printerDeviceId = _printerAttrs.get<std::string>("printer-device-id");
   if(!documentFormat.getSupported().contains(MiniMime::PDF) &&
-     contains(printerDeviceId, "PDF"))
+     string_contains(printerDeviceId, "PDF"))
   {
     additionalFormats.push_back(MiniMime::PDF);
   }
   if(!documentFormat.getSupported().contains(MiniMime::Postscript) &&
-     (contains(printerDeviceId, "POSTSCRIPT") || contains(printerDeviceId, "PostScript")))
+     (string_contains(printerDeviceId, "POSTSCRIPT") || string_contains(printerDeviceId, "PostScript")))
   {
     additionalFormats.push_back(MiniMime::Postscript);
   }
   if(!documentFormat.getSupported().contains(MiniMime::PWG) &&
-     contains(printerDeviceId, "PWG"))
+     string_contains(printerDeviceId, "PWG"))
   {
     additionalFormats.push_back(MiniMime::PWG);
   }
   if(!documentFormat.getSupported().contains(MiniMime::URF) &&
-     (contains(printerDeviceId, "URF") || contains(printerDeviceId, "AppleRaster")))
+     (string_contains(printerDeviceId, "URF") || string_contains(printerDeviceId, "AppleRaster")))
   {
     additionalFormats.push_back(MiniMime::URF);
   }
@@ -265,7 +252,7 @@ void IppPrintJob::adjustRasterSettings(int pages)
 
     for(const std::string& us : urfSupported)
     {
-      if(startsWith(us, "RS"))
+      if(string_starts_with(us, "RS"))
       { //RS300[-600]
         std::string rs = us.substr(2);
         size_t pos = 0;

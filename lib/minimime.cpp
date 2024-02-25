@@ -1,4 +1,5 @@
 #include "minimime.h"
+#include "stringutils.h"
 #include <bytestream.h>
 #include <fstream>
 #include <set>
@@ -14,15 +15,6 @@ const std::string MiniMime::PNG = "image/png";
 const std::string MiniMime::GIF = "image/gif";
 const std::string MiniMime::JPEG = "image/jpeg";
 const std::string MiniMime::TIFF = "image/tiff";
-
-inline bool startsWith(std::string s, std::string start)
-{
-  if(start.length() <= s.length())
-  {
-    return s.substr(0, start.length()) == start;
-  }
-  return false;
-}
 
 std::string MiniMime::getMimeType(std::string fileName)
 {
@@ -76,7 +68,7 @@ bool MiniMime::isKnownImageFormat(std::string mimeType)
 
 bool MiniMime::isImage(std::string mimeType)
 {
-  return startsWith(mimeType, "image/") && !isPrinterRaster(mimeType);
+  return string_starts_with(mimeType, "image/") && !isPrinterRaster(mimeType);
 }
 
 bool MiniMime::isPrinterRaster(std::string mimeType)

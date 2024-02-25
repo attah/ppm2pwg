@@ -6,7 +6,7 @@
 #include "pdf2printable.h"
 #include "baselinify.h"
 #include "ippprintjob.h"
-#include "stringsplit.h"
+#include "stringutils.h"
 #include "functions.h"
 #include "minimime.h"
 #include "binfile.h"

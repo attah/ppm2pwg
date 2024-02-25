@@ -1,6 +1,6 @@
 #include "ippprinter.h"
 #include "curlrequester.h"
-#include "stringsplit.h"
+#include "stringutils.h"
 #include <filesystem>
 
 IppPrinter::IppPrinter(std::string addr) : _addr(addr)

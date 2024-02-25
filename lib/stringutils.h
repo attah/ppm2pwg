@@ -1,8 +1,31 @@
-#ifndef STRINGSPLIT_H
-#define STRINGSPLIT_H
+#ifndef STRINGUTILS_H
+#define STRINGUTILS_H
 
 #include <string>
 #include <list.h>
+
+inline bool string_starts_with(std::string s, std::string start)
+{
+  if(start.length() <= s.length())
+  {
+    return s.substr(0, start.length()) == start;
+  }
+  return false;
+}
+
+inline bool string_ends_with(std::string s, std::string ending)
+{
+  if(ending.length() <= s.length())
+  {
+    return s.substr(s.length()-ending.length(), ending.length()) == ending;
+  }
+  return false;
+}
+
+inline bool string_contains(std::string s, std::string what)
+{
+  return s.find(what) != std::string::npos;
+}
 
 inline List<std::string> split_string(const std::string& s, const std::string& tok)
 {
@@ -31,4 +54,4 @@ inline std::string join_string(List<std::string> list,  const std::string& sep)
   return res;
 }
 
-#endif //STRINGSPLIT_H
+#endif //STRINGUTILS_H

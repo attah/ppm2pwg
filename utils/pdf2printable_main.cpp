@@ -6,6 +6,7 @@
 #include "ppm2pwg.h"
 #include "argget.h"
 #include "binfile.h"
+#include "stringutils.h"
 #include "mediaposition.h"
 
 #define HELPTEXT "Options from 'resolution' and onwards only affect raster output formats.\n" \
@@ -14,15 +15,6 @@
 inline void print_error(std::string hint, std::string argHelp)
 {
   std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
-}
-
-inline bool endsWith(std::string s, std::string ending)
-{
-  if(ending.length() <= s.length())
-  {
-    return s.substr(s.length()-ending.length(), ending.length()) == ending;
-  }
-  return false;
 }
 
 int main(int argc, char** argv)
@@ -115,19 +107,19 @@ int main(int argc, char** argv)
 
   if(!formatOpt.isSet())
   {
-    if(endsWith(outFileName, ".ps"))
+    if(string_ends_with(outFileName, ".ps"))
     {
       params.format = PrintParameters::Postscript;
     }
-    else if(endsWith(outFileName, ".pwg"))
+    else if(string_ends_with(outFileName, ".pwg"))
     {
       params.format = PrintParameters::PWG;
     }
-    else if(endsWith(outFileName, ".urf"))
+    else if(string_ends_with(outFileName, ".urf"))
     {
       params.format = PrintParameters::URF;
     }
-    else if(endsWith(outFileName, ".pdf"))
+    else if(string_ends_with(outFileName, ".pdf"))
     {
       params.format = PrintParameters::PDF;
     }

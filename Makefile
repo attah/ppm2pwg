@@ -12,6 +12,10 @@ pdf2printable_mad.o: pdf2printable.cpp
 baselinify_mad.o: baselinify.cpp
 	$(CXX) -c -DMADNESS=1 $(CXXFLAGS) $^ -o $@
 
+# Silly clang
+json11.o: json11.cpp
+	$(CXX) -c $(CXXFLAGS) -Wno-unqualified-std-cast-call $<
+
 %.o: %.cpp
 	$(CXX) -c $(CXXFLAGS) $<
 

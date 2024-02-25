@@ -10,6 +10,10 @@ all: test
 test.o: test.cpp
 	$(CXX) -c $(TEST_INCLUDES) $(CXXFLAGS) $^
 
+# Silly clang
+json11.o: json11.cpp
+	$(CXX) -c $(CXXFLAGS) -Wno-unqualified-std-cast-call $<
+
 %.o: %.cpp
 	$(CXX) -c $(CXXFLAGS) $<
 

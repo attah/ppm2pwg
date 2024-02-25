@@ -54,6 +54,7 @@ struct IppIntRange
 
   bool operator==(const IppIntRange& other) const;
   std::string toStr() const;
+  static IppIntRange fromJSON(const Json::object json);
   Json::object toJSON() const;
 };
 
@@ -72,6 +73,7 @@ struct IppResolution
 
   bool operator==(const IppResolution& other) const;
   std::string toStr() const;
+  static IppResolution fromJSON(const Json::object json);
   Json::object toJSON() const;
 };
 
@@ -90,6 +92,7 @@ struct IppDateTime
 
   bool operator==(const IppDateTime& other) const;
   std::string toStr() const;
+  static IppDateTime fromJSON(const Json::object json);
   Json toJSON() const;
 };
 
@@ -122,9 +125,11 @@ public:
   IppValue value() const {return *this;}
   static IppAttr fromString(std::string string, IppTag tag);
 
+  static IppAttr fromJSON(Json::object json);
   Json toJSON() const;
 
 private:
+  static IppValue valuefromJSON(IppTag tag, const Json& json);
   static Json valueToJSON(IppValue value);
 
   IppTag _tag;
@@ -169,6 +174,7 @@ struct IppAttrs: public std::map<std::string, IppAttr>
     return res;
   }
 
+  static IppAttrs fromJSON(Json::object json);
   Json toJSON() const;
 
 };

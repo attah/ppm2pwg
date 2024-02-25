@@ -8,8 +8,10 @@
 #include "lthread.h"
 #include "ippmsg.h"
 #include "ippprintjob.h"
+#include "json11.hpp"
 #include <cstring>
 using namespace std;
+using namespace json11;
 
 #define REPEAT(N) (uint8_t)(N-1)
 #define VERBATIM(N) (uint8_t)(257-N)
@@ -1968,4 +1970,65 @@ TEST(additional_formats)
   ip = IppPrintJob(printerAttrs);
   ASSERT(ip.additionalDocumentFormats() == List<std::string>({"application/pdf"}));
 
+}
+
+TEST(json)
+{
+  IppAttrs printerAttrs =
+    {{"sides-default", IppAttr(IppTag::Keyword, "one-sided")},
+     {"sides-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"one-sided",
+                                                               "two-sided-long-edge",
+                                                               "two-sided-short-edge"})},
+     {"media-default", IppAttr(IppTag::Keyword, "iso_a4_210x297mm")},
+     {"media-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"iso_a4_210x297mm",
+                                                               "na_letter_8.5x11in"})},
+     {"media-ready", IppAttr(IppTag::Keyword, "iso_a4_210x297mm")},
+     {"copies-default", IppAttr(IppTag::Integer, 1)},
+     {"copies-supported", IppAttr(IppTag::IntegerRange, IppIntRange {1, 999})},
+     {"multiple-document-handling-default", IppAttr(IppTag::Keyword, "separate-documents-uncollated-copies")},
+     {"multiple-document-handling-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"single-document",
+                                                                                    "separate-documents-uncollated-copies",
+                                                                                    "separate-documents-collated-copies"})},
+     {"page-ranges-supported", IppAttr(IppTag::Boolean, false)},
+     {"number-up-default", IppAttr(IppTag::Integer, 1)},
+     {"number-up-supported", IppAttr(IppTag::Integer, IppOneSetOf{1, 2, 4})},
+     {"print-color-mode-default", IppAttr(IppTag::Keyword, "auto")},
+     {"print-color-mode-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"auto", "color", "monochrome"})},
+     {"print-quality-default", IppAttr(IppTag::Enum, 4)},
+     {"print-quality-supported", IppAttr(IppTag::Enum, IppOneSetOf {3, 4, 5})},
+     {"printer-resolution-default", IppAttr(IppTag::Resolution, IppResolution {600, 600, 3})},
+     {"printer-resolution-supported", IppAttr(IppTag::Resolution, IppOneSetOf {IppResolution {600, 600, 3},
+                                                                               IppResolution {600, 1200, 3}})},
+     {"document-format-default", IppAttr(IppTag::Keyword, "application/octet-stream")},
+     {"document-format-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"application/octet-stream",
+                                                                         "image/urf",
+                                                                         "image/pwg-raster",
+                                                                         "application/pdf"})},
+     {"print-scaling-default", IppAttr(IppTag::Keyword, "auto")},
+     {"print-scaling-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"auto", "fill", "fit"})},
+     {"media-type-default", IppAttr(IppTag::Keyword, "stationery")},
+     {"media-type-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"stationery", "cardstock", "labels"})},
+     {"media-source-default", IppAttr(IppTag::Keyword, "auto")},
+     {"media-source-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"auto", "envelope", "manual", "tray-1"})},
+     {"output-bin-default", IppAttr(IppTag::Keyword, "face-down")},
+     {"output-bin-supported", IppAttr(IppTag::Keyword, "face-down")},
+
+     {"media-top-margin-default", IppAttr(IppTag::Integer, 1)},
+     {"media-top-margin-supported", IppAttr(IppTag::Integer, IppOneSetOf {1, 2, 3, 4})},
+     {"media-bottom-margin-default", IppAttr(IppTag::Integer, 2)},
+     {"media-bottom-margin-supported", IppAttr(IppTag::Integer, IppOneSetOf {2, 3, 4})},
+     {"media-left-margin-default", IppAttr(IppTag::Integer, 3)},
+     {"media-left-margin-supported", IppAttr(IppTag::Integer, IppOneSetOf {3, 4})},
+     {"media-right-margin-default", IppAttr(IppTag::Integer, 4)},
+     {"media-right-margin-supported", IppAttr(IppTag::Integer, 4)},
+
+     {"pwg-raster-document-resolution-supported", IppAttr(IppTag::Resolution, IppOneSetOf {IppResolution {300, 300, 3},
+                                                                                           IppResolution {600, 600, 3}})},
+     {"pwg-raster-document-sheet-back", IppAttr(IppTag::Keyword, "flipped")},
+     {"document-format-varying-attributes", IppAttr(IppTag::Keyword, "copies-supported")},
+     {"urf-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"RS300-600", "DM3"})},
+
+    };
+  Json json = printerAttrs.toJSON();
+  ASSERT(printerAttrs == IppAttrs::fromJSON(json.object_items()));
 }

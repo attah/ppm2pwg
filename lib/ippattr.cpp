@@ -18,6 +18,11 @@ std::string IppIntRange::toStr() const
   return ss.str();
 }
 
+IppIntRange IppIntRange::fromJSON(const Json::object json)
+{
+  return IppIntRange {json.at("low").int_value(), json.at("high").int_value()};
+}
+
 Json::object IppIntRange::toJSON() const
 {
   return Json::object {{"low", low}, {"high", high}};
@@ -33,6 +38,13 @@ std::string IppResolution::toStr() const
   std::stringstream ss;
   ss << x << "x" << y << (units == DPI ? "dpi" : units == DPCM ? "dots/cm" : "unknown");
   return ss.str();
+}
+
+IppResolution IppResolution::fromJSON(const Json::object json)
+{
+  return IppResolution {(uint32_t)json.at("x").int_value(),
+                        (uint32_t)json.at("y").int_value(),
+                        (uint8_t)json.at("units").int_value()};
 }
 
 Json::object IppResolution::toJSON() const
@@ -65,6 +77,12 @@ std::string IppDateTime::toStr() const
      << "." << std::setw(3) << deciSeconds*100 << " GMT" << plusMinus
      << std::setw(2) << +utcHOffset << std::setw(2) << +utcMOffset;
   return ss.str();
+}
+
+IppDateTime IppDateTime::fromJSON(const Json::object)
+{
+  // TODO
+  return IppDateTime();
 }
 
 Json IppDateTime::toJSON() const
@@ -138,9 +156,65 @@ IppAttr IppAttr::fromString(std::string string, IppTag tag)
   }
 }
 
+IppAttr IppAttr::fromJSON(Json::object json)
+{
+  IppTag tag = (IppTag)json.at("tag").int_value();
+  return IppAttr(tag, valuefromJSON(tag, json.at("value")));
+}
+
 Json IppAttr::toJSON() const
 {
   return Json::object {{"tag", (int)tag()}, {"value", valueToJSON(value())}};
+}
+
+IppValue IppAttr::valuefromJSON(IppTag tag, const Json& json)
+{
+  if(json.is_string())
+  {
+    return IppValue(json.string_value());
+  }
+  else if(json.is_number())
+  {
+    return IppValue(json.int_value());
+  }
+  else if(json.is_bool())
+  {
+    return IppValue(json.bool_value());
+  }
+  else if(json.is_array())
+  {
+    IppOneSetOf oneSet;
+    for(const Json& j : json.array_items())
+    {
+      oneSet.push_back(valuefromJSON(tag, j));
+    }
+    return oneSet;
+  }
+  else if(json.is_object() && tag == IppTag::IntegerRange)
+  {
+    return IppValue(IppIntRange::fromJSON(json.object_items()));
+  }
+  else if(json.is_object() && tag == IppTag::Resolution)
+  {
+    return IppValue(IppResolution::fromJSON(json.object_items()));
+  }
+  else if(json.is_object() && tag == IppTag::DateTime)
+  {
+    return IppValue(IppDateTime::fromJSON(json.object_items()));
+  }
+  else if(json.is_object() && tag == IppTag::BeginCollection)
+  {
+    IppCollection collection;
+    for(const auto& [k, v] : json.object_items())
+    {
+      collection.insert_or_assign(k, fromJSON(v.object_items()));
+    }
+    return IppValue(collection);
+  }
+  else
+  {
+    throw std::logic_error("Unhandled data type");
+  }
 }
 
 Json IppAttr::valueToJSON(IppValue value)
@@ -278,6 +352,16 @@ bool IppCollection::has(std::string key) const
 void IppCollection::set(std::string key, IppAttr value)
 {
   insert_or_assign(key, value);
+}
+
+IppAttrs IppAttrs::fromJSON(Json::object json)
+{
+  IppAttrs attrs;
+  for(const auto& [key, value] : json)
+  {
+    attrs.insert_or_assign(key, IppAttr::fromJSON(value.object_items()));
+  }
+  return attrs;
 }
 
 Json IppAttrs::toJSON() const

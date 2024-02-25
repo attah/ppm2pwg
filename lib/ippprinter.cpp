@@ -10,9 +10,44 @@ IppPrinter::IppPrinter(std::string addr) : _addr(addr)
 
 Error IppPrinter::refresh()
 {
-  IppMsg resp;
-  Error error = _doRequest(IppMsg::GetPrinterAttrs, resp);
-  _printerAttrs = resp.getPrinterAttrs();
+  Error error;
+  if(string_starts_with(_addr, "file://"))
+  {
+    std::ifstream ifs(_addr.substr(7), std::ios::in | std::ios::binary);
+    if(!ifs)
+    {
+      return Error("Failed to open fake-printer file.");
+    }
+    Bytestream bts(ifs);
+    try
+    {
+      if(bts.peekS8() == '{')
+      {
+        std::string errStr;
+        Json json = Json::parse((char*)bts.raw(), errStr);
+        if(!errStr.empty())
+        {
+          return Error(errStr);
+        }
+        _printerAttrs = IppAttrs::fromJSON(json.object_items());
+      }
+      else
+      {
+        IppMsg resp = IppMsg(bts);
+        _printerAttrs = resp.getPrinterAttrs();
+      }
+    }
+    catch(const std::exception& e)
+    {
+      error = e.what();
+    }
+  }
+  else
+  {
+    IppMsg resp;
+    error = _doRequest(IppMsg::GetPrinterAttrs, resp);
+    _printerAttrs = resp.getPrinterAttrs();
+  }
   return error;
 }
 

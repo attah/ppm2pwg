@@ -266,7 +266,7 @@ int main(int argc, char** argv)
   }
   else if(!correctArgs)
   {
-    print_error(args.errmsg(), args.argHelp());
+    print_error(args.errmsg(), args.argHelp(args.subCommand()));
     return 1;
   }
 
@@ -395,7 +395,7 @@ int main(int argc, char** argv)
       PageRangeList pageRanges = PrintParameters::parsePageRange(pages);
       if(pageRanges.empty())
       {
-        print_error("Invalid page range.", args.argHelp());
+        print_error("Invalid page range.", args.argHelp(args.subCommand()));
         return 1;
       }
       IppOneSetOf ippPageRanges;
@@ -409,6 +409,12 @@ int main(int argc, char** argv)
     set_or_fail(copiesOpt, job.copies, copies, force);
     set_or_fail(collatedCopiesOpt, job.multipleDocumentHandling, collatedCopies, force);
     set_or_fail(paperSizeOpt, job.media, paperSize, force);
+
+    if(resolutionXOpt.isSet() != resolutionYOpt.isSet())
+    {
+        print_error("Resolution must be specified for both dimensions.", args.argHelp(args.subCommand()));
+        return 1;
+    }
 
     std::string resolutionDoc = resolutionOpt.docName() + " (ipp: " + job.resolution.name() + ")";
     std::string resolutionSupported = "Valid values are: " + resolution_list(job.resolution.getSupported());

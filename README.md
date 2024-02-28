@@ -27,8 +27,8 @@ IPP-printers are only required to support baseline-encoded jpeg according to PWG
 
 Despite working with in-memory data, it only requires the libjpeg 62.2.0 and not 62.3.0/7.3+ API, so it works on conservative distros.
 
-## ippclient (WIP)
-An IPP client that harnesses the above tools for converting files to be printed. 
+## ippclient
+An IPP client that harnesses the above tools for converting files to be printed.
 This is a port/rewrite/clean-up of the core parts of SeaPrint in regular (non-Qt) C++.
 The plan is to swap over to using this once fature parity is achieved.
 

@@ -266,29 +266,11 @@ Json IppAttr::valueToJSON(IppValue value)
   return j;
 }
 
-std::ostream& operator<<(std::ostream& os, const IppIntRange& ir)
-{
-  os << "{\"min\": " << ir.low << ", \"max\": " << ir.high << "}";
-  return os;
-}
-std::ostream& operator<<(std::ostream& os, const IppResolution& res)
-{
-  os << "{\"x\": " << res.x
-     << ", \"y\": " << res.y
-     << ", \"units\": " << +res.units << "}";
-  return os;
-}
-std::ostream& operator<<(std::ostream& os, const IppDateTime& dt)
-{
-  os << dt.toStr();
-  return os;
-}
-
 std::ostream& operator<<(std::ostream& os, const IppValue& iv)
 {
   if(iv.is<std::string>())
   {
-    os << "\""  << iv.get<std::string>() << "\"";
+    os << iv.get<std::string>();
   }
   else if(iv.is<int>())
   {
@@ -300,41 +282,28 @@ std::ostream& operator<<(std::ostream& os, const IppValue& iv)
   }
   else if(iv.is<IppIntRange>())
   {
-    os << iv.get<IppIntRange>();
+    os << iv.get<IppIntRange>().toStr();
   }
   else if(iv.is<IppResolution>())
   {
-    os << iv.get<IppResolution>();
+    os << iv.get<IppResolution>().toStr();
   }
   else if(iv.is<IppDateTime>())
   {
-    os << iv.get<IppDateTime>();
+    os << iv.get<IppDateTime>().toStr();
   }
   else if(iv.is<IppOneSetOf>())
   {
     IppOneSetOf oneSet = iv.get<IppOneSetOf>();
-    os << "[" << oneSet.takeFront();
+    os << oneSet.takeFront();
     for(const IppValue& iv2 : oneSet)
     {
       os << ", " << iv2;
     }
-    os << "]";
   }
   else if(iv.is<IppCollection>())
   {
-    os << "{";
-    IppCollection ippCollection = iv.get<IppCollection>();
-    IppCollection::const_iterator it = ippCollection.cbegin();
-    if(it != ippCollection.cend())
-    {
-      os << "\"" << it->first << "\": " << it->second.value();
-      it++;
-      for(; it != ippCollection.cend(); it++)
-      {
-        os << ", \"" << it->first << "\": " << it->second.value();
-      }
-    }
-    os << "}";
+    os << "<collection>";
   }
   else
   {

@@ -158,8 +158,44 @@ public:
 
   List<T> getPreferred() const
   {
-    IppAttrs* pa = this->_printerAttrs;
-    return pa->getList<T>(this->_name+"-"+_pref);
+    List<T> preferred;
+    if(this->_printerAttrs->has(this->_name+"-"+_pref))
+    {
+      IppAttrs* pa = this->_printerAttrs;
+      preferred = pa->getList<T>(this->_name+"-"+_pref);
+    }
+    return preferred;
+  }
+
+  virtual std::string supportedStr()
+  {
+    if(this->_printerAttrs->has(this->_name+"-supported"))
+    {
+      std::stringstream ss;
+      IppOneSetOf supported = this->_printerAttrs->at(this->_name+"-supported").asList();
+      IppOneSetOf preferred;
+      if(this->_printerAttrs->has(this->_name+"-"+_pref))
+      {
+        preferred = this->_printerAttrs->at(this->_name+"-"+_pref).asList();
+      }
+      for(IppOneSetOf::const_iterator it = supported.cbegin(); it != supported.cend(); it++)
+      {
+        ss << *it;
+        if(preferred.contains(*it))
+        {
+          ss << "(" << _pref << ")";
+        }
+        if(std::next(it) != supported.end())
+        {
+          ss << ", ";
+        }
+      }
+      return ss.str();
+    }
+    else
+    {
+      return "unsupported";
+    }
   }
 
 private:

@@ -421,14 +421,20 @@ int main(int argc, char** argv)
     set_or_fail(resolutionOpt.isSet(), resolutionDoc, resolutionSupported,
                 job.resolution, IppResolution {hwRes, hwRes, IppResolution::DPI}, force);
 
-    std::string resolutionDoc2 = resolutionXOpt.docName() + " and " + resolutionYOpt.docName()
+    std::string resolutionDoc2 = resolutionXOpt.docName() + " and/or " + resolutionYOpt.docName()
                               + " (ipp: " + job.resolution.name() + ")";
     set_or_fail(resolutionXOpt.isSet() && resolutionYOpt.isSet(), resolutionDoc2, resolutionSupported,
                 job.resolution, IppResolution {hwResX, hwResY, IppResolution::DPI}, force);
 
     set_or_fail(sidesOpt, job.sides, sides, force);
     set_or_fail(colorModeOpt, job.colorMode, colorMode, force);
-    set_or_fail(qualityOpt, job.printQuality, quality, force);
+    List<std::string> supportedQuality;
+    for(int q : job.printQuality.getSupported())
+    {
+      supportedQuality.push_back(qualityOpt.getAlias(q));
+    }
+    std::string qualityHint = "Valid values are: " + join_string(supportedQuality, ", ");
+    set_or_fail(qualityOpt.isSet(), qualityOpt.docName(), qualityHint, job.printQuality, quality, force);
     set_or_fail(scalingOpt, job.scaling, scaling, force);
     set_or_fail(formatOpt, job.documentFormat, format, force);
     set_or_fail(mediaTypeOpt, job.mediaType, mediaType, force);

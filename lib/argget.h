@@ -162,6 +162,7 @@ class EnumSwitchArg : public SwitchArgBase
 {
 public:
   typedef std::map<std::string, T> Mappings;
+  typedef std::map<T, std::string> BackMappings;
 
   EnumSwitchArg() = delete;
   EnumSwitchArg(const EnumSwitchArg&) = delete;
@@ -170,11 +171,21 @@ public:
   EnumSwitchArg(T& value, Mappings mappings, std::initializer_list<std::string> names,
                 std::string doc, std::string errorHint="")
   : SwitchArgBase(names, doc, errorHint), _value(value), _mappings(mappings)
-  {}
+  {
+    for(const auto& [k, v] : mappings)
+    {
+      _backMappings[v] = k;
+    }
+  }
 
   std::string typeHint() const
   {
     return " <choice>";
+  }
+
+  std::string getAlias(T value)
+  {
+    return _backMappings.at(value);
   }
 
 private:
@@ -196,6 +207,7 @@ private:
 
   T& _value;
   Mappings _mappings;
+  BackMappings _backMappings;
 };
 
 class PosArg : public ArgBase

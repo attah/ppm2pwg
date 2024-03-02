@@ -195,7 +195,7 @@ private:
     if(!argv.empty())
     {
       typename std::map<std::string, T>::const_iterator it = _mappings.find(argv.front());
-      if(it != _mappings.end())
+      if(it != _mappings.cend())
       {
         _value = it->second;
         argv.pop_front();
@@ -418,7 +418,7 @@ public:
       return false;
     }
     _subCommand = argv[1];
-    if(_subCommands.find(_subCommand) == _subCommands.end())
+    if(_subCommands.find(_subCommand) == _subCommands.cend())
     {
       _errMsg = "Invalid sub-command";
       return false;
@@ -439,7 +439,7 @@ public:
     std::stringstream help;
 
     help << "Usage: " << _name << " <sub-command> [options]" << std::endl << std::endl;
-    if(_subCommands.find(subCommand) != _subCommands.end())
+    if(_subCommands.find(subCommand) != _subCommands.cend())
     {
       help << _name << " " << subCommand << _subCommands[subCommand]._argHelp() << std::endl;
     }

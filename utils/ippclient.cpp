@@ -45,7 +45,7 @@ std::ostream& operator<<(std::ostream& os, List<IppPrinter::Supply> supplies)
        << "  " << ((color != "") ? color+" " : "")
        << supply->getPercent() << "%" << (supply->isLow() ? "(low)" : "")
        << " " << supply->type;
-    if(std::next(supply) != supplies.end())
+    if(std::next(supply) != supplies.cend())
     {
       os << std::endl;
     }
@@ -58,7 +58,7 @@ std::ostream& operator<<(std::ostream& os, List<IppPrinter::Firmware> firmwares)
   for(List<IppPrinter::Firmware>::const_iterator firmware = firmwares.cbegin(); firmware != firmwares.cend(); firmware++)
   {
     os << firmware->name << ": " << firmware->version;
-    if(std::next(firmware) != firmwares.end())
+    if(std::next(firmware) != firmwares.cend())
     {
       os << std::endl;
     }

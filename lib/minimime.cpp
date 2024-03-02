@@ -64,7 +64,7 @@ std::string MiniMime::getMimeType(std::string fileName)
 bool MiniMime::isKnownImageFormat(std::string mimeType)
 {
   static std::set<std::string> knownImageFormats({PNG, GIF, JPEG, TIFF});
-  return knownImageFormats.find(mimeType) != knownImageFormats.end();
+  return knownImageFormats.find(mimeType) != knownImageFormats.cend();
 }
 
 bool MiniMime::isImage(std::string mimeType)
@@ -75,13 +75,13 @@ bool MiniMime::isImage(std::string mimeType)
 bool MiniMime::isPrinterRaster(std::string mimeType)
 {
   static std::set<std::string> printerRasterFormats({PWG, URF});
-  return printerRasterFormats.find(mimeType) != printerRasterFormats.end();
+  return printerRasterFormats.find(mimeType) != printerRasterFormats.cend();
 }
 
 bool MiniMime::isMultiPage(std::string mimeType)
 {
   static std::set<std::string> multiPageFormats({PDF, Postscript, PWG, URF});
-  return multiPageFormats.find(mimeType) != multiPageFormats.end();
+  return multiPageFormats.find(mimeType) != multiPageFormats.cend();
 }
 
 std::string MiniMime::defaultExtension(std::string mimeType)

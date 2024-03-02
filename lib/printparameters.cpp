@@ -155,13 +155,13 @@ PageSequence PrintParameters::getPageSequence(size_t pages) const
       PageSequence copy = seq;
       for(size_t dc = copies; dc > 1; dc--)
       {
-        seq.insert(seq.end(), copy.begin(), copy.end());
+        seq.insert(seq.cend(), copy.cbegin(), copy.cend());
       }
     }
     else
     {
       PageSequence copy;
-      for(PageSequence::iterator it = seq.begin(); it != seq.end(); it++)
+      for(PageSequence::const_iterator it = seq.cbegin(); it != seq.cend(); it++)
       {
         if(isTwoSided())
         {

@@ -185,7 +185,7 @@ public:
         {
           ss << "(" << _pref << ")";
         }
-        if(std::next(it) != supported.end())
+        if(std::next(it) != supported.cend())
         {
           ss << ", ";
         }

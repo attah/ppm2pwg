@@ -96,7 +96,7 @@ public:
 
   bool canConvert(std::string inputFormat, std::string targetFormat)
   {
-    return Pipelines.find({inputFormat, targetFormat}) != Pipelines.end();
+    return Pipelines.find({inputFormat, targetFormat}) != Pipelines.cend();
   }
 
   std::optional<ConvertFun> getConvertFun(std::string inputFormat, std::string targetFormat)
@@ -105,7 +105,7 @@ public:
     std::map<ConvertKey, ConvertFun>::iterator pit =
       Pipelines.find(Converter::ConvertKey {inputFormat, targetFormat});
 
-    if(pit != Converter::instance().Pipelines.end())
+    if(pit != Converter::instance().Pipelines.cend())
     {
       convertFun = pit->second;
     }

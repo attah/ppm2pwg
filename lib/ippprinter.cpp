@@ -497,7 +497,7 @@ Error IppPrinter::_doRequest(const IppMsg& req, IppMsg& resp)
 IppMsg IppPrinter::_mkMsg(uint16_t opOrStatus, IppAttrs opAttrs, IppAttrs jobAttrs, IppAttrs printerAttrs)
 {
   IppAttrs baseOpAttrs = IppMsg::baseOpAttrs(_addr);
-  opAttrs.insert(baseOpAttrs.begin(), baseOpAttrs.end());
+  opAttrs.insert(baseOpAttrs.cbegin(), baseOpAttrs.cend());
 
   IppMsg msg(opOrStatus, opAttrs, jobAttrs, printerAttrs);
   if(ippVersionsSupported().contains("2.0"))

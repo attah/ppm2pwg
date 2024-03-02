@@ -295,10 +295,13 @@ std::ostream& operator<<(std::ostream& os, const IppValue& iv)
   else if(iv.is<IppOneSetOf>())
   {
     IppOneSetOf oneSet = iv.get<IppOneSetOf>();
-    os << oneSet.takeFront();
-    for(const IppValue& iv2 : oneSet)
+    for(IppOneSetOf::const_iterator it = oneSet.cbegin(); it != oneSet.cend(); it++)
     {
-      os << ", " << iv2;
+      os << *it;
+      if(std::next(it) != oneSet.cend())
+      {
+        os << ", ";
+      }
     }
   }
   else if(iv.is<IppCollection>())

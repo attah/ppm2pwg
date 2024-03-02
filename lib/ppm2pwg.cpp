@@ -181,7 +181,7 @@ static std::map<std::string, UrfPgHdr::MediaType_enum>
 
 bool isUrfMediaType(std::string mediaType)
 {
-  return UrfMediaTypeMappings.find(mediaType) != UrfMediaTypeMappings.end();
+  return UrfMediaTypeMappings.find(mediaType) != UrfMediaTypeMappings.cend();
 }
 
 void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backside, bool verbose)

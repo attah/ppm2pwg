@@ -44,7 +44,7 @@ Build:
 
 ## pdf2printable vs the competition
 
-(As of 2023-10-30)
+(As of 2024-03-02)
 
 A bit of friendly comparison helps make sure the featureset is well-rounded and performance is on par.
 
@@ -60,18 +60,18 @@ Not in the running: cups-filters (can't get them to run outside CUPS), Android/A
 
 ### Format support
 
-|               | PDF | Postscript   | PWG | URF | PCLm&sup1; | PCL&sup2; |
-| ------------- | --- | ------------ | --- | --- | ---------- | --------- |
-| pdf2printable | ✔   | ✔            | ✔   | ✔   | ✘          | ✘         |
-| ipptransform  | ✔   | ✔&sup3;(WIP) | ✔   | ✔   | ✘          | ✔&sup3;   |
-| mutool        | ✔   | ✘            | ✔   | ✘   | ✔          | ✔         |
-| jrender       | ✘   | ✘            | ✔   | ✘   | ✔          | ✘         |
+|               | PDF | Postscript | PWG | URF | PCLm&sup1; | PCL&sup2; |
+| ------------- | --- | ---------- | --- | --- | ---------- | --------- |
+| pdf2printable | ✔   | ✔          | ✔   | ✔   | ✘          | ✘         |
+| ipptransform  | ✔   | ✔          | ✔   | ✔   | ✘          | ✔&sup3;   |
+| mutool        | ✔   | ✘          | ✔   | ✘   | ✔          | ✔         |
+| jrender       | ✘   | ✘          | ✔   | ✘   | ✔          | ✘         |
 
 Good printers should support PDF or PWG. After that, URF is the biggest enabler.
 
 1. I have not yet seen a printer support PCLm and none of the other formats that pdf2printable supports.
 2. PCL comes in many different dialects (even beyond the versions) so it might not work across all printers.
-3. Pre-rasterized compatibility versions.
+3. Pre-rasterized compatibility version.
 
 ### Features
 
@@ -80,10 +80,11 @@ Good printers should support PDF or PWG. After that, URF is the biggest enabler.
 | pdf2printable | ✔                | ✔(6)              | ✔             | ✔              | ✔(+stdin) |
 | ipptransform  | ✔                | ✔(5)              | ✔             | ✔              | ✔         |
 | mutool        | ✘                | ✔(3?)             | ✘             | ✔              | ✘         |
-| jrender       | ✘                | ✘(1)              | ✘             | ✘              | ✘         |
+| jrender       | ✘                | ✘(1)&sup3;        | ✘             | ✘              | ✘         |
 
 1. PWG, URF and PCLm printers may require the client to help transform backside pages for duplex printing, or they will come out incorrectly.
 2. Two color modes (sRGB24 and sGray8) is enough for basically anything.
+3. Jrender can be patched to do gray or bi-level, but the output is broken.
 
 ### Performance
 Measured with a representative 90-page document for PWG-raster at 600 DPI on a AMD 3950X.
@@ -91,8 +92,8 @@ Measured with a representative 90-page document for PWG-raster at 600 DPI on a A
 |                        | Speed (RGB) | Speed (Gray) | Size (RGB)  | Size (Gray) |
 | ---------------------- | ----------- | -------------| ----------- | ----------- |
 | pdf2printable          | 9s          | 9s           | 152MB       | 76MB        |
-| ipptransform           | 27s         | 27s          | 159MB       | 76MB        |
-| mutool (AA off)        | 15s         | 22s          | 152MB       | 76MB        |
+| ipptransform           | 26s         | 27s          | 159MB       | 76MB        |
+| mutool (AA off)        | 19s         | 26s          | 152MB       | 76MB        |
 | jrender (600dpi patch) | 25s         | N/A          | 334MB&sup1; | N/A         |
 
 1. Antialiasing seems to be enabled and would account for the size difference. However, at these resolutions that doesn't really provide much benefit. For pdf2printable and mutool it can be optionally enabled/disabled.

@@ -77,6 +77,7 @@ public:
   List<std::string> documentFormats();
   List<std::string> additionalDocumentFormats();
   List<std::string> possibleInputFormats();
+  bool supportsPrinterRaster();
 
   bool identifySupported();
   Error identify();

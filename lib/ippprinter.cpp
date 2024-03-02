@@ -363,6 +363,12 @@ List<std::string> IppPrinter::possibleInputFormats()
   return Converter::instance().possibleInputFormats(documentFormats() += additionalDocumentFormats());
 }
 
+bool IppPrinter::supportsPrinterRaster()
+{
+  List<std::string> formats = documentFormats();
+  return formats.contains(MiniMime::PWG) || formats.contains(MiniMime::URF);
+}
+
 int IppPrinter::Supply::getPercent() const
 {
   return (level*100.0)/(highLevel != 0 ? highLevel : 100);

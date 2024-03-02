@@ -406,7 +406,7 @@ int main(int argc, char** argv)
       job.pageRanges.set(ippPageRanges);
     }
 
-    set_or_fail(copiesOpt, job.copies, copies, force);
+    set_or_fail(copiesOpt, job.copies, copies, force || printer.supportsPrinterRaster());
     set_or_fail(collatedCopiesOpt, job.multipleDocumentHandling, collatedCopies, force);
     set_or_fail(paperSizeOpt, job.media, paperSize, force);
 

@@ -59,4 +59,4 @@ tidy:
 	clang-tidy lib/*.cpp utils/*.cpp -- $(CXXFLAGS)
 
 fuzz:
-	clang++ -g -fsanitize=fuzzer $(CXXFLAGS) -O0 -DFUZZ lib/ippmsg.cpp lib/ippattr.cpp bytestream/bytestream.cpp -o $@
+	clang++ -g -fsanitize=fuzzer $(CXXFLAGS) -O0 -DFUZZ lib/ippmsg.cpp lib/ippattr.cpp bytestream/bytestream.cpp json11/json11.cpp -o $@

@@ -227,7 +227,7 @@ int main(int argc, char** argv)
   SwitchArg<int> leftMarginOpt(leftMargin, {"-lm", "--left-margin"}, "Left margin (as per IPP)");
   SwitchArg<int> rightMarginOpt(rightMargin, {"-rm", "--right-margin"}, "Right margin (as per IPP)");
 
-  SwitchArg<bool> antiAliasOpt(antiAlias, {"-aa", "--antaialias"}, "Enable antialiasing in rasterization");
+  SwitchArg<bool> antiAliasOpt(antiAlias, {"-aa", "--antialias"}, "Enable antialiasing in rasterization");
   SwitchArg<bool> saveOpt(save, {"--save"}, "Save options as local defaults for future jobs");
 
   SwitchArg<int> idOpt(id, {"--id"}, "Id of print job.");

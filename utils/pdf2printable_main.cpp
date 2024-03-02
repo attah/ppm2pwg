@@ -77,7 +77,7 @@ int main(int argc, char** argv)
                                                       {"high", PrintParameters::HighQuality}},
                                                      {"-q", "--quality"},
                                                      "Quality setting in raster header (draft/normal/high)");
-  SwitchArg<bool> antiAliasOpt(params.antiAlias, {"-aa", "--antaialias"}, "Enable antialiasing in rasterization");
+  SwitchArg<bool> antiAliasOpt(params.antiAlias, {"-aa", "--antialias"}, "Enable antialiasing in rasterization");
   EnumSwitchArg<PrintParameters::MediaPosition> mediaPositionOpt(params.mediaPosition, MEDIA_POSITION_MAP,
                                                                  {"-mp", "--media-pos"},
                                                                  "Media position, e.g.: main, top, left, roll-2 etc.");

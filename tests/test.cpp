@@ -544,8 +544,8 @@ TEST(printparameters)
 
   PrintParameters A4Px;
   A4Px.paperSizeUnits = PrintParameters::Pixels;
-  A4Px.paperSizeW = (float)A4.getPaperSizeWInPixels();
-  A4Px.paperSizeH = (float)A4.getPaperSizeHInPixels();
+  A4Px.paperSizeW = A4.getPaperSizeWInPixels();
+  A4Px.paperSizeH = A4.getPaperSizeHInPixels();
   A4Px.hwResW = 300;
   A4Px.hwResH = 300;
 
@@ -570,8 +570,8 @@ TEST(printparameters)
 
   A4.hwResW = 600;
   A4.hwResH = 600;
-  A4Px.paperSizeW = (float)A4.getPaperSizeWInPixels();
-  A4Px.paperSizeH = (float)A4.getPaperSizeHInPixels();
+  A4Px.paperSizeW = A4.getPaperSizeWInPixels();
+  A4Px.paperSizeH = A4.getPaperSizeHInPixels();
   A4Px.hwResW = 600;
   A4Px.hwResH = 600;
 
@@ -603,8 +603,8 @@ TEST(printparameters)
 
   PrintParameters LetterPx;
   LetterPx.paperSizeUnits = PrintParameters::Pixels;
-  LetterPx.paperSizeW = (float)Letter.getPaperSizeWInPixels();
-  LetterPx.paperSizeH = (float)Letter.getPaperSizeHInPixels();
+  LetterPx.paperSizeW = Letter.getPaperSizeWInPixels();
+  LetterPx.paperSizeH = Letter.getPaperSizeHInPixels();
   LetterPx.hwResW = 300;
   LetterPx.hwResH = 300;
 
@@ -629,8 +629,8 @@ TEST(printparameters)
 
   Letter.hwResW = 600;
   Letter.hwResH = 600;
-  LetterPx.paperSizeW = (float)Letter.getPaperSizeWInPixels();
-  LetterPx.paperSizeH = (float)Letter.getPaperSizeHInPixels();
+  LetterPx.paperSizeW = Letter.getPaperSizeWInPixels();
+  LetterPx.paperSizeH = Letter.getPaperSizeHInPixels();
   LetterPx.hwResW = 600;
   LetterPx.hwResH = 600;
 
@@ -655,11 +655,11 @@ TEST(printparameters)
 
   A4.hwResH = 1200;
   A4Px.hwResH = 1200;
-  A4Px.paperSizeH = (float)A4.getPaperSizeHInPixels();
+  A4Px.paperSizeH = A4.getPaperSizeHInPixels();
 
   Letter.hwResH = 1200;
   LetterPx.hwResH = 1200;
-  LetterPx.paperSizeH = (float)Letter.getPaperSizeHInPixels();
+  LetterPx.paperSizeH = Letter.getPaperSizeHInPixels();
 
   ASSERT(A4.getPaperSizeWInPixels() == 4960);
   ASSERT(A4.getPaperSizeHInPixels() == 14031);
@@ -951,13 +951,13 @@ TEST(parse_page_size)
 
   ASSERT(params.setPaperSize("na_letter_8.5x11in"));
   ASSERT(params.paperSizeName == "na_letter_8.5x11in");
-  ASSERT(params.paperSizeW == 8.5f);
+  ASSERT(params.paperSizeW == 8.5);
   ASSERT(params.paperSizeH == 11);
   ASSERT(params.paperSizeUnits == PrintParameters::Inches);
 
   ASSERT(params.setPaperSize("jpn_chou2_111.1x146mm"));
   ASSERT(params.paperSizeName == "jpn_chou2_111.1x146mm");
-  ASSERT(params.paperSizeW == 111.1f);
+  ASSERT(params.paperSizeW == 111.1);
   ASSERT(params.paperSizeH == 146);
   ASSERT(params.paperSizeUnits == PrintParameters::Millimeters);
 
@@ -988,8 +988,8 @@ TEST(silly_locale_parse_page_size)
 
   ASSERT(params.setPaperSize("fuuuuu_13.37x42.69mm"));
   ASSERT(params.paperSizeName == "fuuuuu_13.37x42.69mm");
-  ASSERT(params.paperSizeW == 13.37f);
-  ASSERT(params.paperSizeH == 42.69f);
+  ASSERT(params.paperSizeW == 13.37);
+  ASSERT(params.paperSizeH == 42.69);
   ASSERT(params.paperSizeUnits == PrintParameters::Millimeters);
 
   std::setlocale(LC_ALL, locale.c_str());

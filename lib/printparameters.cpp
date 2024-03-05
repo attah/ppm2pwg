@@ -244,8 +244,8 @@ bool PrintParameters::setPaperSize(const std::string& sizeStr)
   if(std::regex_match(sizeStr.c_str(), match, nameRegex))
   {
     paperSizeName = sizeStr;
-    paperSizeW = strtof_l(match[1].first, nullptr, c_locale);
-    paperSizeH = strtof_l(match[3].first, nullptr, c_locale);
+    paperSizeW = strtod_l(match[1].first, nullptr, c_locale);
+    paperSizeH = strtod_l(match[3].first, nullptr, c_locale);
     if(match[5] == "in")
     {
       paperSizeUnits = Inches;

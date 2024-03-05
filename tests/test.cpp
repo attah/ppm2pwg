@@ -615,14 +615,14 @@ TEST(printparameters)
   ASSERT(Letter.getPaperSizeInPixels() == 2550*3300);
   ASSERT(Letter.getPaperSizeInBytes() == 2550*3300*3);
 
-  ASSERT(Letter.getPaperSizeWInMillimeters() == 215.9f);
-  ASSERT(Letter.getPaperSizeHInMillimeters() == 279.4f);
+  ASSERT(Letter.getPaperSizeWInMillimeters() == 215.9);
+  ASSERT(Letter.getPaperSizeHInMillimeters() == 279.4);
 
   ASSERT(Letter.getPaperSizeWInPoints() == 612);
   ASSERT(Letter.getPaperSizeHInPoints() == 792);
 
-  ASSERT(LetterPx.getPaperSizeWInMillimeters() == 215.9f);
-  ASSERT(LetterPx.getPaperSizeHInMillimeters() == 279.4f);
+  ASSERT(LetterPx.getPaperSizeWInMillimeters() == 215.9);
+  ASSERT(LetterPx.getPaperSizeHInMillimeters() == 279.4);
 
   ASSERT(LetterPx.getPaperSizeWInPoints() == 612);
   ASSERT(LetterPx.getPaperSizeHInPoints() == 792);
@@ -641,14 +641,14 @@ TEST(printparameters)
   ASSERT(Letter.getPaperSizeInPixels() == 5100*6600);
   ASSERT(Letter.getPaperSizeInBytes() == 5100*6600*3);
 
-  ASSERT(Letter.getPaperSizeWInMillimeters() == 215.9f);
-  ASSERT(Letter.getPaperSizeHInMillimeters() == 279.4f);
+  ASSERT(Letter.getPaperSizeWInMillimeters() == 215.9);
+  ASSERT(Letter.getPaperSizeHInMillimeters() == 279.4);
 
   ASSERT(Letter.getPaperSizeWInPoints() == 612);
   ASSERT(Letter.getPaperSizeHInPoints() == 792);
 
-  ASSERT(LetterPx.getPaperSizeWInMillimeters() == 215.9f);
-  ASSERT(LetterPx.getPaperSizeHInMillimeters() == 279.4f);
+  ASSERT(LetterPx.getPaperSizeWInMillimeters() == 215.9);
+  ASSERT(LetterPx.getPaperSizeHInMillimeters() == 279.4);
 
   ASSERT(LetterPx.getPaperSizeWInPoints() == 612);
   ASSERT(LetterPx.getPaperSizeHInPoints() == 792);
@@ -692,10 +692,10 @@ TEST(printparameters)
   ASSERT(LetterPx.getPaperSizeHInPixels() == 13200);
 
   // Asymmetric resolution does not affect dimension in mm
-  ASSERT(Letter.getPaperSizeWInMillimeters() == 215.9f);
-  ASSERT(Letter.getPaperSizeHInMillimeters() == 279.4f);
-  ASSERT(LetterPx.getPaperSizeWInMillimeters() == 215.9f);
-  ASSERT(LetterPx.getPaperSizeHInMillimeters() == 279.4f);
+  ASSERT(Letter.getPaperSizeWInMillimeters() == 215.9);
+  ASSERT(Letter.getPaperSizeHInMillimeters() == 279.4);
+  ASSERT(LetterPx.getPaperSizeWInMillimeters() == 215.9);
+  ASSERT(LetterPx.getPaperSizeHInMillimeters() == 279.4);
 
   // Asymmetric resolution does not affect dimension in points
   ASSERT(LetterPx.getPaperSizeWInPoints() == 612);

@@ -42,7 +42,7 @@ size_t PrintParameters::getPaperSizeInPixels() const
   return getPaperSizeWInPixels() * getPaperSizeHInPixels();
 }
 
-float PrintParameters::getPaperSizeWInMillimeters() const
+double PrintParameters::getPaperSizeWInMillimeters() const
 {
   switch(paperSizeUnits)
   {
@@ -56,7 +56,7 @@ float PrintParameters::getPaperSizeWInMillimeters() const
   return 0;
 }
 
-float PrintParameters::getPaperSizeHInMillimeters() const
+double PrintParameters::getPaperSizeHInMillimeters() const
 {
   switch(paperSizeUnits)
   {
@@ -70,7 +70,7 @@ float PrintParameters::getPaperSizeHInMillimeters() const
   return 0;
 }
 
-float PrintParameters::getPaperSizeWInPoints() const
+double PrintParameters::getPaperSizeWInPoints() const
 {
   switch(paperSizeUnits)
   {
@@ -84,7 +84,7 @@ float PrintParameters::getPaperSizeWInPoints() const
   return 0;
 }
 
-float PrintParameters::getPaperSizeHInPoints() const
+double PrintParameters::getPaperSizeHInPoints() const
 {
   switch(paperSizeUnits)
   {

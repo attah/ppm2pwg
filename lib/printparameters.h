@@ -125,8 +125,8 @@ public:
   };
 
   PaperSizeUnits paperSizeUnits = Millimeters;
-  float paperSizeW = 210; // A4
-  float paperSizeH = 297; // A4
+  double paperSizeW = 210; // A4
+  double paperSizeH = 297; // A4
 
   enum DuplexMode
   {
@@ -154,11 +154,11 @@ public:
 
   size_t getPaperSizeInPixels() const;
 
-  float getPaperSizeWInMillimeters() const;
-  float getPaperSizeHInMillimeters() const;
+  double getPaperSizeWInMillimeters() const;
+  double getPaperSizeHInMillimeters() const;
 
-  float getPaperSizeWInPoints() const;
-  float getPaperSizeHInPoints() const;
+  double getPaperSizeWInPoints() const;
+  double getPaperSizeHInPoints() const;
 
   size_t getPaperSizeWInBytes() const;
   size_t getPaperSizeInBytes() const;

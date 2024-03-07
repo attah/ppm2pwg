@@ -9,12 +9,12 @@ Bytestream make_pwg_file_hdr();
 
 Bytestream make_urf_file_hdr(uint32_t pages);
 
-void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backside, bool verbose);
-void make_urf_hdr(Bytestream& outBts, const PrintParameters& params, bool verbose);
+void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backside);
+void make_urf_hdr(Bytestream& outBts, const PrintParameters& params);
 
 
 void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts, size_t page,
-                const PrintParameters& params, bool verbose = false);
+                const PrintParameters& params);
 
 void compress_lines(Bytestream& bmpBts, Bytestream& outBts,
                     const PrintParameters& params, bool backside);

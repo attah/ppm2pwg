@@ -2,12 +2,13 @@
 #include <cstring>
 #include <chrono>
 #include <thread>
+#include "log.h"
 
-CurlRequester::CurlRequester(std::string addr, bool ignoreSslErrors, bool verbose)
-  : _verbose(verbose), _curl(curl_easy_init())
+CurlRequester::CurlRequester(std::string addr, bool ignoreSslErrors)
+  : _curl(curl_easy_init())
 {
   curl_easy_setopt(_curl, CURLOPT_URL, addr.c_str());
-  curl_easy_setopt(_curl, CURLOPT_VERBOSE, verbose);
+  curl_easy_setopt(_curl, CURLOPT_VERBOSE, LogController::instance().isEnabled(LogController::Debug));
   curl_easy_setopt(_curl, CURLOPT_CONNECTTIMEOUT_MS, 2000);
   curl_easy_setopt(_curl, CURLOPT_FAILONERROR, 1);
 
@@ -173,8 +174,8 @@ void CurlIppPosterBase::setCompression(Compression compression)
   deflateInit2(&_zstrm, Z_DEFAULT_COMPRESSION, Z_DEFLATED, level, 7, Z_DEFAULT_STRATEGY);
 }
 
-CurlIppPosterBase::CurlIppPosterBase(std::string addr, bool ignoreSslErrors, bool verbose)
-  : CurlRequester("http"+addr.erase(0,3), ignoreSslErrors, verbose)
+CurlIppPosterBase::CurlIppPosterBase(std::string addr, bool ignoreSslErrors)
+  : CurlRequester("http"+addr.erase(0,3), ignoreSslErrors)
 {
   _canWrite.unlock();
   _canRead.lock();
@@ -204,23 +205,23 @@ CURLcode CurlIppPosterBase::await(Bytestream* data)
   return CurlRequester::await(data);
 }
 
-CurlIppPoster::CurlIppPoster(std::string addr, const Bytestream& data, bool ignoreSslErrors, bool verbose)
-  : CurlIppPosterBase(addr, ignoreSslErrors, verbose)
+CurlIppPoster::CurlIppPoster(std::string addr, const Bytestream& data, bool ignoreSslErrors)
+  : CurlIppPosterBase(addr, ignoreSslErrors)
 {
   curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
   write(data.raw(), data.size());
   doRun();
 }
 
-CurlIppStreamer::CurlIppStreamer(std::string addr, bool ignoreSslErrors, bool verbose)
-  : CurlIppPosterBase(addr, ignoreSslErrors, verbose)
+CurlIppStreamer::CurlIppStreamer(std::string addr, bool ignoreSslErrors)
+  : CurlIppPosterBase(addr, ignoreSslErrors)
 {
   _opts = curl_slist_append(_opts, "Transfer-Encoding: chunked");
   doRun();
 }
 
-CurlHttpGetter::CurlHttpGetter(std::string addr, bool ignoreSslErrors, bool verbose)
-  : CurlRequester(addr, ignoreSslErrors, verbose)
+CurlHttpGetter::CurlHttpGetter(std::string addr, bool ignoreSslErrors)
+  : CurlRequester(addr, ignoreSslErrors)
 {
   doRun();
 }

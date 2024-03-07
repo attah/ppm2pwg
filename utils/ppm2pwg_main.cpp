@@ -9,6 +9,7 @@
 #include "argget.h"
 #include "binfile.h"
 #include "mediaposition.h"
+#include "log.h"
 
 #define HELPTEXT "Use \"-\" as filename for stdin/stdout."
 
@@ -91,6 +92,11 @@ int main(int argc, char** argv)
   {
     print_error(args.errmsg(), args.argHelp());
     return 1;
+  }
+
+  if(verbose)
+  {
+    LogController::instance().enable(LogController::Debug);
   }
 
   if(urf)
@@ -196,10 +202,8 @@ int main(int argc, char** argv)
 
     ignore_comments(inFile);
 
-    if(verbose)
-    {
-      std::cerr << "Found: " << p << " " << xs << "x" << ys << " " << r << std::endl;
-    }
+
+    DBG(<< "Found: " << p << " " << xs << "x" << ys << " " << r);
 
     params.paperSizeW = stoi(xs);
     params.paperSizeH = stoi(ys);
@@ -207,7 +211,7 @@ int main(int argc, char** argv)
     size_t size = params.paperSizeH*params.getPaperSizeWInBytes();
     bmpBts = Bytestream(inFile, size);
 
-    bmp_to_pwg(bmpBts, outBts, page, params, verbose);
+    bmp_to_pwg(bmpBts, outBts, page, params);
 
     outFile << outBts;
     inFile->peek(); // maybe trigger eof

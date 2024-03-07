@@ -10,6 +10,7 @@
 #include "ippprinter.h"
 #include "minimime.h"
 #include "pointer.h"
+#include "log.h"
 
 #define HELPTEXT ""
 
@@ -270,6 +271,11 @@ int main(int argc, char** argv)
     return 1;
   }
 
+  if(verbose)
+  {
+    LogController::instance().enable(LogController::Debug);
+  }
+
   IppPrinter printer(addr);
   Error error = printer.error();
   if(error)
@@ -496,7 +502,7 @@ int main(int argc, char** argv)
         return 1;
       }
     }
-    error = printer.runJob(job, inFile, mimeType, nPages, verbose);
+    error = printer.runJob(job, inFile, mimeType, nPages);
 
     if(error)
     {

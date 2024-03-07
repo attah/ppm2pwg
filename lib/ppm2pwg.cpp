@@ -6,6 +6,7 @@
 #include "ppm2pwg.h"
 #include "PwgPgHdr.h"
 #include "UrfPgHdr.h"
+#include "log.h"
 
 Bytestream make_pwg_file_hdr()
 {
@@ -21,23 +22,19 @@ Bytestream make_urf_file_hdr(uint32_t pages)
   return urfFileHdr;
 }
 
-void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts,
-                size_t page, const PrintParameters& params, bool verbose)
+void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts, size_t page, const PrintParameters& params)
 {
   bool backside = params.isTwoSided() && ((page % 2) == 0);
 
-  if(verbose)
-  {
-    std::cerr << "Page " << page << std::endl;
-  }
+  DBG(<< "Page " << page);
 
   if(!(params.format == PrintParameters::URF))
   {
-    make_pwg_hdr(outBts, params, backside, verbose);
+    make_pwg_hdr(outBts, params, backside);
   }
   else
   {
-    make_urf_hdr(outBts, params, verbose);
+    make_urf_hdr(outBts, params);
   }
 
   size_t yRes = params.getPaperSizeHInPixels();
@@ -184,7 +181,7 @@ bool isUrfMediaType(std::string mediaType)
   return UrfMediaTypeMappings.find(mediaType) != UrfMediaTypeMappings.cend();
 }
 
-void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backside, bool verbose)
+void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backside)
 {
   PwgPgHdr outHdr;
 
@@ -214,15 +211,12 @@ void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backsi
   outHdr.setPrintQuality(params.quality);
   outHdr.PageSizeName = params.paperSizeName;
 
-  if(verbose)
-  {
-    std::cerr << outHdr.describe() << std::endl;
-  }
+  DBG(<< outHdr.describe());
 
   outHdr.encodeInto(outBts);
 }
 
-void make_urf_hdr(Bytestream& outBts, const PrintParameters& params, bool verbose)
+void make_urf_hdr(Bytestream& outBts, const PrintParameters& params)
 {
   if(params.hwResW != params.hwResH)
   {
@@ -247,10 +241,7 @@ void make_urf_hdr(Bytestream& outBts, const PrintParameters& params, bool verbos
   outHdr.Height = params.getPaperSizeHInPixels();
   outHdr.HWRes = params.hwResW;
 
-  if(verbose)
-  {
-    std::cerr << outHdr.describe() << std::endl;
-  }
+  DBG(<< outHdr.describe());
 
   outHdr.encodeInto(outBts);
 }

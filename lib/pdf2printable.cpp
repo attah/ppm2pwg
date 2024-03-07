@@ -52,7 +52,7 @@ inline double round2(double d)
 }
 
 Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParameters& params,
-                       ProgressFun progressFun, bool verbose)
+                       ProgressFun progressFun)
 {
   if(params.format == PrintParameters::URF && (params.hwResW != params.hwResH))
   {
@@ -190,7 +190,7 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
       cairo_surface_flush(surface);
       uint32_t* data = (uint32_t*)cairo_image_surface_get_data(surface);
       copy_raster_buffer(bmpBts, data, params);
-      bmp_to_pwg(bmpBts, outBts, outPageNo, params, verbose);
+      bmp_to_pwg(bmpBts, outBts, outPageNo, params);
     }
 
     CHECK(writeFun(outBts.raw(), outBts.size()));

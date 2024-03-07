@@ -31,7 +31,7 @@ public:
 
 protected:
 
-  CurlRequester(std::string addr, bool ignoreSslErrors, bool verbose);
+  CurlRequester(std::string addr, bool ignoreSslErrors);
 
   void doRun();
 
@@ -59,8 +59,6 @@ protected:
   };
   // Must be run exactly once, thus static
   static GlobalEnv _gEnv;
-
-  bool _verbose;
 
   CURLcode _result;
   Bytestream _resultMsg;
@@ -97,7 +95,7 @@ public:
   }
 
 protected:
-  CurlIppPosterBase(std::string addr, bool ignoreSslErrors, bool verbose);
+  CurlIppPosterBase(std::string addr, bool ignoreSslErrors);
 
 private:
   std::mutex _canWrite;
@@ -109,19 +107,19 @@ private:
 class CurlIppPoster : public CurlIppPosterBase
 {
 public:
-  CurlIppPoster(std::string addr, const Bytestream& data, bool ignoreSslErrors = false, bool verbose = false);
+  CurlIppPoster(std::string addr, const Bytestream& data, bool ignoreSslErrors = false);
 };
 
 class CurlIppStreamer : public CurlIppPosterBase
 {
 public:
-  CurlIppStreamer(std::string addr, bool ignoreSslErrors = false, bool verbose = false);
+  CurlIppStreamer(std::string addr, bool ignoreSslErrors = false);
 };
 
 class CurlHttpGetter : public CurlRequester
 {
 public:
-  CurlHttpGetter(std::string addr, bool ignoreSslErrors = false, bool verbose = false);
+  CurlHttpGetter(std::string addr, bool ignoreSslErrors = false);
 };
 
 #endif // CURLREQUESTER_H

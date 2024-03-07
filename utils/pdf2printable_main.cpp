@@ -8,6 +8,7 @@
 #include "binfile.h"
 #include "stringutils.h"
 #include "mediaposition.h"
+#include "log.h"
 
 #define HELPTEXT "Options from 'resolution' and onwards only affect raster output formats.\n" \
                  "Use \"-\" as filename for stdin/stdout."
@@ -105,6 +106,11 @@ int main(int argc, char** argv)
     return 1;
   }
 
+  if(verbose)
+  {
+    LogController::instance().enable(LogController::Debug);
+  }
+
   if(!formatOpt.isSet())
   {
     if(string_ends_with(outFileName, ".ps"))
@@ -194,18 +200,12 @@ int main(int argc, char** argv)
 
   Error error;
 
-  if(verbose)
-  {
-    ProgressFun progressFun([](size_t page, size_t total) -> void
-                {
-                  std::cerr << "Progress: " << page << "/" << total << "\n\n";
-                });
-    error = pdf_to_printable(inFileName, writeFun, params, progressFun, true);
-  }
-  else
-  {
-    error = pdf_to_printable(inFileName, writeFun, params);
-  }
+  ProgressFun progressFun([](size_t page, size_t total) -> void
+              {
+                DBG(<< "Progress: " << page << "/" << total);
+              });
+  error = pdf_to_printable(inFileName, writeFun, params, progressFun);
+
   if(error)
   {
     std::cerr << "Conversion failed: " << error.value() << std::endl;

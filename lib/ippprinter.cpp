@@ -2,6 +2,7 @@
 #include "curlrequester.h"
 #include "stringutils.h"
 #include "configdir.h"
+#include "log.h"
 #include <filesystem>
 
 IppPrinter::IppPrinter(std::string addr) : _addr(addr)
@@ -53,7 +54,7 @@ Error IppPrinter::refresh()
   return error;
 }
 
-Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inFormat, int pages, bool verbose)
+Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inFormat, int pages)
 {
   Error error;
   try
@@ -75,7 +76,7 @@ Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inForm
     }
     else if(string_starts_with(_addr, "file://"))
     {
-      doPrintToFile(job, inFile, convertFun.value(), verbose);
+      doPrintToFile(job, inFile, convertFun.value());
     }
     else
     {
@@ -106,7 +107,7 @@ Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inForm
             sendDocumentOpAttrs.set("job-id", IppAttr {IppTag::Integer, jobId});
             sendDocumentOpAttrs.set("last-document", IppAttr {IppTag::Boolean, true});
             IppMsg sendDocumentMsg = _mkMsg(IppMsg::SendDocument, sendDocumentOpAttrs);
-            error = doPrint(job, inFile, convertFun.value(), sendDocumentMsg.encode(), verbose);
+            error = doPrint(job, inFile, convertFun.value(), sendDocumentMsg.encode());
           }
           else
           {
@@ -119,7 +120,7 @@ Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inForm
         IppAttrs printJobOpAttrs = job.opAttrs;
         printJobOpAttrs.set("job-name", IppAttr {IppTag::NameWithoutLanguage, fileName});
         IppMsg printJobMsg = _mkMsg(IppMsg::PrintJob, printJobOpAttrs, job.jobAttrs);
-        error = doPrint(job, inFile, convertFun.value(), printJobMsg.encode(), verbose);
+        error = doPrint(job, inFile, convertFun.value(), printJobMsg.encode());
       }
     }
   }
@@ -130,10 +131,10 @@ Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inForm
   return error;
 }
 
-Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream hdr, bool verbose)
+Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream hdr)
 {
   Error error;
-  CurlIppStreamer cr(_addr, true, verbose);
+  CurlIppStreamer cr(_addr, true);
   cr.write((char*)(hdr.raw()), hdr.size());
 
   if(job.compression.get() == "gzip")
@@ -152,15 +153,12 @@ Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::Conve
              return cr.write((const char*)buf, len);
            });
 
-  ProgressFun progressFun([verbose](size_t page, size_t total) -> void
+  ProgressFun progressFun([](size_t page, size_t total) -> void
               {
-                if(verbose)
-                {
-                  std::cerr << page << "/" << total << std::endl;
-                }
+                DBG(<< page << "/" << total);
               });
 
-  error = convertFun(inFile, writeFun, job, progressFun, verbose);
+  error = convertFun(inFile, writeFun, job, progressFun);
   if(error)
   {
     return error;
@@ -184,7 +182,7 @@ Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::Conve
   return error;
 }
 
-Error IppPrinter::doPrintToFile(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, bool verbose)
+Error IppPrinter::doPrintToFile(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun)
 {
   std::string fileName = std::filesystem::path(inFile).filename();
   std::string ext = MiniMime::defaultExtension(job.targetFormat);
@@ -197,14 +195,11 @@ Error IppPrinter::doPrintToFile(IppPrintJob& job, std::string inFile, Converter:
              return (bool)ofs;
            });
 
-  ProgressFun progressFun([verbose](size_t page, size_t total) -> void
+  ProgressFun progressFun([](size_t page, size_t total) -> void
               {
-                if(verbose)
-                {
-                  std::cerr << page << "/" << total << std::endl;
-                }
+                DBG(<< page << "/" << total);
               });
-  Error error = convertFun(inFile, writeFun, job, progressFun, verbose);
+  Error error = convertFun(inFile, writeFun, job, progressFun);
   if(error)
   {
     return error;
@@ -479,7 +474,15 @@ Error IppPrinter::_doRequest(const IppMsg& req, IppMsg& resp)
 {
   Error error;
 
-  CurlIppPoster reqPoster(_addr, req.encode(), _ignoreSslErrors, _verbose);
+  DBG(<< "RERQUEST IPP operation: " << req.getStatus());
+  DBG(<< "Operation attrs: "  << req.getOpAttrs().toJSON().dump());
+  for(const IppAttrs& jobAttrs : req.getJobAttrs())
+  {
+      DBG(<< "Job attrs: "  << jobAttrs.toJSON().dump());
+  }
+  DBG(<< "Printer attrs: "  << req.getPrinterAttrs().toJSON().dump());
+
+  CurlIppPoster reqPoster(_addr, req.encode(), _ignoreSslErrors);
   Bytestream respBts;
   CURLcode res0 = reqPoster.await(&respBts);
   if(res0 == CURLE_OK)
@@ -487,6 +490,13 @@ Error IppPrinter::_doRequest(const IppMsg& req, IppMsg& resp)
     try
     {
       resp = IppMsg(respBts);
+      DBG(<< "RESPONSE IPP status: " << resp.getStatus());
+      DBG(<< "Operation attrs: "  << resp.getOpAttrs().toJSON().dump());
+      for(const IppAttrs& jobAttrs : resp.getJobAttrs())
+      {
+          DBG(<< "Job attrs: "  << jobAttrs.toJSON().dump());
+      }
+      DBG(<< "Printer attrs: "  << resp.getPrinterAttrs().toJSON().dump());
     }
     catch(const std::exception& e)
     {
@@ -532,10 +542,7 @@ void IppPrinter::_applyOverrides()
         if(_printerAttrs.has(matchAttrName) && _printerAttrs.at(matchAttrName).get<std::string>() == matchAttrValue)
         {
           IppAttrs overrideAttrs = IppAttrs::fromJSON(overrideObj.object_items());
-          if(_verbose)
-          {
-            std::cerr << "Overriding printer attributes: " << overrideAttrs.toJSON().dump() << std::endl;
-          }
+          DBG(<< "Overriding printer attributes: " << overrideAttrs.toJSON().dump());
           for(const auto& [name, attr] : overrideAttrs)
           {
             _printerAttrs.insert_or_assign(name, attr);

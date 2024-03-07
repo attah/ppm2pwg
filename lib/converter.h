@@ -29,14 +29,14 @@ public:
   }
 
   typedef std::pair<std::string, std::string> ConvertKey;
-  typedef std::function<Error(std::string inFileName, WriteFun writeFun, const IppPrintJob& job, ProgressFun progressFun, bool verbose)> ConvertFun;
+  typedef std::function<Error(std::string inFileName, WriteFun writeFun, const IppPrintJob& job, ProgressFun progressFun)> ConvertFun;
 
-  ConvertFun Pdf2Printable = [](std::string inFileName, WriteFun writeFun, const IppPrintJob& job, ProgressFun progressFun, bool verbose)
+  ConvertFun Pdf2Printable = [](std::string inFileName, WriteFun writeFun, const IppPrintJob& job, ProgressFun progressFun)
                              {
-                               return pdf_to_printable(inFileName, writeFun, job.printParams, progressFun, verbose);
+                               return pdf_to_printable(inFileName, writeFun, job.printParams, progressFun);
                              };
 
-  ConvertFun Baselinify = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun, bool)
+  ConvertFun Baselinify = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun)
                           {
                             InBinFile in(inFileName);
                             if(!in)
@@ -52,7 +52,7 @@ public:
                             return Error();
                           };
 
-  ConvertFun JustUpload = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun, bool)
+  ConvertFun JustUpload = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun)
                           {
                             InBinFile in(inFileName);
                             if(!in)
@@ -65,7 +65,7 @@ public:
                             return Error();
                           };
 
-  ConvertFun FixupText = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun, bool)
+  ConvertFun FixupText = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun)
                          {
                            InBinFile in(inFileName);
                            if(!in)

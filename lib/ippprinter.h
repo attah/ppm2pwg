@@ -58,7 +58,7 @@ public:
     return IppPrintJob(_printerAttrs, additionalDocumentFormats());
   }
 
-  Error runJob(IppPrintJob job, std::string inFile, std::string inFormat, int pages, bool verbose);
+  Error runJob(IppPrintJob job, std::string inFile, std::string inFormat, int pages);
 
   std::string name();
   std::string uuid();
@@ -92,14 +92,13 @@ private:
   void _applyOverrides();
 
   std::string _addr;
-  bool _verbose = false;
   bool _ignoreSslErrors = true;
 
   Error _error;
   IppAttrs _printerAttrs;
 
-  Error doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream hdr, bool verbose);
-  Error doPrintToFile(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, bool verbose);
+  Error doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream hdr);
+  Error doPrintToFile(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun);
 
 };
 

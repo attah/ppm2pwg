@@ -37,7 +37,6 @@ public:
     std::string stateMessage;
   };
 
-  IppPrinter() = delete;
   IppPrinter(std::string addr);
   IppPrinter(IppAttrs printerAttrs) : _printerAttrs(printerAttrs)
   {}

@@ -306,7 +306,7 @@ void IppPrintJob::adjustRasterSettings(int pages)
     {
       PageSequence seq = printParams.getPageSequence(pages);
                              // No two different elements...
-      bool singlePageRange = std::adjacent_find(seq.cbegin(), seq.cend(), std::not_equal_to()) == seq.cend();
+      bool singlePageRange = std::adjacent_find(seq.cbegin(), seq.cend(), std::not_equal_to<const size_t>()) == seq.cend();
 
       if(pages == 1 || singlePageRange)
       {

@@ -22,7 +22,7 @@ public:
   Converter(Converter &&) = delete;
   Converter & operator=(Converter &&) = delete;
 
-  static auto& instance()
+  static Converter& instance()
   {
     static Converter converter;
     return converter;
@@ -119,11 +119,11 @@ public:
   std::optional<std::string> getTargetFormat(std::string inputFormat, List<std::string> supportedFormats)
   {
     std::optional<std::string> targetFormat;
-    for(const std::pair<const ConvertKey, ConvertFun>& p : Pipelines)
+    for(const auto& [formats, convertFun] : Pipelines)
     {
-      if(p.first.first == inputFormat && supportedFormats.contains(p.first.second))
+      if(formats.first == inputFormat && supportedFormats.contains(formats.second))
       {
-        targetFormat = p.first.second;
+        targetFormat = formats.second;
         break;
       }
     }
@@ -133,11 +133,11 @@ public:
   List<std::string> possibleInputFormats(List<std::string> supportedFormats)
   {
     List<std::string> inputFormats;
-    for(const std::pair<const ConvertKey, ConvertFun>& p : Pipelines)
+    for(const auto& [formats, convertFun] : Pipelines)
     {
-      if(supportedFormats.contains(p.first.second) && !inputFormats.contains(p.first.first))
+      if(supportedFormats.contains(formats.second) && !inputFormats.contains(formats.first))
       {
-        inputFormats.push_back(p.first.first);
+        inputFormats.push_back(formats.first);
       }
     }
     return inputFormats;

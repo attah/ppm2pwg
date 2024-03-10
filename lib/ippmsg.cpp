@@ -334,9 +334,9 @@ std::string IppMsg::consumeAttributes(IppAttrs& attrs, Bytestream& data) const
 
 void IppMsg::encodeAttributes(Bytestream& msg, const IppAttrs& attrs) const
 {
-  for(const std::pair<const std::string, IppAttr>& attr : attrs)
+  for(const auto& [name, attr] : attrs)
   {
-    encodeAttribute(msg, attr.first, attr.second);
+    encodeAttribute(msg, name, attr);
   }
 }
 
@@ -413,9 +413,9 @@ void IppMsg::encodeValue(Bytestream& msg, IppTag tag, const IppValue& val) const
     {
       msg << (uint16_t)0; // length of value
       IppCollection collection = val.get<IppCollection>();
-      for(auto const& x : collection)
+      for(const auto& [name, attr] : collection)
       {
-        encodeAttribute(msg, x.first, x.second, true);
+        encodeAttribute(msg, name, attr, true);
       }
       msg << (uint8_t)IppTag::EndCollection << (uint16_t)0 << (uint16_t)0;
       break;

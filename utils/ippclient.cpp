@@ -405,9 +405,9 @@ int main(int argc, char** argv)
         return 1;
       }
       IppOneSetOf ippPageRanges;
-      for(std::pair<int32_t, int32_t> pageRange : pageRanges)
+      for(const auto& [first, last]: pageRanges)
       {
-        ippPageRanges.push_back(IppIntRange {pageRange.first, pageRange.second});
+        ippPageRanges.push_back(IppIntRange {(int32_t)first, (int32_t)last});
       }
       job.pageRanges.set(ippPageRanges);
     }

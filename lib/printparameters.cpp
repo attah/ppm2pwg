@@ -136,9 +136,9 @@ PageSequence PrintParameters::getPageSequence(size_t pages) const
     tmp = {pair};
   }
 
-  for(const std::pair<size_t, size_t>& r : tmp)
+  for(const auto& [first, last] : tmp)
   {
-    for(size_t p = r.first; p <= std::min(r.second, pages); p++)
+    for(size_t p = first; p <= std::min(last, pages); p++)
     {
       seq.push_back(p);
     }

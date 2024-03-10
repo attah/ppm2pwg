@@ -17,7 +17,7 @@ public:
   LogController(LogController &&) = delete;
   LogController & operator=(LogController &&) = delete;
 
-  static auto& instance()
+  static LogController& instance()
   {
     static LogController logController;
     return logController;

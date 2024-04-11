@@ -528,24 +528,27 @@ void IppPrinter::_applyOverrides()
   try
   {
     std::ifstream ifs(CONFIG_DIR + "/overrides", std::ios::in | std::ios::binary);
-    Bytestream bts(ifs);
-    std::string errStr;
-    Json overridesJson = Json::parse(bts.getString(bts.size()), errStr);
-    if(errStr != "")
+    if(ifs)
     {
-      std::cerr << "Bad overrides file: " << errStr << std::endl;
-    }
-    for(const auto& [matchAttrName, matchAttr] : overridesJson.object_items())
-    {
-      for(const auto& [matchAttrValue, overrideObj] : matchAttr.object_items())
+      Bytestream bts(ifs);
+      std::string errStr;
+      Json overridesJson = Json::parse(bts.getString(bts.size()), errStr);
+      if(errStr != "")
       {
-        if(_printerAttrs.has(matchAttrName) && _printerAttrs.at(matchAttrName).get<std::string>() == matchAttrValue)
+        std::cerr << "Bad overrides file: " << errStr << std::endl;
+      }
+      for(const auto& [matchAttrName, matchAttr] : overridesJson.object_items())
+      {
+        for(const auto& [matchAttrValue, overrideObj] : matchAttr.object_items())
         {
-          IppAttrs overrideAttrs = IppAttrs::fromJSON(overrideObj.object_items());
-          DBG(<< "Overriding printer attributes: " << overrideAttrs.toJSON().dump());
-          for(const auto& [name, attr] : overrideAttrs)
+          if(_printerAttrs.has(matchAttrName) && _printerAttrs.at(matchAttrName).get<std::string>() == matchAttrValue)
           {
-            _printerAttrs.insert_or_assign(name, attr);
+            IppAttrs overrideAttrs = IppAttrs::fromJSON(overrideObj.object_items());
+            DBG(<< "Overriding printer attributes: " << overrideAttrs.toJSON().dump());
+            for(const auto& [name, attr] : overrideAttrs)
+            {
+              _printerAttrs.insert_or_assign(name, attr);
+            }
           }
         }
       }

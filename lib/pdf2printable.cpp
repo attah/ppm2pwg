@@ -193,7 +193,7 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
       bmp_to_pwg(bmpBts, outBts, outPageNo, params);
     }
 
-    CHECK(writeFun(outBts.raw(), outBts.size()));
+    CHECK(writeFun(std::move(outBts)));
     outBts.reset();
 
     if(progressFun != nullptr)
@@ -207,7 +207,7 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
   // PDF and PS will have written something now, write it out
   if(outBts.size() != 0)
   {
-    CHECK(writeFun(outBts.raw(), outBts.size()));
+    CHECK(writeFun(std::move(outBts)));
   }
 
   return Error();

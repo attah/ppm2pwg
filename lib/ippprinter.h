@@ -96,7 +96,7 @@ private:
   Error _error;
   IppAttrs _printerAttrs;
 
-  Error doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream hdr);
+  Error doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream&& hdr);
   Error doPrintToFile(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun);
 
 };

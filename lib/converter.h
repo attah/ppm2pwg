@@ -46,7 +46,7 @@ public:
                             Bytestream inBts(in);
                             Bytestream baselinified;
                             baselinify(inBts, baselinified);
-                            writeFun(baselinified.raw(), baselinified.size());
+                            writeFun(std::move(baselinified));
                             progressFun(1, 1);
                             // We'll check on the cURL status in just a bit, so no point in returning errors here.
                             return Error();
@@ -60,7 +60,7 @@ public:
                               return Error("Failed to open input");
                             }
                             Bytestream inBts(in);
-                            writeFun(inBts.raw(), inBts.size());
+                            writeFun(std::move(inBts));
                             progressFun(1, 1);
                             return Error();
                           };
@@ -82,7 +82,7 @@ public:
                            }
                            std::string outString = join_string(lines, "\r\n");
 
-                           writeFun((uint8_t*)outString.c_str(), outString.length());
+                           writeFun(outString);
                            progressFun(1, 1);
                            return Error();
                          };

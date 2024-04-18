@@ -63,9 +63,7 @@ protected:
   CURLcode _result;
   Bytestream _resultMsg;
 
-  Array<uint8_t> _data;
-  size_t _size = 0;
-  size_t _offset = 0;
+  Bytestream _data;
 
   CURL* _curl;
   struct curl_slist* _opts = NULL;
@@ -82,8 +80,7 @@ public:
   ~CurlIppPosterBase();
   virtual CURLcode await(Bytestream* = nullptr);
 
-  bool write(const void* data, size_t size);
-  bool give(Bytestream& bts);
+  bool write(Bytestream&& data);
   size_t requestWrite(char* dest, size_t size);
 
   void setCompression(Compression compression);
@@ -107,7 +104,7 @@ private:
 class CurlIppPoster : public CurlIppPosterBase
 {
 public:
-  CurlIppPoster(std::string addr, const Bytestream& data, bool ignoreSslErrors = false);
+  CurlIppPoster(std::string addr, Bytestream&& data, bool ignoreSslErrors = false);
 };
 
 class CurlIppStreamer : public CurlIppPosterBase

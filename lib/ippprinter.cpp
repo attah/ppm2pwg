@@ -131,11 +131,11 @@ Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inForm
   return error;
 }
 
-Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream hdr)
+Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream&& hdr)
 {
   Error error;
   CurlIppStreamer cr(_addr, true);
-  cr.write((char*)(hdr.raw()), hdr.size());
+  cr.write(std::move(hdr));
 
   if(job.compression.get() == "gzip")
   {
@@ -146,11 +146,11 @@ Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::Conve
     cr.setCompression(Compression::Deflate);
   }
 
-  WriteFun writeFun([&cr](unsigned char const* buf, unsigned int len) -> bool
+  WriteFun writeFun([&cr](Bytestream&& data) -> bool
            {
-             if(len == 0)
+             if(data.size() == 0)
                return true;
-             return cr.write((const char*)buf, len);
+             return cr.write(std::move(data));
            });
 
   ProgressFun progressFun([](size_t page, size_t total) -> void
@@ -189,9 +189,9 @@ Error IppPrinter::doPrintToFile(IppPrintJob& job, std::string inFile, Converter:
   std::filesystem::path tmpFile = std::filesystem::temp_directory_path() / ("ippclient-debug-" + fileName + ext);
   std::ofstream ofs(tmpFile, std::ios::out | std::ios::binary);
 
-  WriteFun writeFun([&ofs](unsigned char const* buf, unsigned int len) -> bool
+  WriteFun writeFun([&ofs](Bytestream&& data) -> bool
            {
-             ofs.write((char*)buf, len);
+             ofs << data;
              return (bool)ofs;
            });
 

@@ -64,7 +64,7 @@ CurlIppPosterBase::~CurlIppPosterBase()
   CurlIppPosterBase::await();
 }
 
-bool CurlIppPosterBase::write(const void* data, size_t size)
+bool CurlIppPosterBase::write(Bytestream&& data)
 {
   while(!_canWrite.try_lock())
   {
@@ -75,30 +75,8 @@ bool CurlIppPosterBase::write(const void* data, size_t size)
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
-  _data = Array<uint8_t>(size);
-  memcpy(_data, data, size);
-  _size = size;
-  _offset = 0;
+  _data = std::move(data);
   _compression = _nextCompression;
-  _canRead.unlock();
-  return true;
-}
-
-bool CurlIppPosterBase::give(Bytestream& bts)
-{
-  while(!_canWrite.try_lock())
-  {
-    if(!_worker.isRunning())
-    {
-      return false;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  }
-
-  size_t size = bts.size();
-  _data = bts.eject();
-  _size = size;
-  _offset = 0;
   _canRead.unlock();
   return true;
 }
@@ -111,29 +89,28 @@ size_t CurlIppPosterBase::requestWrite(char* dest, size_t size)
     _reading = true;
   }
 
-  size_t remaining = (_size - _offset);
+  size_t remaining = _data.remaining();
   size_t bytesWritten = 0;
 
   if(_compression != Compression::None)
   {
     _zstrm.next_out = (Bytef*)dest;
     _zstrm.avail_out = size;
-    _zstrm.next_in = (_data + _offset);
+    _zstrm.next_in = (_data.raw() + _data.pos());
     _zstrm.avail_in = remaining;
     deflate(&_zstrm, _done ? Z_FINISH : Z_NO_FLUSH);
-    _offset += (remaining - _zstrm.avail_in);
     bytesWritten = size - _zstrm.avail_out;
+    _data += (remaining - _zstrm.avail_in);
   }
   else // No compression = memcpy
   {
     bytesWritten = std::min(size, remaining);
-    memcpy(dest, (_data+_offset), bytesWritten);
-    _offset += bytesWritten;
+    _data.getBytes(dest, bytesWritten);
   }
 
   if(!_done)
   {
-    if(_offset == _size)
+    if(_data.atEnd())
     { // End of input
       _reading = false;
       _canWrite.unlock();
@@ -198,18 +175,16 @@ CURLcode CurlIppPosterBase::await(Bytestream* data)
   }
 
   _done = true;
-  _data = Array<uint8_t>(0);
-  _size = 0;
-  _offset = 0;
+  _data = Bytestream();
   _canRead.unlock();
   return CurlRequester::await(data);
 }
 
-CurlIppPoster::CurlIppPoster(std::string addr, const Bytestream& data, bool ignoreSslErrors)
+CurlIppPoster::CurlIppPoster(std::string addr, Bytestream&& data, bool ignoreSslErrors)
   : CurlIppPosterBase(addr, ignoreSslErrors)
 {
   curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
-  write(data.raw(), data.size());
+  write(std::move(data));
   doRun();
 }
 

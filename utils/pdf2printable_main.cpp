@@ -192,9 +192,9 @@ int main(int argc, char** argv)
 
   OutBinFile outFile(outFileName);
 
-  WriteFun writeFun([&outFile](unsigned char const* buf, unsigned int len) -> bool
+  WriteFun writeFun([&outFile](Bytestream&& data) -> bool
            {
-             outFile->write((const char*)buf, len);
+             outFile << data;
              return outFile->exceptions() == std::ostream::goodbit;
            });
 

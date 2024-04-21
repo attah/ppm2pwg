@@ -12,6 +12,12 @@ int main(int argc, char** argv)
   }
 
   InBinFile inFile(argv[1]);
+  if(!inFile)
+  {
+    std::cerr << "Failed to open input" << std::endl;
+    return 1;
+  }
+
   Bytestream inBts(inFile);
   try
   {

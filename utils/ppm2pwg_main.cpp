@@ -157,6 +157,12 @@ int main(int argc, char** argv)
   Bytestream bmpBts;
 
   InBinFile inFile(inFileName);
+  if(!inFile)
+  {
+    std::cerr << "Failed to open input" << std::endl;
+    return 1;
+  }
+
   OutBinFile outFile(outFileName);
 
   outFile << fileHdr;

@@ -181,7 +181,7 @@ int main(int argc, char** argv)
   int rightMargin;
 
   bool antiAlias;
-  bool save;
+  bool save = false;
 
   int id;
 

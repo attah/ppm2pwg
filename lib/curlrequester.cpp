@@ -105,7 +105,10 @@ size_t CurlIppPosterBase::requestWrite(char* dest, size_t size)
   else // No compression = memcpy
   {
     bytesWritten = std::min(size, remaining);
-    _data.getBytes(dest, bytesWritten);
+    if(bytesWritten != 0) // Please the ubsan
+    {
+      _data.getBytes(dest, bytesWritten);
+    }
   }
 
   if(!_done)

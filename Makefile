@@ -46,7 +46,7 @@ ippdecode: bytestream.o ippmsg.o ippattr.o json11.o ippdecode.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 ippclient: ippmsg.o ippattr.o ippprinter.o ippprintjob.o printparameters.o ippclient.o json11.o curlrequester.o minimime.o pdf2printable.o ppm2pwg.o baselinify.o bytestream.o
-	$(CXX) $^ $(shell pkg-config --libs poppler-glib) -ljpeg -lcurl -lz $(LDFLAGS) -o $@
+	$(CXX) $^ $(shell pkg-config --libs poppler-glib) -ljpeg -lcurl -lz -lpthread $(LDFLAGS) -o $@
 
 minimime: minimime_main.o minimime.o bytestream.o
 	$(CXX) $^ $(LDFLAGS) -o $@

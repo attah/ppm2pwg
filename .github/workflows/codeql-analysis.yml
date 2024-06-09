@@ -58,7 +58,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libpoppler-dev libpoppler-glib-dev libcurl4-openssl-dev
     - name: make
-      run: make -j
+      run: make -j$(nproc)
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3

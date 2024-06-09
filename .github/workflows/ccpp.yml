@@ -16,12 +16,14 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libpoppler-dev libpoppler-glib-dev libcairo2-dev libglib2.0-dev libjpeg-dev libcurl4-openssl-dev zlib1g-dev
     - name: make
-      run: make -j
+      run: make -j$(nproc)
     - name: make tests
-      run: make -j
+      run: make -j$(nproc)
       working-directory: ./tests
     - name: test
       run: ./test
       working-directory: ./tests
     - name: analyze
       run: make analyze
+    - name: tidy
+      run: make tidy

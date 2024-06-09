@@ -60,6 +60,7 @@ public:
 
   Error finalize(std::string inputFormat, int pages=0);
 
+  bool canSaveSettings();
   void restoreSettings();
   bool saveSettings();
 

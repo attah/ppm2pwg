@@ -2033,3 +2033,106 @@ TEST(json)
   Json json = printerAttrs.toJSON();
   ASSERT(printerAttrs == IppAttrs::fromJSON(json.object_items()));
 }
+
+TEST(attribute_getters)
+{
+  IppAttrs printerAttrs;
+  IppPrinter ip(printerAttrs);
+
+  ASSERT(ip.name() == "");
+  ASSERT(ip.uuid() == "");
+  ASSERT(ip.makeAndModel() == "");
+  ASSERT(ip.location() == "");
+  ASSERT(ip.state() == 0);
+  ASSERT(ip.stateMessage() == "");
+  ASSERT(ip.stateReasons().empty());
+  ASSERT(ip.ippVersionsSupported().empty());
+  ASSERT(ip.ippFeaturesSupported().empty());
+  ASSERT(ip.pagesPerMinute() == 0);
+  ASSERT(ip.pagesPerMinuteColor() == 0);
+  ASSERT(ip.identifySupported() == false);
+  ASSERT(ip.supplies().empty());
+  ASSERT(ip.firmware().empty());
+  ASSERT(ip.settableAttributes().empty());
+  ASSERT(ip.documentFormats().empty());
+  ASSERT(ip.supportsPrinterRaster() == false);
+
+  IppPrintJob job = ip.createJob();
+  ASSERT(job.canSaveSettings() == false);
+
+  printerAttrs =
+    {{"printer-name", IppAttr(IppTag::NameWithLanguage, "Printer Name")},
+     {"printer-uuid", IppAttr(IppTag::Uri, "urn:uuid:deadbeef")},
+     {"printer-make-and-model", IppAttr(IppTag::TextWithoutLanguage, "Printer Make and Model")},
+     {"printer-location", IppAttr(IppTag::TextWithoutLanguage, "Printer Location")},
+     {"printer-state", IppAttr(IppTag::Enum, 3)},
+     {"printer-state-message", IppAttr(IppTag::TextWithoutLanguage, "State.")},
+     {"printer-state-reasons", IppAttr(IppTag::Keyword, "none")},
+     {"ipp-versions-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"1.1", "2.0"})},
+     {"ipp-features-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"ipp-everywhere"})},
+     {"pages-per-minute", IppAttr(IppTag::Integer, 42)},
+     {"pages-per-minute-color", IppAttr(IppTag::Integer, 17)},
+     {"identify-actions-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"display", "sound"})},
+
+     {"marker-names", IppAttr(IppTag::NameWithoutLanguage, IppOneSetOf {"Supply 1", "Supply 2"})},
+     {"marker-types", IppAttr(IppTag::Keyword, IppOneSetOf {"toner", "opc"})},
+     {"marker-colors", IppAttr(IppTag::NameWithoutLanguage, IppOneSetOf {"#FFFFFF", "none"})},
+     {"marker-levels", IppAttr(IppTag::Integer, IppOneSetOf {17, 42})},
+     {"marker-low-levels", IppAttr(IppTag::Integer, IppOneSetOf {20, 20})},
+     {"marker-high-levels", IppAttr(IppTag::Integer, IppOneSetOf {100, 100})},
+
+     {"printer-firmware-name", IppAttr(IppTag::NameWithoutLanguage, IppOneSetOf {"Firmware 1", "Firmware 2"})},
+     {"printer-firmware-string-version", IppAttr(IppTag::TextWithoutLanguage, IppOneSetOf {"1.0", "2.0"})},
+     {"printer-settable-attributes-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"printer-name", "printer-location"})},
+     {"document-format-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"application/octet-stream",
+                                                                         "image/urf",
+                                                                         "image/pwg-raster",
+                                                                         "application/pdf"})},
+    };
+
+  ip = IppPrinter(printerAttrs);
+
+  ASSERT(ip.name() == "Printer Name");
+  ASSERT(ip.uuid() == "urn:uuid:deadbeef");
+  ASSERT(ip.makeAndModel() == "Printer Make and Model");
+  ASSERT(ip.location() == "Printer Location");
+  ASSERT(ip.state() == 3);
+  ASSERT(ip.stateMessage() == "State.");
+  ASSERT(ip.stateReasons() == List<std::string> {"none"});
+  ASSERT(ip.ippVersionsSupported() == (List<std::string> {"1.1", "2.0"}));
+  ASSERT(ip.ippFeaturesSupported() == List<std::string> {"ipp-everywhere"});
+  ASSERT(ip.pagesPerMinute() == 42);
+  ASSERT(ip.pagesPerMinuteColor() == 17);
+  ASSERT(ip.identifySupported());
+  ASSERT(ip.supplies().size() == 2);
+  ASSERT(ip.firmware() == (List<IppPrinter::Firmware> {{"Firmware 1", "1.0"}, {"Firmware 2", "2.0"}}));
+  ASSERT(ip.settableAttributes() == (List<std::string> {"printer-name", "printer-location"}));
+  ASSERT(ip.documentFormats() == (List<std::string> {"application/octet-stream",
+                                                     "image/urf",
+                                                     "image/pwg-raster",
+                                                     "application/pdf"}));
+  ASSERT(ip.supportsPrinterRaster());
+
+  List<IppPrinter::Supply> Supplies = ip.supplies();
+  IppPrinter::Supply Supply1 = Supplies.takeFront();
+  IppPrinter::Supply Supply2 = Supplies.takeFront();
+
+  ASSERT(Supply1.name == "Supply 1");
+  ASSERT(Supply1.type == "toner");
+  ASSERT(Supply1.level == 17);
+  ASSERT(Supply1.lowLevel == 20);
+  ASSERT(Supply1.highLevel == 100);
+  ASSERT(Supply1.getPercent() == 17);
+  ASSERT(Supply1.isLow());
+
+  ASSERT(Supply2.name == "Supply 2");
+  ASSERT(Supply2.type == "opc");
+  ASSERT(Supply2.level == 42);
+  ASSERT(Supply2.lowLevel == 20);
+  ASSERT(Supply2.highLevel == 100);
+  ASSERT(Supply2.getPercent() == 42);
+  ASSERT(Supply2.isLow() == false);
+
+  job = ip.createJob();
+  ASSERT(job.canSaveSettings());
+}

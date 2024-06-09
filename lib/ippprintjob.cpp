@@ -321,9 +321,14 @@ std::filesystem::path settings_dir()
   return std::filesystem::path(CONFIG_DIR) / "saved_settings";
 }
 
+bool IppPrintJob::canSaveSettings()
+{
+  return _printerAttrs.has("printer-uuid");
+}
+
 void IppPrintJob::restoreSettings()
 {
-  if(_printerAttrs.has("printer-uuid"))
+  if(canSaveSettings())
   {
     std::string uuid = _printerAttrs.get<std::string>("printer-uuid");
     std::ifstream ifs = std::ifstream(settings_dir() / uuid, std::ios::in | std::ios::binary);
@@ -350,7 +355,7 @@ void IppPrintJob::restoreSettings()
 
 bool IppPrintJob::saveSettings()
 {
-  if(_printerAttrs.has("printer-uuid"))
+  if(canSaveSettings())
   {
     std::string uuid = _printerAttrs.get<std::string>("printer-uuid");
     std::filesystem::create_directories(settings_dir());

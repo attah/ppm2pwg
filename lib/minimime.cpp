@@ -20,7 +20,7 @@ const std::string MiniMime::TIFF = "image/tiff";
 std::string MiniMime::getMimeType(std::string fileName)
 {
   std::ifstream ifs(fileName, std::ios::in | std::ios::binary);
-  Bytestream bts(ifs, 4);
+  Bytestream bts(ifs, 7);
 
   if(bts.size() == 0)
   {
@@ -38,7 +38,7 @@ std::string MiniMime::getMimeType(std::string fileName)
   {
     return PWG;
   }
-  else if(bts >>= "UNIR")
+  else if(bts >>= "UNIRAST")
   {
     return URF;
   }
@@ -91,7 +91,7 @@ std::string MiniMime::defaultExtension(std::string mimeType)
                                                         {PWG, ".pwg"},
                                                         {URF, ".urf"},
                                                         {PNG, ".png"},
-                                                        {GIF, "gif"},
+                                                        {GIF, ".gif"},
                                                         {JPEG, ".jpg"},
                                                         {TIFF, ".tiff"}};
   return extensions.at(mimeType);

@@ -3,6 +3,9 @@ $(shell pkg-config --cflags poppler-glib) $(EXTRA_CXXFLAGS)
 
 LDFLAGS = $(EXTRA_LDFLAGS)
 
+CLANGXX ?= clang++
+CLANG_TIDY ?= clang-tidy
+
 VPATH = bytestream lib utils json11
 
 all: ppm2pwg pwg2ppm pdf2printable baselinify ippclient hexdump ippdecode bsplit
@@ -55,13 +58,13 @@ minimime: minimime_main.o minimime.o bytestream.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 clean:
-	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad hexdump baselinify baselinify_mad ippclient minimime
+	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad hexdump baselinify baselinify_mad bsplit ippclient minimime fuzz
 
 analyze:
-	clang++ --analyze $(CXXFLAGS) lib/*.cpp utils/*.cpp
+	$(CLANGXX) --analyze $(CXXFLAGS) lib/*.cpp utils/*.cpp
 
 tidy:
-	clang-tidy lib/*.cpp utils/*.cpp -- $(CXXFLAGS)
+	$(CLANG_TIDY) lib/*.cpp utils/*.cpp -- $(CXXFLAGS)
 
 fuzz:
-	clang++ -g -fsanitize=fuzzer $(CXXFLAGS) -O0 -DFUZZ lib/ippmsg.cpp lib/ippattr.cpp bytestream/bytestream.cpp json11/json11.cpp -o $@
+	$(CLANGXX) -g -fsanitize=fuzzer $(CXXFLAGS) -O0 -DFUZZ lib/ippmsg.cpp lib/ippattr.cpp bytestream/bytestream.cpp json11/json11.cpp -o $@

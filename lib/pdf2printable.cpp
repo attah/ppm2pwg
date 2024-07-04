@@ -87,10 +87,11 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
     doc = poppler_document_new_from_file(url.c_str(), nullptr, &error);
   }
 
+  Pointer<GError> error_p(error, g_error_free);
+
   if(doc == nullptr)
   {
     std::string errStr(error->message);
-    g_error_free(error);
     return Error("Failed to open PDF: " + errStr + " (" + inFile + ")");
   }
 

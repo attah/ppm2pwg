@@ -301,7 +301,7 @@ int main(int argc, char** argv)
     print_if_set("Settable attributes:", join_string(printer.settableAttributes(), "\n"));
     print_if_set("Document formats (native):", join_string(printer.documentFormats(), "\n"));
     print_if_set("Document formats (guessed):", join_string(printer.additionalDocumentFormats(), "\n"));
-    print_if_set("Document formats (with conversion)", join_string(printer.possibleInputFormats(), "\n"));
+    print_if_set("Document formats (with conversion):", join_string(printer.possibleInputFormats(), "\n"));
   }
   else if(args.subCommand() == "identify")
   {

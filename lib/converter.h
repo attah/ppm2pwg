@@ -140,6 +140,13 @@ public:
         inputFormats.push_back(formats.first);
       }
     }
+    for(const std::string& format : supportedFormats)
+    {
+      if(!inputFormats.contains(format))
+      {
+        inputFormats.push_back(format);
+      }
+    }
     return inputFormats;
   }
 };

@@ -6,6 +6,6 @@
 #include "printparameters.h"
 
 Error pdf_to_printable(std::string infile, WriteFun writeFun, const PrintParameters& params,
-                       ProgressFun progressFun = nullptr);
+                       ProgressFun progressFun = noOpProgressfun);
 
 #endif //PDF2PRINTABLE_H

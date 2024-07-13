@@ -57,7 +57,7 @@ public:
     return IppPrintJob(_printerAttrs, additionalDocumentFormats());
   }
 
-  Error runJob(IppPrintJob job, std::string inFile, std::string inFormat, int pages);
+  Error runJob(IppPrintJob job, std::string inFile, std::string inFormat, int pages, ProgressFun progressFun = noOpProgressfun);
 
   std::string name();
   std::string uuid();
@@ -98,8 +98,8 @@ private:
   Error _error;
   IppAttrs _printerAttrs;
 
-  Error doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream&& hdr);
-  Error doPrintToFile(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun);
+  Error doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream&& hdr, ProgressFun progressFun);
+  Error doPrintToFile(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, ProgressFun progressFun);
 
 };
 

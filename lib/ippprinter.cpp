@@ -54,7 +54,7 @@ Error IppPrinter::refresh()
   return error;
 }
 
-Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inFormat, int pages)
+Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inFormat, int pages, ProgressFun progressFun)
 {
   Error error;
   try
@@ -76,7 +76,7 @@ Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inForm
     }
     else if(string_starts_with(_addr, "file://"))
     {
-      doPrintToFile(job, inFile, convertFun.value());
+      doPrintToFile(job, inFile, convertFun.value(), progressFun);
     }
     else
     {
@@ -107,7 +107,7 @@ Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inForm
             sendDocumentOpAttrs.set("job-id", IppAttr {IppTag::Integer, jobId});
             sendDocumentOpAttrs.set("last-document", IppAttr {IppTag::Boolean, true});
             IppMsg sendDocumentMsg = _mkMsg(IppMsg::SendDocument, sendDocumentOpAttrs);
-            error = doPrint(job, inFile, convertFun.value(), sendDocumentMsg.encode());
+            error = doPrint(job, inFile, convertFun.value(), sendDocumentMsg.encode(), progressFun);
           }
           else
           {
@@ -120,7 +120,7 @@ Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inForm
         IppAttrs printJobOpAttrs = job.opAttrs;
         printJobOpAttrs.set("job-name", IppAttr {IppTag::NameWithoutLanguage, fileName});
         IppMsg printJobMsg = _mkMsg(IppMsg::PrintJob, printJobOpAttrs, job.jobAttrs);
-        error = doPrint(job, inFile, convertFun.value(), printJobMsg.encode());
+        error = doPrint(job, inFile, convertFun.value(), printJobMsg.encode(), progressFun);
       }
     }
   }
@@ -131,7 +131,7 @@ Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inForm
   return error;
 }
 
-Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream&& hdr)
+Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream&& hdr, ProgressFun progressFun)
 {
   Error error;
   CurlIppStreamer cr(_addr, true);
@@ -152,11 +152,6 @@ Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::Conve
                return true;
              return cr.write(std::move(data));
            });
-
-  ProgressFun progressFun([](size_t page, size_t total) -> void
-              {
-                DBG(<< page << "/" << total);
-              });
 
   error = convertFun(inFile, writeFun, job, progressFun);
   if(error)
@@ -182,7 +177,7 @@ Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::Conve
   return error;
 }
 
-Error IppPrinter::doPrintToFile(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun)
+Error IppPrinter::doPrintToFile(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, ProgressFun progressFun)
 {
   std::string fileName = std::filesystem::path(inFile).filename();
   std::string ext = MiniMime::defaultExtension(job.targetFormat);
@@ -195,10 +190,6 @@ Error IppPrinter::doPrintToFile(IppPrintJob& job, std::string inFile, Converter:
              return (bool)ofs;
            });
 
-  ProgressFun progressFun([](size_t page, size_t total) -> void
-              {
-                DBG(<< page << "/" << total);
-              });
   Error error = convertFun(inFile, writeFun, job, progressFun);
   if(error)
   {

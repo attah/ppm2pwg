@@ -502,7 +502,13 @@ int main(int argc, char** argv)
         return 1;
       }
     }
-    error = printer.runJob(job, inFile, mimeType, nPages);
+
+    ProgressFun progressFun([](size_t page, size_t total) -> void
+                {
+                  DBG(<< page << "/" << total);
+                });
+
+    error = printer.runJob(job, inFile, mimeType, nPages, progressFun);
 
     if(error)
     {

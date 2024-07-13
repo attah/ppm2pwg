@@ -197,11 +197,7 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
     CHECK(writeFun(std::move(outBts)));
     outBts.reset();
 
-    if(progressFun != nullptr)
-    {
-      progressFun(outPageNo, seq.size());
-    }
-
+    progressFun(outPageNo, seq.size());
   }
 
   cairo_surface_finish(surface);

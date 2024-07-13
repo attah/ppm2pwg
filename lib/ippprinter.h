@@ -78,6 +78,8 @@ public:
   List<std::string> possibleInputFormats();
   bool supportsPrinterRaster();
 
+  bool isWarningState();
+
   bool identifySupported();
   Error identify();
   Error setAttributes(List<std::pair<std::string, std::string>> attrStrs);

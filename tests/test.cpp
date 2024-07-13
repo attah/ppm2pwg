@@ -2099,6 +2099,7 @@ TEST(attribute_getters)
   ASSERT(ip.state() == 3);
   ASSERT(ip.stateMessage() == "State.");
   ASSERT(ip.stateReasons() == List<std::string> {"none"});
+  ASSERT_FALSE(ip.isWarningState());
   ASSERT(ip.ippVersionsSupported() == (List<std::string> {"1.1", "2.0"}));
   ASSERT(ip.ippFeaturesSupported() == List<std::string> {"ipp-everywhere"});
   ASSERT(ip.pagesPerMinute() == 42);

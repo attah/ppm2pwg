@@ -390,6 +390,22 @@ bool IppPrinter::Firmware::operator==(const IppPrinter::Firmware& other) const
          other.version == version;
 }
 
+bool IppPrinter::isWarningState()
+{
+  if(state() > 4)
+  {
+    return true;
+  }
+  for(const std::string& reason : stateReasons())
+  {
+    if(reason != "none" && !(string_ends_with(reason, "-report")))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 Error IppPrinter::identify()
 {
   if(!identifySupported())

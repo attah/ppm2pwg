@@ -1,4 +1,5 @@
 #include "printparameters.h"
+#include "stringutils.h"
 #include <regex>
 
 #define MM_PER_IN 25.4
@@ -186,25 +187,22 @@ PageSequence PrintParameters::getPageSequence(size_t pages) const
   return seq;
 }
 
-PageRangeList PrintParameters::parsePageRange(const std::string& rangeStr)
+PageRangeList PrintParameters::parsePageRange(const std::string& rangesStr)
 {
   PageRangeList rangeList;
   const std::regex single("^([0-9]+)$");
   const std::regex range("^([0-9]+)-([0-9]+)$");
   std::smatch match;
 
-  size_t pos = 0;
-  while(pos <= rangeStr.length())
+  List<std::string> rangeStrList = split_string(rangesStr, ",");
+  for(const std::string& rangeStr : rangeStrList)
   {
-    size_t found = std::min(rangeStr.length(), rangeStr.find(",", pos));
-    std::string substr(rangeStr, pos, (found-pos));
-
-    if(std::regex_match(substr, match, single))
+    if(std::regex_match(rangeStr, match, single))
     {
       size_t single_value = stol(match[1]);
       rangeList.push_back({single_value, single_value});
     }
-    else if(std::regex_match(substr, match, range))
+    else if(std::regex_match(rangeStr, match, range))
     {
       size_t from = stol(match[1]);
       size_t to = stol(match[2]);
@@ -218,7 +216,6 @@ PageRangeList PrintParameters::parsePageRange(const std::string& rangeStr)
     {
       return {};
     }
-    pos = found+1;
   }
   return rangeList;
 }

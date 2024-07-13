@@ -227,15 +227,10 @@ void IppPrintJob::adjustRasterSettings(int pages)
     {
       if(string_starts_with(us, "RS"))
       { //RS300[-600]
-        std::string rs = us.substr(2);
-        size_t pos = 0;
-        while(pos <= rs.length())
+        List<std::string> rs = split_string(us.substr(2), "-");
+        for(const std::string& r : rs)
         {
-          size_t found = std::min(rs.length(), rs.find("-", pos));
-          std::string substr(rs, pos, (found-pos));
-          pos = found+1;
-
-          int intRes = std::stoi(substr);
+          int intRes = std::stoi(r);
           uint32_t tmpDiff = std::abs(int(printParams.hwResW - intRes));
           if(tmpDiff < diff)
           {

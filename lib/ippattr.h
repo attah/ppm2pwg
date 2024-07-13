@@ -146,13 +146,16 @@ struct IppAttrs: public std::map<std::string, IppAttr>
   }
 
   template <typename T>
-  T get(std::string name, T res=T()) const
+  T get(std::string name, T defaultValue=T()) const
   {
-    if(find(name) != end())
+    try
     {
-      res = at(name).get<T>();
+      return at(name).get<T>();
     }
-    return res;
+    catch (const std::out_of_range&)
+    {
+      return defaultValue;
+    }
   }
 
   void set(std::string key, IppAttr value)

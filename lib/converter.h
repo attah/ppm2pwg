@@ -127,6 +127,10 @@ public:
         break;
       }
     }
+    if(!targetFormat && supportedFormats.contains(inputFormat))
+    {
+      targetFormat = inputFormat;
+    }
     return targetFormat;
   }
 

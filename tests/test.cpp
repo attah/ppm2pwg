@@ -2137,3 +2137,77 @@ TEST(attribute_getters)
   job = ip.createJob();
   ASSERT(job.canSaveSettings());
 }
+
+TEST(converter)
+{
+  List<std::string> supportedFormats;
+  ASSERT(Converter::instance().possibleInputFormats(supportedFormats) == List<std::string> {});
+
+  // PDF to PDF
+  supportedFormats = {"application/pdf"};
+  ASSERT(Converter::instance().possibleInputFormats(supportedFormats)
+         == List<std::string> {"application/pdf"});
+  ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
+         == "application/pdf");
+
+  // PDF maps to PWG-raster
+  supportedFormats = {"image/pwg-raster"};
+  ASSERT(Converter::instance().possibleInputFormats(supportedFormats)
+         == (List<std::string> {"application/pdf", "image/pwg-raster"}));
+  ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
+         == "image/pwg-raster");
+
+  // ...and URF
+  supportedFormats = {"image/urf"};
+  ASSERT(Converter::instance().possibleInputFormats(supportedFormats)
+         == (List<std::string> {"application/pdf", "image/urf"}));
+  ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
+         == "image/urf");
+
+  // PDF has higher prio than raster
+  supportedFormats = {"image/pwg-raster", "application/pdf"};
+  ASSERT(Converter::instance().possibleInputFormats(supportedFormats)
+         == (List<std::string> {"application/pdf", "image/pwg-raster"}));
+  ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
+         == "application/pdf");
+
+  // Octet Stream, because why not
+  supportedFormats = {"application/octet-stream", "image/pwg-raster", "application/pdf"};
+  ASSERT(Converter::instance().possibleInputFormats(supportedFormats)
+         == (List<std::string> {"application/pdf", "application/octet-stream", "image/pwg-raster"}));
+  ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
+         == "application/pdf");
+
+  // PDF has higher prio than Postscript too
+  supportedFormats = {"application/postscript", "application/pdf"};
+  ASSERT(Converter::instance().possibleInputFormats(supportedFormats)
+         == (List<std::string> {"application/pdf", "application/postscript"}));
+  ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
+         == "application/pdf");
+
+  //
+  supportedFormats = {"image/pwg-raster", "application/postscript"};
+  ASSERT(Converter::instance().possibleInputFormats(supportedFormats)
+         == (List<std::string> {"application/pdf", "image/pwg-raster", "application/postscript"}));
+  ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
+         == "application/postscript");
+
+  // JPEG needs JPEG support
+  ASSERT_FALSE(Converter::instance().getTargetFormat("image/jpeg", supportedFormats));
+  supportedFormats = {"application/octet-stream", "image/pwg-raster", "application/pdf", "image/jpeg"};
+  ASSERT(Converter::instance().getTargetFormat("image/jpeg", supportedFormats) == "image/jpeg");
+
+  // Functions exist. TODO: Check that they are the correct ones.
+  ASSERT(Converter::instance().getConvertFun("application/pdf", "application/pdf"));
+  ASSERT(Converter::instance().getConvertFun("application/pdf", "image/pwg-raster"));
+  ASSERT(Converter::instance().getConvertFun("application/pdf", "image/urf"));
+  ASSERT(Converter::instance().getConvertFun("image/jpeg", "image/jpeg"));
+  ASSERT(Converter::instance().getConvertFun("text/plain", "text/plain"));
+  ASSERT(Converter::instance().getConvertFun("foo", "foo"));
+
+  // Custom function
+  ASSERT_FALSE(Converter::instance().getConvertFun("foo", "bar"));
+  Converter::ConvertFun FooBar = [](std::string, WriteFun, const IppPrintJob&, ProgressFun){return Error();};
+  Converter::instance().Pipelines[{"foo", "bar"}] = FooBar;
+  ASSERT(Converter::instance().getConvertFun("foo", "bar"));
+}

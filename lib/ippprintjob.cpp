@@ -175,10 +175,6 @@ std::string IppPrintJob::determineTargetFormat(std::string inputFormat)
     {
       targetFormat = betterFormat.value();
     }
-    else if(supportedFormats.contains(inputFormat))
-    { // Last-resort: if we have a supported format in, assume we can send it as-is
-      targetFormat = inputFormat;
-    }
   }
   return targetFormat;
 }

@@ -2185,7 +2185,7 @@ TEST(converter)
   ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
          == "application/pdf");
 
-  //
+  // Postscript has higher prio than raster
   supportedFormats = {"image/pwg-raster", "application/postscript"};
   ASSERT(Converter::instance().possibleInputFormats(supportedFormats)
          == (List<std::string> {"application/pdf", "image/pwg-raster", "application/postscript"}));
@@ -2208,6 +2208,27 @@ TEST(converter)
   // Custom function
   ASSERT_FALSE(Converter::instance().getConvertFun("foo", "bar"));
   Converter::ConvertFun FooBar = [](std::string, WriteFun, const IppPrintJob&, ProgressFun){return Error();};
-  Converter::instance().Pipelines[{"foo", "bar"}] = FooBar;
+  Converter::instance().Pipelines.push_back({{"foo", "bar"}, FooBar});
   ASSERT(Converter::instance().getConvertFun("foo", "bar"));
+
+
+  // PDF has higher prio than custom format
+  Converter::instance().Pipelines.push_back({{"application/pdf", "application/aaa"}, FooBar});
+  supportedFormats = {"image/pwg-raster", "application/pdf", "application/aaa"};
+  ASSERT(Converter::instance().possibleInputFormats(supportedFormats)
+         == (List<std::string> {"application/pdf", "image/pwg-raster", "application/aaa"}));
+  ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
+         == "application/pdf");
+
+  // ...but will do in a pinch
+  supportedFormats = {"application/aaa"};
+  ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
+         == "application/aaa");
+
+  // Higher prio custom convert function
+  Converter::instance().Pipelines.push_front({{"application/pdf", "application/bbb"}, FooBar});
+  supportedFormats = {"application/aaa", "application/bbb", "application/pdf"};
+  ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
+         == "application/bbb");
+
 }

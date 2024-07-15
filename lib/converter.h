@@ -87,61 +87,58 @@ public:
                            return Error();
                          };
 
-  std::map<ConvertKey, ConvertFun> Pipelines {{{MiniMime::PDF, MiniMime::PDF}, Pdf2Printable},
-                                              {{MiniMime::PDF, MiniMime::Postscript}, Pdf2Printable},
-                                              {{MiniMime::PDF, MiniMime::PWG}, Pdf2Printable},
-                                              {{MiniMime::PDF, MiniMime::URF}, Pdf2Printable},
-                                              {{MiniMime::JPEG, MiniMime::JPEG}, Baselinify},
-                                              {{"text/plain", "text/plain"}, FixupText}};
-
-  bool canConvert(std::string inputFormat, std::string targetFormat)
-  {
-    return Pipelines.find({inputFormat, targetFormat}) != Pipelines.cend();
-  }
+  List<std::pair<ConvertKey, ConvertFun>> Pipelines {{{MiniMime::PDF, MiniMime::PDF}, Pdf2Printable},
+                                                     {{MiniMime::PDF, MiniMime::Postscript}, Pdf2Printable},
+                                                     {{MiniMime::PDF, MiniMime::PWG}, Pdf2Printable},
+                                                     {{MiniMime::PDF, MiniMime::URF}, Pdf2Printable},
+                                                     {{MiniMime::JPEG, MiniMime::JPEG}, Baselinify},
+                                                     {{"text/plain", "text/plain"}, FixupText}};
 
   std::optional<ConvertFun> getConvertFun(std::string inputFormat, std::string targetFormat)
   {
-    std::optional<ConvertFun> convertFun;
-    std::map<ConvertKey, ConvertFun>::iterator pit =
-      Pipelines.find(Converter::ConvertKey {inputFormat, targetFormat});
+    for(const auto& [convertKey, convertFun] : Pipelines)
+    {
+      if(convertKey == ConvertKey {inputFormat, targetFormat})
+      {
+        return convertFun;
+      }
+    }
+    if(inputFormat == targetFormat)
+    {
+      return JustUpload;
+    }
+    return {};
+  }
 
-    if(pit != Converter::instance().Pipelines.cend())
-    {
-      convertFun = pit->second;
-    }
-    else if(inputFormat == targetFormat)
-    {
-      convertFun = JustUpload;
-    }
-    return convertFun;
+  bool canConvert(std::string inputFormat, std::string targetFormat)
+  {
+    return (bool)getConvertFun(inputFormat, targetFormat);
   }
 
   std::optional<std::string> getTargetFormat(std::string inputFormat, List<std::string> supportedFormats)
   {
-    std::optional<std::string> targetFormat;
-    for(const auto& [formats, convertFun] : Pipelines)
+    for(const auto& [convertKey, convertFun] : Pipelines)
     {
-      if(formats.first == inputFormat && supportedFormats.contains(formats.second))
+      if(convertKey.first == inputFormat && supportedFormats.contains(convertKey.second))
       {
-        targetFormat = formats.second;
-        break;
+        return convertKey.second;
       }
     }
-    if(!targetFormat && supportedFormats.contains(inputFormat))
+    if(supportedFormats.contains(inputFormat))
     {
-      targetFormat = inputFormat;
+      return inputFormat;
     }
-    return targetFormat;
+    return {};
   }
 
   List<std::string> possibleInputFormats(List<std::string> supportedFormats)
   {
     List<std::string> inputFormats;
-    for(const auto& [formats, convertFun] : Pipelines)
+    for(const auto& [convertKey, convertFun] : Pipelines)
     {
-      if(supportedFormats.contains(formats.second) && !inputFormats.contains(formats.first))
+      if(supportedFormats.contains(convertKey.second) && !inputFormats.contains(convertKey.first))
       {
-        inputFormats.push_back(formats.first);
+        inputFormats.push_back(convertKey.first);
       }
     }
     for(const std::string& format : supportedFormats)

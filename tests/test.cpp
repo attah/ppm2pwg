@@ -2074,12 +2074,12 @@ TEST(attribute_getters)
      {"pages-per-minute-color", IppAttr(IppTag::Integer, 17)},
      {"identify-actions-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"display", "sound"})},
 
-     {"marker-names", IppAttr(IppTag::NameWithoutLanguage, IppOneSetOf {"Supply 1", "Supply 2"})},
-     {"marker-types", IppAttr(IppTag::Keyword, IppOneSetOf {"toner", "opc"})},
-     {"marker-colors", IppAttr(IppTag::NameWithoutLanguage, IppOneSetOf {"#FFFFFF", "none"})},
-     {"marker-levels", IppAttr(IppTag::Integer, IppOneSetOf {17, 42})},
-     {"marker-low-levels", IppAttr(IppTag::Integer, IppOneSetOf {20, 20})},
-     {"marker-high-levels", IppAttr(IppTag::Integer, IppOneSetOf {100, 100})},
+     {"marker-names", IppAttr(IppTag::NameWithoutLanguage, IppOneSetOf {"Supply 1", "Supply 2", "Supply 3"})},
+     {"marker-types", IppAttr(IppTag::Keyword, IppOneSetOf {"toner", "opc", "ink-cartridge"})},
+     {"marker-colors", IppAttr(IppTag::NameWithoutLanguage, IppOneSetOf {"#FFFFFF", "none", "#00FFFF#FF00FF#FFFF00"})},
+     {"marker-levels", IppAttr(IppTag::Integer, IppOneSetOf {17, 42, 69})},
+     {"marker-low-levels", IppAttr(IppTag::Integer, IppOneSetOf {20, 20, 10})},
+     {"marker-high-levels", IppAttr(IppTag::Integer, IppOneSetOf {100, 100, 100})},
 
      {"printer-firmware-name", IppAttr(IppTag::NameWithoutLanguage, IppOneSetOf {"Firmware 1", "Firmware 2"})},
      {"printer-firmware-string-version", IppAttr(IppTag::TextWithoutLanguage, IppOneSetOf {"1.0", "2.0"})},
@@ -2105,7 +2105,7 @@ TEST(attribute_getters)
   ASSERT(ip.pagesPerMinute() == 42);
   ASSERT(ip.pagesPerMinuteColor() == 17);
   ASSERT(ip.identifySupported());
-  ASSERT(ip.supplies().size() == 2);
+  ASSERT(ip.supplies().size() == 3);
   ASSERT(ip.firmware() == (List<IppPrinter::Firmware> {{"Firmware 1", "1.0"}, {"Firmware 2", "2.0"}}));
   ASSERT(ip.settableAttributes() == (List<std::string> {"printer-name", "printer-location"}));
   ASSERT(ip.documentFormats() == (List<std::string> {"application/octet-stream",
@@ -2117,9 +2117,11 @@ TEST(attribute_getters)
   List<IppPrinter::Supply> Supplies = ip.supplies();
   IppPrinter::Supply Supply1 = Supplies.takeFront();
   IppPrinter::Supply Supply2 = Supplies.takeFront();
+  IppPrinter::Supply Supply3 = Supplies.takeFront();
 
   ASSERT(Supply1.name == "Supply 1");
   ASSERT(Supply1.type == "toner");
+  ASSERT(Supply1.colors == List<std::string> {"#FFFFFF"});
   ASSERT(Supply1.level == 17);
   ASSERT(Supply1.lowLevel == 20);
   ASSERT(Supply1.highLevel == 100);
@@ -2128,11 +2130,21 @@ TEST(attribute_getters)
 
   ASSERT(Supply2.name == "Supply 2");
   ASSERT(Supply2.type == "opc");
+  ASSERT(Supply2.colors == List<std::string> {"none"});
   ASSERT(Supply2.level == 42);
   ASSERT(Supply2.lowLevel == 20);
   ASSERT(Supply2.highLevel == 100);
   ASSERT(Supply2.getPercent() == 42);
   ASSERT(Supply2.isLow() == false);
+
+  ASSERT(Supply3.name == "Supply 3");
+  ASSERT(Supply3.type == "ink-cartridge");
+  ASSERT(Supply3.colors == (List<std::string> {"#00FFFF", "#FF00FF", "#FFFF00"}));
+  ASSERT(Supply3.level == 69);
+  ASSERT(Supply3.lowLevel == 10);
+  ASSERT(Supply3.highLevel == 100);
+  ASSERT(Supply3.getPercent() == 69);
+  ASSERT(Supply3.isLow() == false);
 
   job = ip.createJob();
   ASSERT(job.canSaveSettings());

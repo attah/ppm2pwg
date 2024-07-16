@@ -284,7 +284,10 @@ List<IppPrinter::Supply> IppPrinter::supplies()
     List<std::string> colorList;
     for(const std::string& colorString : split_string(*color, "#"))
     {
-      colorList.push_back("#" + colorString);
+      if(colorString != "")
+      {
+        colorList.push_back(colorString == "none" ? colorString : "#" + colorString);
+      }
     }
     supplies.push_back({*name, *type, colorList, *level, *lowLevel, *highLevel});
   }

@@ -314,6 +314,16 @@ List<std::string> IppPrinter::settableAttributes()
   return _printerAttrs.getList<std::string>("printer-settable-attributes-supported");
 }
 
+List<std::string> IppPrinter::icons()
+{
+  return _printerAttrs.getList<std::string>("printer-icons");
+}
+
+std::string IppPrinter::strings()
+{
+  return _printerAttrs.get<std::string>("printer-strings-uri");
+}
+
 List<std::string> IppPrinter::documentFormats()
 {
   return _printerAttrs.getList<std::string>("document-format-supported");

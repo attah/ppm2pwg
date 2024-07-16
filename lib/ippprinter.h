@@ -73,6 +73,8 @@ public:
   List<Supply> supplies();
   List<Firmware> firmware();
   List<std::string> settableAttributes();
+  List<std::string> icons();
+  std::string strings();
   List<std::string> documentFormats();
   List<std::string> additionalDocumentFormats();
   List<std::string> possibleInputFormats();

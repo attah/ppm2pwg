@@ -119,6 +119,13 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
     surface = cairo_pdf_surface_create_for_stream(bytestream_writer, &outBts,
                                                   params.getPaperSizeWInPoints(),
                                                   params.getPaperSizeHInPoints());
+    #if CAIRO_VERSION >= CAIRO_VERSION_ENCODE(1, 18, 0)
+    if(cairo_pdf_version_to_string(CAIRO_PDF_VERSION_1_7) != nullptr)
+    { // 1.7 aka ISO32000 is the recommended version according to PWG5100.14
+      cairo_pdf_surface_restrict_to_version(surface, CAIRO_PDF_VERSION_1_7);
+    }
+    #endif
+
     cairo_pdf_surface_set_metadata(surface, CAIRO_PDF_METADATA_CREATOR, PDF_CREATOR);
   }
   else if(params.format == PrintParameters::Postscript)

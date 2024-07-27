@@ -6,6 +6,9 @@ LDFLAGS = $(EXTRA_LDFLAGS)
 CLANGXX ?= clang++
 CLANG_TIDY ?= clang-tidy
 
+# json11 has an explicit using declaration, yet clang throws this warning
+SILLY_CLANG_FLAGS = -Wno-unqualified-std-cast-call
+
 VPATH = bytestream lib utils json11
 
 all: ppm2pwg pwg2ppm pdf2printable baselinify ippclient hexdump ippdecode bsplit
@@ -17,9 +20,8 @@ pdf2printable_mad.o: pdf2printable.cpp
 baselinify_mad.o: baselinify.cpp
 	$(CXX) -c -DMADNESS=1 $(CXXFLAGS) $^ -o $@
 
-# Silly clang
 json11.o: json11.cpp
-	$(CXX) -c $(CXXFLAGS) -Wno-unqualified-std-cast-call $<
+	$(CXX) -c $(CXXFLAGS) $(SILLY_CLANG_FLAGS) $<
 
 %.o: %.cpp
 	$(CXX) -c $(CXXFLAGS) $<
@@ -61,10 +63,10 @@ clean:
 	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad hexdump baselinify baselinify_mad bsplit ippclient minimime fuzz
 
 analyze:
-	$(CLANGXX) --analyze $(CXXFLAGS) lib/*.cpp utils/*.cpp
+	$(CLANGXX) --analyze $(CXXFLAGS) $(SILLY_CLANG_FLAGS) lib/*.cpp utils/*.cpp
 
 tidy:
 	$(CLANG_TIDY) lib/*.cpp utils/*.cpp -- $(CXXFLAGS)
 
 fuzz:
-	$(CLANGXX) -g -fsanitize=fuzzer $(CXXFLAGS) -O0 -DFUZZ lib/ippmsg.cpp lib/ippattr.cpp bytestream/bytestream.cpp json11/json11.cpp -o $@
+	$(CLANGXX) -g -fsanitize=fuzzer $(CXXFLAGS) $(SILLY_CLANG_FLAGS) -O0 -DFUZZ lib/ippmsg.cpp lib/ippattr.cpp bytestream/bytestream.cpp json11/json11.cpp -o $@

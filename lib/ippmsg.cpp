@@ -448,6 +448,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
   try
   {
     IppMsg msg(bts);
+    msg.getPrinterAttrs().toJSON();
   }
   catch(const std::exception& e)
   {

@@ -119,7 +119,7 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
     surface = cairo_pdf_surface_create_for_stream(bytestream_writer, &outBts,
                                                   params.getPaperSizeWInPoints(),
                                                   params.getPaperSizeHInPoints());
-    #if CAIRO_VERSION < CAIRO_VERSION_ENCODE(1, 18, 0)
+    #if CAIRO_VERSION < CAIRO_VERSION_ENCODE(1, 17, 6)
     // Cairo is robust against setting "too new" versions - pretend we know about 1.7 even if we don't
     #define CAIRO_PDF_VERSION_1_7 (cairo_pdf_version_t)(CAIRO_PDF_VERSION_1_5 + 2)
     #endif

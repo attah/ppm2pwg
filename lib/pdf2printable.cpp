@@ -38,7 +38,7 @@
 void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameters& params);
 
 void fixup_scale(double& xScale, double& yScale, double& xOffset, double& yOffset, bool& rotate,
-                 double wIn, double hIn, const PrintParameters& params);
+                 double& wIn, double& hIn, const PrintParameters& params);
 
 inline cairo_status_t bytestream_writer(void* bts, const unsigned char* data, unsigned int length)
 {
@@ -294,7 +294,7 @@ void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameter
 
 
 void fixup_scale(double& xScale, double& yScale, double& xOffset, double& yOffset, bool& rotate,
-                 double wIn, double hIn, const PrintParameters& params)
+                 double& wIn, double& hIn, const PrintParameters& params)
 {
   // If the page is landscape, contunue as if it is not, but remember to rotate
   if(wIn > hIn)

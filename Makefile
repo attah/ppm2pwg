@@ -11,8 +11,10 @@ SILLY_CLANG_FLAGS = -Wno-unqualified-std-cast-call
 
 VPATH = bytestream lib utils json11
 
-all: ppm2pwg pwg2ppm pdf2printable baselinify ippclient hexdump ippdecode bsplit
+OFFICIAL = ppm2pwg pwg2ppm pdf2printable baselinify ippclient
+EXTRAS = hexdump ippdecode bsplit
 
+all: $(OFFICIAL) $(EXTRAS)
 
 pdf2printable_mad.o: pdf2printable.cpp
 	$(CXX) -c -DMADNESS=1 $(CXXFLAGS) $^ -o $@
@@ -70,3 +72,6 @@ tidy:
 
 fuzz:
 	$(CLANGXX) -g -fsanitize=fuzzer $(CXXFLAGS) $(SILLY_CLANG_FLAGS) -O0 -DFUZZ lib/ippmsg.cpp lib/ippattr.cpp bytestream/bytestream.cpp json11/json11.cpp -o $@
+
+install: $(OFFICIAL)
+	cp $^ /usr/bin/

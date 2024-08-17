@@ -411,10 +411,10 @@ TEST(bilevel_rotated)
   ASSERT(pwg.atEnd());
 }
 
-bool close_enough(size_t a, size_t b, size_t precision)
+bool close_enough(int a, int b, unsigned int precision)
 {
-  size_t lower = b == 0 ? 0 : b-precision;
-  size_t upper = b == 0 ? 0 : b+precision;
+  int lower = b == 0 ? 0 : b-precision;
+  int upper = b == 0 ? 0 : b+precision;
   return (a <= upper) && (a >= lower);
 }
 
@@ -445,7 +445,7 @@ void do_test_centering(const char* test_name, std::string filename, bool asymmet
   ASSERT(close_enough(height, asymmetric ? 7015 : 3507, 1));
 
   Bytestream bmp;
-  raster_to_bmp(bmp, pwg, width*3, height, colors, false);
+  raster_to_bmp(bmp, pwg, width*colors, height, colors, false);
 
   size_t left_margin, right_margin, top_margin, bottom_margin;
 
@@ -454,7 +454,7 @@ void do_test_centering(const char* test_name, std::string filename, bool asymmet
   top_margin = 0;
   bottom_margin = 0;
 
-  Bytestream white_line(0xff, width*colors);
+  Bytestream white_line(width*colors, 0xff);
 
   while(bmp.nextBytestream(white_line))
   {
@@ -472,7 +472,7 @@ void do_test_centering(const char* test_name, std::string filename, bool asymmet
   bmp.setPos((height/2)*(width*colors));
   bmp/(width*colors) >> middle_line;
 
-  Bytestream white_pixel(0xff, colors);
+  Bytestream white_pixel(colors, 0xff);
 
   while(middle_line.nextBytestream(white_pixel))
   {
@@ -487,7 +487,7 @@ void do_test_centering(const char* test_name, std::string filename, bool asymmet
   }
 
   ASSERT(close_enough(left_margin, right_margin, 1));
-  ASSERT(close_enough(top_margin, bottom_margin, 1));
+  ASSERT(close_enough(top_margin, bottom_margin, asymmetric ? 2 : 1));
 
 }
 

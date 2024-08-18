@@ -937,8 +937,13 @@ TEST(parse_pagerange)
   ASSERT(params.pageRangeList.empty());
   ASSERT_FALSE(params.setPageRange("1-0"));
   ASSERT(params.pageRangeList.empty());
-  ASSERT_FALSE(params.setPageRange("1,2-"));
-  ASSERT(params.pageRangeList.empty());
+
+  ASSERT(params.setPageRange("2-"));
+  ASSERT(params.getPageSequence(3) == PageSequence({2,3}));
+  ASSERT(params.getPageSequence(4) == PageSequence({2,3,4}));
+  ASSERT(params.setPageRange("1,2-"));
+  ASSERT(params.getPageSequence(3) == PageSequence({1,2,3}));
+  ASSERT(params.getPageSequence(4) == PageSequence({1,2,3,4}));
 }
 
 TEST(parse_page_size)

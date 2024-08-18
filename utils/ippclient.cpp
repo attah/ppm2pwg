@@ -37,6 +37,12 @@ std::string print_colors(const List<std::string>& colors)
   return res.str();
 }
 
+template<typename T, typename U>
+T pos_clamp(U value)
+{
+  return std::min<U>(value, std::numeric_limits<T>::max());
+}
+
 std::ostream& operator<<(std::ostream& os, List<IppPrinter::Supply> supplies)
 {
   for(List<IppPrinter::Supply>::const_iterator supply = supplies.cbegin(); supply != supplies.cend(); supply++)
@@ -194,7 +200,7 @@ int main(int argc, char** argv)
   SwitchArg<bool> forceOpt(force, {"-f", "--force"}, "Force use of unsupported options");
   SwitchArg<bool> oneStageOpt(oneStage, {"--one-stage"}, "Force use of one-stage print job");
 
-  SwitchArg<std::string> pagesOpt(pages, {"-p", "--pages"}, "What pages to process, e.g.: 1,17-42");
+  SwitchArg<std::string> pagesOpt(pages, {"-p", "--pages"}, "What pages to process, e.g.: 1,17-42,69-");
   SwitchArg<int> copiesOpt(copies, {"--copies"}, "Number of copies to output");
   EnumSwitchArg<std::string> collatedCopiesOpt(collatedCopies, {{"yes", "separate-documents-collated-copies"},
                                                                 {"no", "separate-documents-uncollated-copies"}},
@@ -409,7 +415,8 @@ int main(int argc, char** argv)
       IppOneSetOf ippPageRanges;
       for(const auto& [first, last]: pageRanges)
       {
-        ippPageRanges.push_back(IppIntRange {(int32_t)first, (int32_t)last});
+        // TODO: Additional sanity checks.
+        ippPageRanges.push_back(IppIntRange {pos_clamp<int32_t>(first), pos_clamp<int32_t>(last)});
       }
       job.pageRanges.set(ippPageRanges);
     }

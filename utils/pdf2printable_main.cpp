@@ -44,7 +44,7 @@ int main(int argc, char** argv)
                                                    {"-f", "--format"},
                                                    "Format to output (pdf/postscript/pwg/urf)",
                                                    "Unrecognized target format");
-  SwitchArg<std::string> pagesOpt(pages, {"-p", "--pages"}, "What pages to process, e.g.: 1,17-42");
+  SwitchArg<std::string> pagesOpt(pages, {"-p", "--pages"}, "What pages to process, e.g.: 1,17-42,69-");
   SwitchArg<size_t> copiesOpt(params.copies, {"--copies"}, "Number of copies to output");
   // This is a pretty useless option...
   // EnumSwitchArg<bool> pageCopiesOpt(params.collatedCopies,

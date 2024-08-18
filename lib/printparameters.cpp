@@ -191,7 +191,7 @@ PageRangeList PrintParameters::parsePageRange(const std::string& rangesStr)
 {
   PageRangeList rangeList;
   const std::regex single("^([0-9]+)$");
-  const std::regex range("^([0-9]+)-([0-9]+)$");
+  const std::regex range("^([0-9]+)-([0-9]*)$");
   std::smatch match;
 
   List<std::string> rangeStrList = split_string(rangesStr, ",");
@@ -205,7 +205,7 @@ PageRangeList PrintParameters::parsePageRange(const std::string& rangesStr)
     else if(std::regex_match(rangeStr, match, range))
     {
       size_t from = stol(match[1]);
-      size_t to = stol(match[2]);
+      size_t to = match[2] != "" ? stol(match[2]) : std::numeric_limits<size_t>::max();
       if(to < from)
       {
         return {};

@@ -938,6 +938,13 @@ TEST(parse_pagerange)
   ASSERT_FALSE(params.setPageRange("1-0"));
   ASSERT(params.pageRangeList.empty());
 
+  ASSERT_FALSE(params.setPageRange("0-1"));
+  ASSERT(params.pageRangeList.empty());
+  ASSERT_FALSE(params.setPageRange("1-2,2-3"));
+  ASSERT(params.pageRangeList.empty());
+  ASSERT_FALSE(params.setPageRange("1-,2-"));
+  ASSERT(params.pageRangeList.empty());
+
   ASSERT(params.setPageRange("2-"));
   ASSERT(params.getPageSequence(3) == PageSequence({2,3}));
   ASSERT(params.getPageSequence(4) == PageSequence({2,3,4}));

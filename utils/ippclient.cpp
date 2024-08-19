@@ -415,7 +415,6 @@ int main(int argc, char** argv)
       IppOneSetOf ippPageRanges;
       for(const auto& [first, last]: pageRanges)
       {
-        // TODO: Additional sanity checks.
         ippPageRanges.push_back(IppIntRange {pos_clamp<int32_t>(first), pos_clamp<int32_t>(last)});
       }
       job.pageRanges.set(ippPageRanges);

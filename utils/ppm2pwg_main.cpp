@@ -8,6 +8,7 @@
 #include "ppm2pwg.h"
 #include "argget.h"
 #include "binfile.h"
+#include "stringutils.h"
 #include "mediaposition.h"
 #include "log.h"
 
@@ -33,10 +34,10 @@ inline void ignore_comments(std::istream& in)
 int main(int argc, char** argv)
 {
   PrintParameters params;
+  params.format = PrintParameters::PWG;
   params.paperSizeUnits = PrintParameters::Pixels;
   bool help = false;
   bool verbose = false;
-  bool urf = false;
   int pages = 0;
   int hwRes = 0;
   int hwResX = 0;
@@ -48,7 +49,8 @@ int main(int argc, char** argv)
 
   SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
   SwitchArg<bool> verboseOpt(verbose, {"-v", "--verbose"}, "Be verbose, print headers");
-  SwitchArg<bool> urfOpt(urf, {"-u", "--urf"}, "Output URF format (default is PWG)");
+  EnumSwitchArg<PrintParameters::Format> formatOpt(params.format, {{"pwg", PrintParameters::PWG},{"urf", PrintParameters::URF}},
+                                                   {"-f", "--format"}, "Format to output (pwg/urf)", "Unrecognized target format");
   SwitchArg<int> pagesOpt(pages, {"--num-pages"}, "Number of pages to expect (for URF header)");
   SwitchArg<std::string> paperSizeOpt(params.paperSizeName, {"--paper-size"}, "Paper size name in header, e.g.: iso_a4_210x297mm");
   SwitchArg<int> resolutionOpt(hwRes, {"-r", "--resolution"}, "Resolution (in DPI) to set in header");
@@ -76,7 +78,7 @@ int main(int argc, char** argv)
   PosArg inArg(inFileName, "in-file");
   PosArg outArg(outFileName, "out-file");
 
-  ArgGet args({&helpOpt, &verboseOpt, &urfOpt, &pagesOpt, &paperSizeOpt,
+  ArgGet args({&helpOpt, &verboseOpt, &formatOpt, &pagesOpt, &paperSizeOpt,
                &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
                &duplexOpt, &tumbleOpt, &backXformOpt, &qualityOpt,
                &mediaPositionOpt, &mediaTypeOpt},
@@ -99,18 +101,15 @@ int main(int argc, char** argv)
     LogController::instance().enable(LogController::Debug);
   }
 
-  if(urf)
+  if(!formatOpt.isSet() && string_ends_with(outFileName, ".urf"))
   {
-    if(mediaTypeOpt.isSet() && !isUrfMediaType(params.mediaType))
-    {
-      print_error("Invalid media type for URF", args.argHelp());
-      return 1;
-    }
     params.format = PrintParameters::URF;
   }
-  else
+
+  if((params.format == PrintParameters::URF) && mediaTypeOpt.isSet() && !isUrfMediaType(params.mediaType))
   {
-    params.format = PrintParameters::PWG;
+      print_error("Invalid media type for URF", args.argHelp());
+      return 1;
   }
 
   if(resolutionXOpt.isSet())

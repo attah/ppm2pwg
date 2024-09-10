@@ -88,6 +88,11 @@ public:
   Error getJobs(List<JobInfo>& jobInfos);
   Error cancelJob(int jobId);
 
+  void printJobId(bool printJobId)
+  {
+    _printJobId = printJobId;
+  }
+
 private:
   Error _doRequest(IppMsg::Operation op, IppMsg& resp);
   Error _doRequest(const IppMsg& req, IppMsg& resp);
@@ -96,6 +101,7 @@ private:
 
   std::string _addr;
   bool _ignoreSslErrors = true;
+  bool _printJobId = false;
 
   Error _error;
   IppAttrs _printerAttrs;

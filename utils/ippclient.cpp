@@ -187,6 +187,7 @@ int main(int argc, char** argv)
   int rightMargin;
 
   bool antiAlias;
+  bool printJobId = false;
   bool save = false;
 
   int id;
@@ -235,6 +236,7 @@ int main(int argc, char** argv)
   SwitchArg<int> rightMarginOpt(rightMargin, {"-rm", "--right-margin"}, "Right margin (as per IPP)");
 
   SwitchArg<bool> antiAliasOpt(antiAlias, {"-aa", "--antialias"}, "Enable antialiasing in rasterization");
+  SwitchArg<bool> printJobIdOpt(printJobId, {"--print-job-id"}, "Print job id on successful submission");
   SwitchArg<bool> saveOpt(save, {"--save"}, "Save options as local defaults for future jobs");
 
   SwitchArg<int> idOpt(id, {"--id"}, "Id of print job.");
@@ -262,7 +264,7 @@ int main(int argc, char** argv)
                               &formatOpt, &mimeTypeOpt,
                               &mediaTypeOpt, &mediaSourceOpt, &outputBinOpt, &finishingsOpt,
                               &marginOpt, &topMarginOpt, &bottomMarginOpt, &leftMarginOpt, &rightMarginOpt,
-                              &antiAliasOpt, &saveOpt},
+                              &antiAliasOpt, &printJobIdOpt, &saveOpt},
                              {&addrArg, &pdfArg}}}});
 
   bool correctArgs = args.get_args(argc, argv);
@@ -516,6 +518,7 @@ int main(int argc, char** argv)
                   DBG(<< page << "/" << total);
                 });
 
+    printer.printJobId(printJobId);
     error = printer.runJob(job, inFile, mimeType, nPages, progressFun);
 
     if(error)

@@ -164,7 +164,15 @@ Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::Conve
   if(cres == CURLE_OK)
   {
     IppMsg response(result);
-    if(response.getStatus() > 0xff)
+    if(response.getStatus() < 0xff)
+    {
+      if(!response.getJobAttrs().empty() && _printJobId)
+      {
+        int jobId = response.getJobAttrs().front().get<int>("job-id");
+        std::cout << "Job submitted successfully, with id: " << jobId << std::endl;
+      }
+    }
+    else
     {
       error = "Print job failed: " + response.getOpAttrs().get<std::string>("status-message", "unknown");
     }

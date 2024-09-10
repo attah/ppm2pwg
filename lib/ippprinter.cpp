@@ -5,7 +5,7 @@
 #include "log.h"
 #include <filesystem>
 
-IppPrinter::IppPrinter(std::string addr) : _addr(addr)
+IppPrinter::IppPrinter(std::string addr, bool ignoreSslErrors) : _addr(addr),  _ignoreSslErrors(ignoreSslErrors)
 {
   _error = refresh();
 }

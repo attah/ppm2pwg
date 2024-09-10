@@ -37,7 +37,7 @@ public:
     std::string stateMessage;
   };
 
-  IppPrinter(std::string addr);
+  IppPrinter(std::string addr, bool ignoreSslErrors=true);
   IppPrinter(IppAttrs printerAttrs) : _printerAttrs(printerAttrs)
   {}
   Error refresh();

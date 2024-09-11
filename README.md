@@ -3,7 +3,7 @@
 
 [![C/C++ CI](https://github.com/attah/ppm2pwg/workflows/C%2FC%2B%2B%20CI/badge.svg)](https://github.com/attah/ppm2pwg/actions/workflows/ccpp.yml)
 [![CodeQL](https://github.com/attah/ppm2pwg/workflows/CodeQL/badge.svg)](https://github.com/attah/ppm2pwg/actions/workflows/codeql-analysis.yml)
-[![IRC-ppm2pwg@OFTC](https://img.shields.io/badge/IRC-ppm2pwg@OFTC-blue)](https://webchat.oftc.net/?channels=ppm2pwg)
+[![IRC-ppm2pwg@OFTC](https://img.shields.io/badge/IRC-%23ppm2pwg@OFTC-blue)](https://webchat.oftc.net/?channels=ppm2pwg)
 
 Available as rudimentary standalone applications, but mainly made for use in [SeaPrint](https://github.com/attah/harbour-seaprint).
 

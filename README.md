@@ -6,6 +6,8 @@
 
 Available as rudimentary standalone applications, but mainly made for use in [SeaPrint](https://github.com/attah/harbour-seaprint).
 
+IRC: #ppm2pwg@OFTC
+
 ## ppm2pwg
 Takes a pbm, pgm or ppm (P4, P5 or P6 "raw") Netpbm bitmap image and converts to PWG or URF printer raster format.
 

@@ -3,10 +3,9 @@
 
 [![C/C++ CI](https://github.com/attah/ppm2pwg/workflows/C%2FC%2B%2B%20CI/badge.svg)](https://github.com/attah/ppm2pwg/actions/workflows/ccpp.yml)
 [![CodeQL](https://github.com/attah/ppm2pwg/workflows/CodeQL/badge.svg)](https://github.com/attah/ppm2pwg/actions/workflows/codeql-analysis.yml)
+[![IRC-ppm2pwg@OFTC](https://img.shields.io/badge/IRC-ppm2pwg@OFTC-blue)](https://webchat.oftc.net/?channels=ppm2pwg)
 
 Available as rudimentary standalone applications, but mainly made for use in [SeaPrint](https://github.com/attah/harbour-seaprint).
-
-IRC: #ppm2pwg@OFTC
 
 ## ppm2pwg
 Takes a pbm, pgm or ppm (P4, P5 or P6 "raw") Netpbm bitmap image and converts to PWG or URF printer raster format.

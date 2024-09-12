@@ -5,6 +5,7 @@
 #include "stringutils.h"
 #include "configdir.h"
 #include <filesystem>
+#include <algorithm>
 
 Error IppPrintJob::finalize(std::string inputFormat, int pages)
 {

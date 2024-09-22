@@ -228,66 +228,76 @@ void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameter
 
   uint8_t* tmp = bmpBts.raw();
 
-  if(params.colorMode == PrintParameters::Gray1 || params.colorMode == PrintParameters::Black1)
+  switch(params.colorMode)
   {
-    size_t paperSizeWInPixels = params.getPaperSizeWInPixels();
-    size_t paperSizeWInBytes = params.getPaperSizeWInBytes();
-    size_t paperSizeHInPixels = params.getPaperSizeHInPixels();
-    int nextDebt, pixel, newpixel, debt;
-    Array<int> debtArray(paperSizeWInPixels+2);
-    memset(debtArray, 0, (paperSizeWInPixels+2)*sizeof(int));
-    memset(tmp, black ? 0 : 0xff, bmpBts.size());
-    for(size_t line=0; line < paperSizeHInPixels; line++)
+    case PrintParameters::Gray1:
+    case PrintParameters::Black1:
     {
-      nextDebt = 0; // Don't carry over forward debt from previous line
-      for(size_t col=0; col < paperSizeWInPixels; col++)
-      { // Do Floyd-Steinberg dithering to keep grayscales readable in 1-bit
-        pixel = RGB32_GRAY(data[line*paperSizeWInPixels+col]) + nextDebt;
-        newpixel = pixel < 128 ? 0 : 255;
-        debt = pixel - newpixel;
-        nextDebt = debtArray[col+2] + SIXTEENTHS(7, debt);
-        debtArray[col] += SIXTEENTHS(3, debt);
-        debtArray[col+1] += SIXTEENTHS(5, debt);
-        debtArray[col+2] = SIXTEENTHS(1, debt);
-        if(newpixel == 0)
-        {
-          if(black)
+      size_t paperSizeWInPixels = params.getPaperSizeWInPixels();
+      size_t paperSizeWInBytes = params.getPaperSizeWInBytes();
+      size_t paperSizeHInPixels = params.getPaperSizeHInPixels();
+      Array<int> debtArray(paperSizeWInPixels+2);
+      memset(debtArray, 0, (paperSizeWInPixels+2)*sizeof(int));
+      memset(tmp, black ? 0 : 0xff, bmpBts.size());
+      for(size_t line=0; line < paperSizeHInPixels; line++)
+      {
+        size_t lineStartInBytes = line * paperSizeWInBytes;
+        size_t lineStartInPixels = line * paperSizeWInPixels;
+        int nextDebt = 0; // Don't carry over forward debt from previous line
+        for(size_t col=0; col < paperSizeWInPixels; col++)
+        { // Do Floyd-Steinberg dithering to keep grayscales readable in 1-bit
+          int pixel = RGB32_GRAY(data[lineStartInPixels+col]) + nextDebt;
+          int newpixel = pixel < 128 ? 0 : 255;
+          int debt = pixel - newpixel;
+          nextDebt = debtArray[col+2] + SIXTEENTHS(7, debt);
+          debtArray[col] += SIXTEENTHS(3, debt);
+          debtArray[col+1] += SIXTEENTHS(5, debt);
+          debtArray[col+2] = SIXTEENTHS(1, debt);
+          if(newpixel == 0)
           {
-            tmp[line*paperSizeWInBytes+col/8] |= (0x80 >> (col % 8));
-          }
-          else
-          {
-            tmp[line*paperSizeWInBytes+col/8] &= ~(0x80 >> (col % 8));
+            if(black)
+            {
+              tmp[lineStartInBytes+(col/8)] |= (0x80 >> (col % 8));
+            }
+            else
+            {
+              tmp[lineStartInBytes+(col/8)] &= ~(0x80 >> (col % 8));
+            }
           }
         }
       }
+      break;
     }
-  }
-  else if(params.colorMode == PrintParameters::Gray8 || params.colorMode == PrintParameters::Black8)
-  {
-    for(size_t i=0; i < size; i++)
+    case PrintParameters::Gray8:
+    case PrintParameters::Black8:
     {
-      tmp[i] = black ? (255 - RGB32_GRAY(data[i])) : RGB32_GRAY(data[i]);
+      for(size_t i=0; i < size; i++)
+      {
+        tmp[i] = black ? (255 - RGB32_GRAY(data[i])) : RGB32_GRAY(data[i]);
+      }
+      break;
     }
-  }
-  else if(params.colorMode == PrintParameters::sRGB24)
-  {
-    for(size_t i=0; i < size; i++)
+    case PrintParameters::sRGB24:
     {
-      tmp[i*3] = RGB32_R(data[i]);
-      tmp[i*3+1] = RGB32_G(data[i]);
-      tmp[i*3+2] = RGB32_B(data[i]);
+      for(size_t i=0, j=0; i < size; i++, j+=3)
+      {
+        tmp[j] = RGB32_R(data[i]);
+        tmp[j+1] = RGB32_G(data[i]);
+        tmp[j+2] = RGB32_B(data[i]);
+      }
+      break;
     }
-  }
-  else if(params.colorMode == PrintParameters::CMYK32)
-  {
-    for(size_t i=0; i < size; i++)
+    case PrintParameters::CMYK32:
     {
-      uint32_t white = MAX3(RGB32_R(data[i]), RGB32_G(data[i]), RGB32_B(data[i]));
-      tmp[i*4] = (white - RGB32_R(data[i]));
-      tmp[i*4+1] = (white - RGB32_G(data[i]));
-      tmp[i*4+2] = (white - RGB32_B(data[i]));
-      tmp[i*4+3] = 255-white;
+      for(size_t i=0, j=0; i < size; i++, j+=4)
+      {
+        uint32_t blackDiff = MAX3(RGB32_R(data[i]), RGB32_G(data[i]), RGB32_B(data[i]));
+        tmp[j] = (blackDiff - RGB32_R(data[i]));
+        tmp[j+1] = (blackDiff - RGB32_G(data[i]));
+        tmp[j+2] = (blackDiff - RGB32_B(data[i]));
+        tmp[j+3] = 255 - blackDiff;
+      }
+      break;
     }
   }
 }

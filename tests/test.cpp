@@ -470,7 +470,7 @@ void do_test_centering(const char* test_name, std::string filename, bool asymmet
 
   Bytestream middle_line;
   bmp.setPos((height/2)*(width*colors));
-  bmp/(width*colors) >> middle_line;
+  middle_line = bmp.getBytestream(width*colors);
 
   Bytestream white_pixel(colors, 0xff);
 

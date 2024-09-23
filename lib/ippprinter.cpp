@@ -23,7 +23,7 @@ Error IppPrinter::refresh()
     Bytestream bts(ifs);
     try
     {
-      if(bts.peekS8() == '{')
+      if(bts.peek<char>() == '{')
       {
         std::string errStr;
         Json json = Json::parse(bts.getString(bts.size()), errStr);

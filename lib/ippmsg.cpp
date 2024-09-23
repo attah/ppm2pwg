@@ -14,7 +14,7 @@ IppMsg::IppMsg(Bytestream& bts)
 
   while(!bts.atEnd())
   {
-    if(bts.peekU8() <= (uint8_t)IppTag::UnsupportedAttrs)
+    if(bts.peek<uint8_t>() <= (uint8_t)IppTag::UnsupportedAttrs)
     {
       if(currentAttrType == IppTag::OpAttrs)
       {
@@ -41,7 +41,7 @@ IppMsg::IppMsg(Bytestream& bts)
         break;
       }
 
-      currentAttrType = (IppTag)bts.getU8();
+      currentAttrType = (IppTag)bts.get<uint8_t>();
       attrs = IppAttrs();
     }
     else
@@ -202,7 +202,7 @@ IppValue IppMsg::decodeValue(IppTag tag, Bytestream& data) const
     {
       std::string tmp_str;
       data >> tmpLen;
-      data/tmpLen >> tmp_str;
+      tmp_str = data.getString(tmpLen);
       return IppValue(tmp_str);
     }
   };
@@ -214,7 +214,7 @@ List<IppAttr> IppMsg::getUnnamedAttributes(Bytestream& data) const
   List<IppAttr> attrs;
   while(data.remaining())
   {
-    tag = (IppTag)data.getU8();
+    tag = (IppTag)data.get<uint8_t>();
     if(data >>= (uint16_t)0)
     {
       attrs.push_back(IppAttr(tag, decodeValue(tag, data)));
@@ -300,12 +300,12 @@ IppValue IppMsg::collectAttributes(List<IppAttr>& attrs) const
 
 std::string IppMsg::consumeAttributes(IppAttrs& attrs, Bytestream& data) const
 {
-  IppTag tag = (IppTag)data.getU8();
+  IppTag tag = (IppTag)data.get<uint8_t>();
   uint16_t tmpLen;
   std::string name;
 
   data >> tmpLen;
-  data/tmpLen >> name;
+  name = data.getString(tmpLen);
 
   IppValue value = decodeValue(tag, data);
   List<IppAttr> unnamed = getUnnamedAttributes(data);

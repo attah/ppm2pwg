@@ -31,8 +31,7 @@ void raster_to_bmp(Bytestream& outBts, Bytestream& file,
       else if(count < 128)
       { // repeats
         size_t repeats = count+1;
-        Bytestream tmp;
-        file/colors >> tmp;
+        Bytestream tmp = file.getBytestream(colors);
         for(size_t i=0; i<repeats; i++)
         {
           line << tmp;
@@ -41,8 +40,7 @@ void raster_to_bmp(Bytestream& outBts, Bytestream& file,
       else
       { // verbatim
         size_t verbatim = (-1*((int)count-257));
-        Bytestream tmp;
-        file/(verbatim*colors) >> tmp;
+        Bytestream tmp = file.getBytestream(verbatim*colors);
         line << tmp;
       }
     }

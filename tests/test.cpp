@@ -2256,3 +2256,17 @@ TEST(converter)
          == "application/bbb");
 
 }
+
+extern List<std::string> get_addr(Bytestream& bts, std::set<uint16_t> seenReferences={});
+
+TEST(malicious_dns)
+{
+  Bytestream bts;
+  ASSERT_THROW(get_addr(bts), out_of_range);
+
+  // Address with a c-reference loop tr.ol.ol.ol...
+  bts << (uint8_t)2 << "tr" << (uint8_t)2 << "ol" << (uint16_t)0xc003;
+
+  ASSERT_THROW(get_addr(bts), logic_error);
+
+}

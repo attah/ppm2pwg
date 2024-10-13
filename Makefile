@@ -11,7 +11,7 @@ SILLY_CLANG_FLAGS = -Wno-unqualified-std-cast-call
 
 VPATH = bytestream lib utils json11
 
-OFFICIAL = ppm2pwg pwg2ppm pdf2printable baselinify ippclient
+OFFICIAL = ppm2pwg pwg2ppm pdf2printable baselinify ippclient ippdiscover
 EXTRAS = hexdump ippdecode bsplit
 
 all: $(OFFICIAL) $(EXTRAS)
@@ -61,8 +61,11 @@ ippclient: ippmsg.o ippattr.o ippprinter.o ippprintjob.o printparameters.o ippcl
 minimime: minimime_main.o minimime.o bytestream.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
+ippdiscover: ippdiscover.o ippdiscovery.o bytestream.o
+	$(CXX) $^ $(LDFLAGS) -o $@
+
 clean:
-	rm -f *.o ppm2pwg pwg2ppm pdf2printable pdf2printable_mad hexdump baselinify baselinify_mad bsplit ippclient minimime fuzz
+	rm -f *.o $(OFFICIAL) $(EXTRAS)
 
 analyze:
 	$(CLANGXX) --analyze $(CXXFLAGS) $(SILLY_CLANG_FLAGS) lib/*.cpp utils/*.cpp

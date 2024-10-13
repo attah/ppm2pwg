@@ -36,7 +36,7 @@ public:
 
   List<T>& operator+=(const List<T>& other)
   {
-    this->insert(this->cbegin(), other.cbegin(), other.cend());
+    this->insert(this->cend(), other.cbegin(), other.cend());
     return *this;
   }
 };

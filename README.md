@@ -35,6 +35,10 @@ An IPP client that harnesses the above tools for converting files to be printed.
 This is a port/rewrite/clean-up of the core parts of SeaPrint in regular (non-Qt) C++.
 The plan is to swap over to using this once fature parity is achieved.
 
+## ippdiscover
+
+A DNS-SD/mDNS "simple resolver" which looks for ipp and ipps printers on the local network.
+
 ## Building
 
 Install dependencies:

@@ -129,8 +129,6 @@ IppAttrs IppMsg::baseOpAttrs(std::string url)
 
 IppValue IppMsg::decodeValue(IppTag tag, Bytestream& data) const
 {
-  uint16_t tmpLen;
-
   switch (tag)
   {
     case IppTag::OpAttrs:
@@ -142,21 +140,21 @@ IppValue IppMsg::decodeValue(IppTag tag, Bytestream& data) const
     case IppTag::Integer:
     case IppTag::Enum:
     {
-      uint32_t tmp_u32=0;
+      uint32_t tmpU32=0;
       if(!(data >>= (uint16_t)0))
       {
-        data >> (uint16_t)4 >> tmp_u32;
+        data >> (uint16_t)4 >> tmpU32;
       }
-      return IppValue((int)tmp_u32);
+      return IppValue((int)tmpU32);
     }
     case IppTag::Boolean:
     {
-      uint8_t tmp_bool=0;
+      uint8_t tmpBool=0;
       if(!(data >>= (uint16_t)0))
       {
-        data >> (uint16_t)1 >> tmp_bool;
+        data >> (uint16_t)1 >> tmpBool;
       }
-      return IppValue((bool)tmp_bool);
+      return IppValue((bool)tmpBool);
     }
     case IppTag::DateTime:
     {
@@ -200,10 +198,7 @@ IppValue IppMsg::decodeValue(IppTag tag, Bytestream& data) const
     case IppTag::MimeMediaType:
     default:
     {
-      std::string tmp_str;
-      data >> tmpLen;
-      tmp_str = data.getString(tmpLen);
-      return IppValue(tmp_str);
+      return IppValue(data.getString(data.get<uint16_t>()));
     }
   };
 }
@@ -301,11 +296,9 @@ IppValue IppMsg::collectAttributes(List<IppAttr>& attrs) const
 std::string IppMsg::consumeAttributes(IppAttrs& attrs, Bytestream& data) const
 {
   IppTag tag = (IppTag)data.get<uint8_t>();
-  uint16_t tmpLen;
   std::string name;
 
-  data >> tmpLen;
-  name = data.getString(tmpLen);
+  name = data.getString(data.get<uint16_t>());
 
   IppValue value = decodeValue(tag, data);
   List<IppAttr> unnamed = getUnnamedAttributes(data);
@@ -379,14 +372,14 @@ void IppMsg::encodeValue(Bytestream& msg, IppTag tag, const IppValue& val) const
     case IppTag::Integer:
     case IppTag::Enum:
     {
-      uint32_t tmp_u32 = val.get<int>();
-      msg << (uint16_t)4 << tmp_u32;
+      uint32_t tmpU32 = val.get<int>();
+      msg << (uint16_t)4 << tmpU32;
       break;
     }
     case IppTag::Boolean:
     {
-      uint8_t tmp_u8 = val.get<bool>();
-      msg << (uint16_t)1 << tmp_u8;
+      uint8_t tmpU8 = val.get<bool>();
+      msg << (uint16_t)1 << tmpU8;
       break;
     }
     case IppTag::DateTime:

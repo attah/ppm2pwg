@@ -20,7 +20,7 @@ Takes a PDF document and makes it suitable for printing, by:
 - rotate and scale to fit as needed to a desired page size
 - convert to PDF 1.7&sup1;, Postscript level 2 or PWG/URF raster
 
-1. PDF 1.5 if using Cairo < 1.18.
+1. PDF 1.5 if using Cairo < 1.17.6.
 
 ## baselinify
 Takes a JPEG and losslessly repacks it to the baseline ecoding profile, keeping only JFIF and Exif headers.
@@ -41,6 +41,8 @@ Install dependencies:
 
 `sudo apt install libpoppler-dev libpoppler-glib-dev libcairo2-dev libglib2.0-dev libjpeg-dev libcurl4-openssl-dev zlib1g-dev`
 
+These are the aggregate dependencies; **ippclient** needs all of them and e.g. **ppm2pwg** needs none of them.
+
 Build:
 
 `make -j$(nproc)`
@@ -52,14 +54,16 @@ Build:
 A bit of friendly comparison helps make sure the featureset is well-rounded and performance is on par.
 
 ### Basics
-|                                                         | PDF renderer    | Language    | License            |
-| ------------------------------------------------------- | --------------- | ----------- | ------------------ |
-| pdf2printable                                           | Poppler         | C++         | GPL3               |
-| [ipptransform](https://github.com/OpenPrinting/libcups) | XPDF or Poppler | C           | Apache 2.0         |
-| [mutool](https://mupdf.com/)                            | MuPDF           | C           | AGPL or commercial |
-| [jrender](https://github.com/HPInc/jipp)                | Apache PDFBox   | Java/Kotlin | MIT                |
+|                                                         | PDF renderer          | Language    | License            |
+| ------------------------------------------------------- | --------------------- | ----------- | ------------------ |
+| pdf2printable                                           | Poppler&sup1;         | C++         | GPL3               |
+| [ipptransform](https://github.com/OpenPrinting/libcups) | XPDF or Poppler&sup1; | C           | Apache 2.0         |
+| [mutool](https://mupdf.com/)                            | MuPDF                 | C           | AGPL or commercial |
+| [jrender](https://github.com/HPInc/jipp)                | Apache PDFBox         | Java/Kotlin | MIT                |
 
 Not in the running: cups-filters (can't get them to run outside CUPS), Android/Apple built-ins and Google Cloud Print (not available standalone).
+
+1. pdf2printable uses the Cairo backend in Poppler and ipptransform uses the Splash backend inhertited from XPDF. Cairo generally produces higher quality rasterization, but is slightly more prone to misrendering with unusual PDFs.
 
 ### Format support
 

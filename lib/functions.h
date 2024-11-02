@@ -1,8 +1,9 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
+#include "bytestream.h"
+
 #include <functional>
-#include <bytestream.h>
 
 typedef std::function<bool(Bytestream&& data)> WriteFun;
 typedef std::function<void(size_t page, size_t total)> ProgressFun;

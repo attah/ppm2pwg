@@ -2,9 +2,9 @@
 #define PRINTPARAMETERS_H
 
 #include <cmath>
-#include <vector>
-#include <string>
 #include <cstdint>
+#include <string>
+#include <vector>
 
 #define INVALID_PAGE 0
 

@@ -1,3 +1,11 @@
+#include "pdf2printable.h"
+
+#include "array.h"
+#include "bytestream.h"
+#include "madness.h"
+#include "pointer.h"
+#include "ppm2pwg.h"
+
 #include <poppler.h>
 #include <poppler-document.h>
 
@@ -8,13 +16,6 @@
 #include <filesystem>
 #include <math.h>
 #include <unistd.h>
-#include "madness.h"
-
-#include <bytestream.h>
-#include <array.h>
-#include "pointer.h"
-#include "ppm2pwg.h"
-#include "pdf2printable.h"
 
 #define R_RELATIVE_LUMINOSITY 0.299
 #define G_RELATIVE_LUMINOSITY 0.587

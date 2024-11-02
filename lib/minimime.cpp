@@ -1,9 +1,11 @@
 #include "minimime.h"
+
+#include "bytestream.h"
 #include "stringutils.h"
-#include <bytestream.h>
+
 #include <fstream>
-#include <set>
 #include <map>
+#include <set>
 
 const std::string MiniMime::OctetStream = "application/octet-stream";
 

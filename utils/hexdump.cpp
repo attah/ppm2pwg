@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
-#include <bytestream.h>
+
+#include "bytestream.h"
 
 int main(int argc, char** argv)
 {

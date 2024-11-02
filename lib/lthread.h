@@ -1,5 +1,5 @@
-#include <thread>
 #include <functional>
+#include <thread>
 
 class LThread
 {

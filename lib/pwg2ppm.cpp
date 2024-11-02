@@ -1,6 +1,6 @@
 #include "pwg2ppm.h"
+
 #include <fstream>
-#include <iostream>
 
 void raster_to_bmp(Bytestream& outBts, Bytestream& file,
                    size_t byteWidth, size_t height, size_t colors, bool urf)

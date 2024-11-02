@@ -1,12 +1,13 @@
 #ifndef IPPPRINTER_H
 #define IPPPRINTER_H
 
-#include <string>
 #include "converter.h"
 #include "error.h"
 #include "ippattr.h"
 #include "ippmsg.h"
 #include "ippprintjob.h"
+
+#include <string>
 
 class IppPrinter
 {

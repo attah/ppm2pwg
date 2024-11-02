@@ -1,11 +1,13 @@
 #include "ippprintjob.h"
-#include "mediaposition.h"
-#include "curlrequester.h"
-#include "converter.h"
-#include "stringutils.h"
+
 #include "configdir.h"
-#include <filesystem>
+#include "converter.h"
+#include "curlrequester.h"
+#include "mediaposition.h"
+#include "stringutils.h"
+
 #include <algorithm>
+#include <filesystem>
 
 Error IppPrintJob::finalize(std::string inputFormat, int pages)
 {
@@ -142,10 +144,14 @@ Error IppPrintJob::finalize(std::string inputFormat, int pages)
 
   bool supportsColor = colorMode.getSupported().contains("color");
 
-  printParams.colorMode = colorMode.get().find("color") != std::string::npos ? PrintParameters::sRGB24
-                        : colorMode.get().find("monochrome") != std::string::npos
-                          || !supportsColor ? PrintParameters::Gray8
-                        : printParams.colorMode;
+  if(string_contains(colorMode.get(), "color"))
+  {
+    printParams.colorMode = PrintParameters::sRGB24;
+  }
+  else if(string_contains(colorMode.get(), "monochrome") || !supportsColor)
+  {
+    printParams.colorMode = PrintParameters::Gray8;
+  }
 
   std::map<std::string, PrintParameters::MediaPosition> MediaPositionMap MEDIA_POSITION_MAP;
   if(mediaSource.isSet())

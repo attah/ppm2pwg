@@ -1,7 +1,8 @@
 #include <iostream>
-#include <bytestream.h>
-#include <ippmsg.h>
-#include <binfile.h>
+
+#include "binfile.h"
+#include "bytestream.h"
+#include "ippmsg.h"
 
 int main(int argc, char** argv)
 {

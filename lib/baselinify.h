@@ -1,7 +1,7 @@
 #ifndef BASELINIFY_H
 #define BASELINIFY_H
 
-#include <bytestream.h>
+#include "bytestream.h"
 
 void baselinify(Bytestream& inBts, Bytestream& outBts);
 

@@ -1,8 +1,8 @@
 #ifndef POINTER_H
 #define POINTER_H
 
-#include <memory>
 #include <functional>
+#include <memory>
 
 template<typename T, typename D = std::function<void(T*)>>
 class Pointer : public std::unique_ptr<T, D>

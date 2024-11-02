@@ -1,4 +1,5 @@
 #include "ippmsg.h"
+
 #include <iostream>
 
 uint32_t IppMsg::_reqId=1;

@@ -1,11 +1,12 @@
 #ifndef IPPMSG_H
 #define IPPMSG_H
 
-#include <map>
-#include <list>
-#include <string>
-#include <bytestream.h>
+#include "bytestream.h"
 #include "ippattr.h"
+
+#include <list>
+#include <map>
+#include <string>
 
 class IppMsg
 {

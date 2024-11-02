@@ -1,7 +1,7 @@
 #ifndef PWG2PPM_H
 #define PWG2PPM_H
 
-#include <bytestream.h>
+#include "bytestream.h"
 
 void raster_to_bmp(Bytestream& outBts, Bytestream& file,
                    size_t width, size_t height, size_t colors, bool urf);

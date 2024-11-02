@@ -1,16 +1,16 @@
-#include <bytestream.h>
-#include <iostream>
 #include <filesystem>
+#include <iostream>
 #include <regex>
 
 #include <poppler.h>
 #include <poppler-document.h>
 
 #include "argget.h"
+#include "bytestream.h"
 #include "ippprinter.h"
+#include "log.h"
 #include "minimime.h"
 #include "pointer.h"
-#include "log.h"
 
 #define HELPTEXT ""
 

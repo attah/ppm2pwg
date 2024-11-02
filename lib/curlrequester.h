@@ -1,16 +1,17 @@
 #ifndef CURLREQUESTER_H
 #define CURLREQUESTER_H
 
-#ifndef USER_AGENT
-#define USER_AGENT ""
-#endif
+#include "array.h"
+#include "bytestream.h"
+#include "lthread.h"
 
 #include <curl/curl.h>
 #include <zlib.h>
-#include "lthread.h"
-#include <array.h>
-#include <bytestream.h>
 #include <mutex>
+
+#ifndef USER_AGENT
+#define USER_AGENT ""
+#endif
 
 enum class Compression
 {

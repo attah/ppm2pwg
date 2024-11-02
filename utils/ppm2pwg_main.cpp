@@ -1,16 +1,16 @@
-#include <bytestream.h>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <limits>
 #include <string.h>
 
-#include "ppm2pwg.h"
 #include "argget.h"
 #include "binfile.h"
-#include "stringutils.h"
-#include "mediaposition.h"
+#include "bytestream.h"
 #include "log.h"
+#include "mediaposition.h"
+#include "ppm2pwg.h"
+#include "stringutils.h"
 
 #define HELPTEXT "Use \"-\" as filename for stdin/stdout."
 

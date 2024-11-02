@@ -1,15 +1,15 @@
 #ifndef IPPDISCOVERY_H
 #define IPPDISCOVERY_H
 
-#include <string>
-#include <functional>
-#include <ctime>
-#include <chrono>
-
-#include "map.h"
-#include "list.h"
 #include "bytestream.h"
+#include "list.h"
+#include "map.h"
 #include "udpsocket.h"
+
+#include <chrono>
+#include <ctime>
+#include <functional>
+#include <string>
 
 class IppDiscovery
 {

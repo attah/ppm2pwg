@@ -1,14 +1,14 @@
-#include <sys/types.h>
-#include <sys/socket.h>
+#include "bytestream.h"
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
+
 #include <cstring>
-
-#include <string>
 #include <stdexcept>
-
-#include "bytestream.h"
+#include <string>
 
 class UdpSocket
 {

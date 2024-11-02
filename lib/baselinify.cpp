@@ -1,6 +1,8 @@
 #include "baselinify.h"
-#include <jpeglib.h>
+
 #include "madness.h"
+
+#include <jpeglib.h>
 
 #define JPEG_APP1 (JPEG_APP0+1)
 

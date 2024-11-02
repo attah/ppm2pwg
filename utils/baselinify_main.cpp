@@ -1,7 +1,8 @@
 #include <fstream>
 #include <iostream>
-#include <baselinify.h>
-#include <binfile.h>
+
+#include "baselinify.h"
+#include "binfile.h"
 
 int main(int argc, char** argv)
 {

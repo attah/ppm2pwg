@@ -1,9 +1,9 @@
 #ifndef BINFILE_H
 #define BINFILE_H
 
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <string>
 
 class InBinFile
 {

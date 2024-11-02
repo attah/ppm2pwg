@@ -2,11 +2,11 @@
 #define ARGGET_H
 // Angry goat in Swedish (only half kidding)
 
-#include <string>
-#include <sstream>
-#include <list>
 #include <map>
 #include <iomanip>
+#include <list>
+#include <sstream>
+#include <string>
 #include <type_traits>
 
 class ArgBase

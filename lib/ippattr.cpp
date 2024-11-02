@@ -1,4 +1,5 @@
 #include "ippattr.h"
+
 #include <iomanip>
 
 bool IppAttr::isList() const

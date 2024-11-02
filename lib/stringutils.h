@@ -2,7 +2,8 @@
 #define STRINGUTILS_H
 
 #include <string>
-#include <list.h>
+
+#include "list.h"
 
 inline bool string_starts_with(std::string s, std::string start)
 {

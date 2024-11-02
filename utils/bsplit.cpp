@@ -1,8 +1,9 @@
 #include <fstream>
 #include <iostream>
-#include <bytestream.h>
-#include <argget.h>
-#include <binfile.h>
+
+#include "argget.h"
+#include "binfile.h"
+#include "bytestream.h"
 
 #define HELPTEXT "Negative numbers means \"all but\" number of bytes from the beginning/end."
 

@@ -2,6 +2,7 @@
 #define MADNESS_H
 
 #include <dlfcn.h>
+
 class LibLoader
 {
 public:

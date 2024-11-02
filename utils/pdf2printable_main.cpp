@@ -2,13 +2,13 @@
 #include <fstream>
 #include <cstring>
 
-#include "pdf2printable.h"
-#include "ppm2pwg.h"
 #include "argget.h"
 #include "binfile.h"
-#include "stringutils.h"
-#include "mediaposition.h"
 #include "log.h"
+#include "mediaposition.h"
+#include "pdf2printable.h"
+#include "ppm2pwg.h"
+#include "stringutils.h"
 
 #define HELPTEXT "Options from 'resolution' and onwards only affect raster output formats.\n" \
                  "Use \"-\" as filename for stdin/stdout."

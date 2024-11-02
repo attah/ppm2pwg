@@ -1,8 +1,10 @@
 #include "curlrequester.h"
-#include <cstring>
-#include <chrono>
-#include <thread>
+
 #include "log.h"
+
+#include <chrono>
+#include <cstring>
+#include <thread>
 
 CurlRequester::CurlRequester(std::string addr, bool ignoreSslErrors)
   : _curl(curl_easy_init())

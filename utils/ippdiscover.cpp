@@ -1,6 +1,7 @@
 #include <iostream>
-#include "ippdiscovery.h"
+
 #include "argget.h"
+#include "ippdiscovery.h"
 #include "log.h"
 
 inline void print_error(std::string hint, std::string argHelp)

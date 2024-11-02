@@ -1,8 +1,9 @@
 #ifndef PPM2PWG_H
 #define PPM2PWG_H
 
-#include <bytestream.h>
+#include "bytestream.h"
 #include "printparameters.h"
+
 #include <string>
 
 Bytestream make_pwg_file_hdr();

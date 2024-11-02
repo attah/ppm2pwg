@@ -1,10 +1,10 @@
 #ifndef IPPPARAMETERS_H
 #define IPPPARAMETERS_H
 
-#include "printparameters.h"
-#include "ippmsg.h"
-#include "setting.h"
 #include "error.h"
+#include "ippmsg.h"
+#include "printparameters.h"
+#include "setting.h"
 
 class IppPrintJob
 {

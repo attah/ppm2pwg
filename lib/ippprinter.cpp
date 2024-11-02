@@ -1,8 +1,10 @@
 #include "ippprinter.h"
-#include "curlrequester.h"
-#include "stringutils.h"
+
 #include "configdir.h"
 #include "log.h"
+#include "curlrequester.h"
+#include "stringutils.h"
+
 #include <filesystem>
 
 IppPrinter::IppPrinter(std::string addr, bool ignoreSslErrors) : _addr(addr),  _ignoreSslErrors(ignoreSslErrors)

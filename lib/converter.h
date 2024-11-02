@@ -1,16 +1,16 @@
-#include <string>
-#include <functional>
-#include <optional>
-#include <map>
-
-#include "pdf2printable.h"
 #include "baselinify.h"
-#include "ippprintjob.h"
-#include "stringutils.h"
-#include "functions.h"
-#include "minimime.h"
 #include "binfile.h"
 #include "error.h"
+#include "functions.h"
+#include "ippprintjob.h"
+#include "minimime.h"
+#include "pdf2printable.h"
+#include "stringutils.h"
+
+#include <functional>
+#include <map>
+#include <optional>
+#include <string>
 
 class Converter
 {

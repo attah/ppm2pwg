@@ -1,13 +1,13 @@
 #include "ippdiscovery.h"
 
-#include "stringutils.h"
 #include "log.h"
+#include "stringutils.h"
 
+#include <cstring>
 #include <iostream>
+#include <set>
 #include <sstream>
 #include <stdexcept>
-#include <cstring>
-#include <set>
 
 using namespace std::literals;
 

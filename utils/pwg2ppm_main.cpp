@@ -1,8 +1,9 @@
+#include <iostream>
+#include <fstream>
+
 #include "pwg2ppm.h"
 #include "PwgPgHdr.h"
 #include "UrfPgHdr.h"
-#include <fstream>
-#include <iostream>
 
 int main(int argc, char** argv)
 {

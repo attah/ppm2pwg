@@ -1,5 +1,7 @@
 #include "printparameters.h"
+
 #include "stringutils.h"
+
 #include <regex>
 
 #define MM_PER_IN 25.4
@@ -119,23 +121,8 @@ size_t PrintParameters::getPaperSizeInBytes() const
 
 PageSequence PrintParameters::getPageSequence(size_t pages) const
 {
-  PageRangeList tmp = pageRangeList.empty() ? PageRangeList {{0, 0}}
-                                            : pageRangeList;
+  PageRangeList tmp = pageRangeList.empty() ? PageRangeList {{1, pages}} : pageRangeList;
   PageSequence seq;
-
-  if(tmp.size() == 1)
-  {
-    std::pair<size_t, size_t> pair = tmp[0];
-    if(pair.first == 0)
-    {
-      pair.first = 1;
-    }
-    if(pair.second == 0)
-    {
-      pair.second = pages;
-    }
-    tmp = {pair};
-  }
 
   for(const auto& [first, last] : tmp)
   {

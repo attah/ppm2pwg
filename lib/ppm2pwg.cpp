@@ -1,12 +1,14 @@
+#include "ppm2pwg.h"
+
+#include "array.h"
+#include "log.h"
+
+#include "PwgPgHdr.h"
+#include "UrfPgHdr.h"
+
 #include <iostream>
 #include <map>
 #include <string.h>
-
-#include <array.h>
-#include "ppm2pwg.h"
-#include "PwgPgHdr.h"
-#include "UrfPgHdr.h"
-#include "log.h"
 
 Bytestream make_pwg_file_hdr()
 {

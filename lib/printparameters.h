@@ -1,15 +1,16 @@
 #ifndef PRINTPARAMETERS_H
 #define PRINTPARAMETERS_H
 
+#include "list.h"
+
 #include <cmath>
 #include <cstdint>
 #include <string>
-#include <vector>
 
 #define INVALID_PAGE 0
 
-typedef std::vector<size_t> PageSequence;
-typedef std::vector<std::pair<size_t, size_t>> PageRangeList;
+typedef List<size_t> PageSequence;
+typedef List<std::pair<size_t, size_t>> PageRangeList;
 
 class PrintParameters
 {

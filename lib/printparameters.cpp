@@ -2,6 +2,7 @@
 
 #include "stringutils.h"
 
+#include <charconv>
 #include <regex>
 
 #define MM_PER_IN 25.4
@@ -143,7 +144,7 @@ PageSequence PrintParameters::getPageSequence(size_t pages) const
       PageSequence copy = seq;
       for(size_t dc = copies; dc > 1; dc--)
       {
-        seq.insert(seq.cend(), copy.cbegin(), copy.cend());
+        seq += copy;
       }
     }
     else
@@ -153,18 +154,20 @@ PageSequence PrintParameters::getPageSequence(size_t pages) const
       {
         if(isTwoSided())
         {
+          size_t front = *it;
+          size_t back = *(++it);
           for(size_t pc = copies; pc > 0; pc--)
           {
-            copy.push_back(*it);
-            copy.push_back(*(it+1));
+            copy.push_back(front);
+            copy.push_back(back);
           }
-          it++;
         }
         else
         {
+          size_t page = *it;
           for(size_t pc = copies; pc > 0; pc--)
           {
-            copy.push_back(*it);
+            copy.push_back(page);
           }
         }
       }
@@ -187,7 +190,7 @@ PageRangeList PrintParameters::parsePageRange(const std::string& rangesStr)
   {
     if(std::regex_match(rangeStr, match, single))
     {
-      size_t singleValue = stol(match[1]);
+      size_t singleValue = stoul(match[1]);
       if(singleValue <= prevMax)
       {
         return {};
@@ -197,8 +200,8 @@ PageRangeList PrintParameters::parsePageRange(const std::string& rangesStr)
     }
     else if(std::regex_match(rangeStr, match, range))
     {
-      size_t from = stol(match[1]);
-      size_t to = match[2] != "" ? stol(match[2]) : std::numeric_limits<size_t>::max();
+      size_t from = stoul(match[1]);
+      size_t to = match[2] != "" ? stoul(match[2]) : std::numeric_limits<size_t>::max();
       if(to < from || from <= prevMax)
       {
         return {};
@@ -228,15 +231,14 @@ bool PrintParameters::setPageRange(const std::string& rangeStr)
 
 bool PrintParameters::setPaperSize(const std::string& sizeStr)
 {
-  const std::regex nameRegex("^[0-9a-z_-]+_(([0-9]+[.])?[0-9]+)x(([0-9]+[.])?[0-9]+)(mm|in)$");
+  const std::regex nameRegex("^[0-9a-z_-]+_([0-9]+([.][0-9]+)?)x([0-9]+([.][0-9]+)?)(mm|in)$");
   std::cmatch match;
-  locale_t c_locale = newlocale(LC_ALL_MASK, "C", nullptr);
 
   if(std::regex_match(sizeStr.c_str(), match, nameRegex))
   {
     paperSizeName = sizeStr;
-    paperSizeW = strtod_l(match[1].first, nullptr, c_locale);
-    paperSizeH = strtod_l(match[3].first, nullptr, c_locale);
+    std::from_chars(match[1].first, match[1].second, paperSizeW);
+    std::from_chars(match[3].first, match[3].second, paperSizeH);
     if(match[5] == "in")
     {
       paperSizeUnits = Inches;

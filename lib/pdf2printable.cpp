@@ -97,7 +97,7 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
   }
 
   size_t pages = poppler_document_get_n_pages(doc);
-  PageSequence seq = params.getPageSequence(pages);
+  PageSequence pageSequence = params.getPageSequence(pages);
 
   size_t outPageNo = 0;
 
@@ -108,7 +108,7 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
                                          params.getPaperSizeHInPixels());
     if(params.format == PrintParameters::URF)
     {
-      outBts = make_urf_file_hdr(seq.size());
+      outBts = make_urf_file_hdr(pageSequence.size());
     }
     else
     {
@@ -140,7 +140,7 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
     return Error("Unknown format");
   }
 
-  for(size_t pageNo : seq)
+  for(size_t pageNo : pageSequence)
   {
     outPageNo++;
 
@@ -204,7 +204,7 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
     CHECK(writeFun(std::move(outBts)));
     outBts.reset();
 
-    progressFun(outPageNo, seq.size());
+    progressFun(outPageNo, pageSequence.size());
   }
 
   cairo_surface_finish(surface);

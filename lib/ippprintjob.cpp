@@ -126,7 +126,7 @@ Error IppPrintJob::finalize(std::string inputFormat, int pages)
     printParams.duplexMode = PrintParameters::TwoSidedShortEdge;
   }
 
-  switch (printQuality.get())
+  switch(printQuality.get())
   {
   case 3:
     printParams.quality = PrintParameters::DraftQuality;

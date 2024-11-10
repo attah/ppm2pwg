@@ -116,7 +116,7 @@ struct IppCollection: public std::map<std::string, IppAttr>
 class IppAttr : public IppValue
 {
 public:
-  bool isList() const ;
+  bool isList() const;
   IppOneSetOf asList() const;
 
   template <typename T>
@@ -153,7 +153,7 @@ struct IppAttrs: public std::map<std::string, IppAttr>
     {
       return at(name).get<T>();
     }
-    catch (const std::out_of_range&)
+    catch(const std::out_of_range&)
     {
       return defaultValue;
     }

@@ -27,7 +27,8 @@ int main(int argc, char** argv)
   {
 
     std::cerr << "Smells like PWG Raster" << std::endl;
-    do
+
+    while(file.remaining())
     {
       std::cerr << "Page " << ++pages << std::endl;
       PwgPgHdr pwgHdr;
@@ -38,7 +39,6 @@ int main(int argc, char** argv)
                 pwgHdr.ColorSpace == PwgPgHdr::Black, outfilePrefix, pages);
       outBts.reset();
     }
-    while (file.remaining());
   }
   else if(file >>= "UNIRAST")
   {
@@ -46,7 +46,8 @@ int main(int argc, char** argv)
     file >> (uint8_t)0 >> pageCount;
     std::cerr << "Smells like URF Raster, with "
               << pageCount << " pages" << std::endl;
-    do
+
+    while(file.remaining())
     {
       std::cerr << "Page " << ++pages << std::endl;
       UrfPgHdr urfHdr;
@@ -58,7 +59,6 @@ int main(int argc, char** argv)
                 false, outfilePrefix, pages);
       outBts.reset();
     }
-    while (file.remaining());
   }
   else
   {

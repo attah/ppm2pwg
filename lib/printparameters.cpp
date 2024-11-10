@@ -23,8 +23,9 @@ size_t PrintParameters::getPaperSizeWInPixels() const
       return floor(paperSizeW * hwResW / MM_PER_IN);
     case Inches:
       return paperSizeW * hwResW;
+    default:
+      throw(std::logic_error("Unknown paper size units"));
   }
-  return 0;
 }
 
 size_t PrintParameters::getPaperSizeHInPixels() const
@@ -37,8 +38,9 @@ size_t PrintParameters::getPaperSizeHInPixels() const
       return floor(paperSizeH * hwResH / MM_PER_IN);
     case Inches:
       return paperSizeH * hwResH;
+    default:
+      throw(std::logic_error("Unknown paper size units"));
   }
-  return 0;
 }
 
 size_t PrintParameters::getPaperSizeInPixels() const
@@ -56,8 +58,9 @@ double PrintParameters::getPaperSizeWInMillimeters() const
       return paperSizeW;
     case Inches:
       return round2(paperSizeW * MM_PER_IN);
+    default:
+      throw(std::logic_error("Unknown paper size units"));
   }
-  return 0;
 }
 
 double PrintParameters::getPaperSizeHInMillimeters() const
@@ -70,8 +73,9 @@ double PrintParameters::getPaperSizeHInMillimeters() const
       return paperSizeH;
     case Inches:
       return round2(paperSizeH * MM_PER_IN);
+    default:
+      throw(std::logic_error("Unknown paper size units"));
   }
-  return 0;
 }
 
 double PrintParameters::getPaperSizeWInPoints() const
@@ -84,8 +88,9 @@ double PrintParameters::getPaperSizeWInPoints() const
       return round2((paperSizeW / MM_PER_IN) * PTS_PER_IN);
     case Inches:
       return paperSizeW * PTS_PER_IN;
+    default:
+      throw(std::logic_error("Unknown paper size units"));
   }
-  return 0;
 }
 
 double PrintParameters::getPaperSizeHInPoints() const
@@ -98,8 +103,9 @@ double PrintParameters::getPaperSizeHInPoints() const
       return round2((paperSizeH / MM_PER_IN) * PTS_PER_IN);
     case Inches:
       return paperSizeH * PTS_PER_IN;
+    default:
+      throw(std::logic_error("Unknown paper size units"));
   }
-  return 0;
 }
 
 size_t PrintParameters::getPaperSizeWInBytes() const
@@ -219,14 +225,8 @@ PageRangeList PrintParameters::parsePageRange(const std::string& rangesStr)
 
 bool PrintParameters::setPageRange(const std::string& rangeStr)
 {
-  PageRangeList rangeList = parsePageRange(rangeStr);
-
-  if(!rangeList.empty())
-  {
-    pageRangeList = rangeList;
-    return true;
-  }
-  return false;
+  pageRangeList = parsePageRange(rangeStr);
+  return !pageRangeList.empty();
 }
 
 bool PrintParameters::setPaperSize(const std::string& sizeStr)
@@ -254,16 +254,16 @@ bool PrintParameters::setPaperSize(const std::string& sizeStr)
 
 bool PrintParameters::isBlack() const
 {
-  switch (colorMode)
+  switch(colorMode)
   {
-    case Black8:
-    case Black1:
-      return true;
     case sRGB24:
     case CMYK32:
     case Gray8:
     case Gray1:
       return false;
+    case Black8:
+    case Black1:
+      return true;
     default:
       throw(std::logic_error("Unknown color mode"));
   }
@@ -271,7 +271,7 @@ bool PrintParameters::isBlack() const
 
 size_t PrintParameters::getNumberOfColors() const
 {
-  switch (colorMode)
+  switch(colorMode)
   {
     case sRGB24:
       return 3;
@@ -289,7 +289,7 @@ size_t PrintParameters::getNumberOfColors() const
 
 size_t PrintParameters::getBitsPerColor() const
 {
-  switch (colorMode)
+  switch(colorMode)
   {
     case sRGB24:
     case CMYK32:
@@ -308,31 +308,11 @@ bool PrintParameters::getBackHFlip() const
 {
   if(duplexMode == TwoSidedLongEdge)
   {
-    switch (backXformMode)
-    {
-      case Flipped:
-      case ManualTumble:
-      case Normal:
-        return false;
-      case Rotated:
-        return true;
-      default:
-        throw(std::logic_error("Unknown back flip mode"));
-    }
+    return backXformMode == Rotated;
   }
   else if(duplexMode == TwoSidedShortEdge)
   {
-    switch (backXformMode)
-    {
-      case Flipped:
-      case ManualTumble:
-        return true;
-      case Normal:
-      case Rotated:
-        return false;
-      default:
-        throw(std::logic_error("Unknown back flip mode"));
-    }
+    return backXformMode == Flipped || backXformMode == ManualTumble;
   }
   return false;
 }
@@ -341,33 +321,11 @@ bool PrintParameters::getBackVFlip() const
 {
   if(duplexMode == TwoSidedLongEdge)
   {
-    switch (backXformMode)
-    {
-      case Flipped:
-        return true;
-      case ManualTumble:
-      case Normal:
-        return false;
-      case Rotated:
-        return true;
-      default:
-        throw(std::logic_error("Unknown back flip mode"));
-    }
+    return backXformMode == Flipped || backXformMode == Rotated;
   }
   else if(duplexMode == TwoSidedShortEdge)
   {
-    switch (backXformMode)
-    {
-      case Flipped:
-        return false;
-      case ManualTumble:
-        return true;
-      case Normal:
-      case Rotated:
-        return false;
-      default:
-        throw(std::logic_error("Unknown back flip mode"));
-    }
+    return backXformMode == ManualTumble;
   }
   return false;
 }

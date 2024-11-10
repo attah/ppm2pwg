@@ -24,12 +24,12 @@ int main(int argc, char** argv)
   {
     IppMsg msg(inBts);
     std::cout << "IPP operation or status: " << msg.getStatus() << std::endl;
-    std::cout << "Operation attrs: "  << std::endl << msg.getOpAttrs().toJSON().dump() << std::endl;
+    std::cout << "Operation attrs: " << std::endl << msg.getOpAttrs().toJSON().dump() << std::endl;
     for(const IppAttrs& jobAttrs : msg.getJobAttrs())
     {
-        std::cout << "Job attrs: "  << std::endl << jobAttrs.toJSON().dump() << std::endl;
+        std::cout << "Job attrs: " << std::endl << jobAttrs.toJSON().dump() << std::endl;
     }
-    std::cout << "Printer attrs: "  << std::endl << msg.getPrinterAttrs().toJSON().dump() << std::endl;
+    std::cout << "Printer attrs: " << std::endl << msg.getPrinterAttrs().toJSON().dump() << std::endl;
     }
   catch(const std::exception& e)
   {

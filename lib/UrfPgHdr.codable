@@ -10,10 +10,10 @@ CODABLE(UrfPgHdr)
   ENUM(uint8_t, Duplex, ENUM_VALUE(NoDuplex, 1),
                         ENUM_LABEL(ShortSide),
                         ENUM_LABEL(LongSide))
-  ENUM(uint8_t, Quality,  ENUM_VALUE(DefaultQuality, 0),
-                          ENUM_VALUE(Draft, 3),
-                          ENUM_VALUE(Normal, 4),
-                          ENUM_VALUE(High, 5))
+  ENUM(uint8_t, Quality, ENUM_VALUE(DefaultQuality, 0),
+                         ENUM_VALUE(Draft, 3),
+                         ENUM_VALUE(Normal, 4),
+                         ENUM_VALUE(High, 5))
   ENUM(uint8_t, MediaType, ENUM_VALUE(AutomaticMediaType, 0),
                            ENUM_LABEL(Stationery),
                            ENUM_LABEL(Transparency),

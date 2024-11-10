@@ -468,16 +468,16 @@ int main(int argc, char** argv)
         exit(1);
       }
       set_or_fail(true, marginOpt.docName(),
-                  "Valid values for top margin are: " +  job.topMargin.supportedStr(),
+                  "Valid values for top margin are: " + job.topMargin.supportedStr(),
                   job.topMargin, margin, force);
       set_or_fail(true, marginOpt.docName(),
-                  "Valid values for bottom margin are: " +  job.bottomMargin.supportedStr(),
+                  "Valid values for bottom margin are: " + job.bottomMargin.supportedStr(),
                   job.bottomMargin, margin, force);
       set_or_fail(true, marginOpt.docName(),
-                  "Valid values for left margin are: " +  job.leftMargin.supportedStr(),
+                  "Valid values for left margin are: " + job.leftMargin.supportedStr(),
                   job.leftMargin, margin, force);
       set_or_fail(true, marginOpt.docName(),
-                  "Valid values for right margin are: " +  job.rightMargin.supportedStr(),
+                  "Valid values for right margin are: " + job.rightMargin.supportedStr(),
                   job.rightMargin, margin, force);
     }
 

@@ -21,15 +21,15 @@ IppMsg::IppMsg(Bytestream& bts)
       {
         _opAttrs = attrs;
       }
-      else if (currentAttrType == IppTag::JobAttrs)
+      else if(currentAttrType == IppTag::JobAttrs)
       {
         _jobAttrs.push_back(attrs);
       }
-      else if (currentAttrType == IppTag::PrinterAttrs)
+      else if(currentAttrType == IppTag::PrinterAttrs)
       {
         _printerAttrs = attrs;
       }
-      else if (currentAttrType == IppTag::UnsupportedAttrs)
+      else if(currentAttrType == IppTag::UnsupportedAttrs)
       {
 #ifndef FUZZ // Too much spam for fuzzing
         std::cerr << "WARNING: unsupported attrs reported: " << std::endl
@@ -90,12 +90,14 @@ Bytestream IppMsg::encode() const
   encodeAttributes(ipp, opAttrs);
   for(const IppAttrs& attrs : _jobAttrs)
   {
-    if (!attrs.empty()) {
+    if(!attrs.empty())
+    {
       ipp << (uint8_t)IppTag::JobAttrs;
       encodeAttributes(ipp, attrs);
     }
   }
-  if (!_printerAttrs.empty()) {
+  if(!_printerAttrs.empty())
+  {
     ipp << (uint8_t)IppTag::PrinterAttrs;
     encodeAttributes(ipp, _printerAttrs);
   }
@@ -130,7 +132,7 @@ IppAttrs IppMsg::baseOpAttrs(std::string url)
 
 IppValue IppMsg::decodeValue(IppTag tag, Bytestream& data) const
 {
-  switch (tag)
+  switch(tag)
   {
     case IppTag::OpAttrs:
     case IppTag::JobAttrs:
@@ -437,7 +439,8 @@ void IppMsg::encodeValue(Bytestream& msg, IppTag tag, const IppValue& val) const
   }
 }
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size)
+{
   Bytestream bts(Data, Size);
   try
   {

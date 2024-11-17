@@ -7,7 +7,7 @@
 
 #include <filesystem>
 
-IppPrinter::IppPrinter(std::string addr, bool ignoreSslErrors) : _addr(addr),  _ignoreSslErrors(ignoreSslErrors)
+IppPrinter::IppPrinter(std::string addr, bool ignoreSslErrors) : _addr(addr), _ignoreSslErrors(ignoreSslErrors)
 {
   _error = refresh();
 }
@@ -505,12 +505,12 @@ Error IppPrinter::_doRequest(const IppMsg& req, IppMsg& resp)
   Error error;
 
   DBG(<< "RERQUEST IPP operation: " << req.getStatus());
-  DBG(<< "Operation attrs: "  << req.getOpAttrs().toJSON().dump());
+  DBG(<< "Operation attrs: " << req.getOpAttrs().toJSON().dump());
   for(const IppAttrs& jobAttrs : req.getJobAttrs())
   {
-      DBG(<< "Job attrs: "  << jobAttrs.toJSON().dump());
+      DBG(<< "Job attrs: " << jobAttrs.toJSON().dump());
   }
-  DBG(<< "Printer attrs: "  << req.getPrinterAttrs().toJSON().dump());
+  DBG(<< "Printer attrs: " << req.getPrinterAttrs().toJSON().dump());
 
   CurlIppPoster reqPoster(_addr, req.encode(), _ignoreSslErrors);
   Bytestream respBts;
@@ -521,12 +521,12 @@ Error IppPrinter::_doRequest(const IppMsg& req, IppMsg& resp)
     {
       resp = IppMsg(respBts);
       DBG(<< "RESPONSE IPP status: " << resp.getStatus());
-      DBG(<< "Operation attrs: "  << resp.getOpAttrs().toJSON().dump());
+      DBG(<< "Operation attrs: " << resp.getOpAttrs().toJSON().dump());
       for(const IppAttrs& jobAttrs : resp.getJobAttrs())
       {
-          DBG(<< "Job attrs: "  << jobAttrs.toJSON().dump());
+          DBG(<< "Job attrs: " << jobAttrs.toJSON().dump());
       }
-      DBG(<< "Printer attrs: "  << resp.getPrinterAttrs().toJSON().dump());
+      DBG(<< "Printer attrs: " << resp.getPrinterAttrs().toJSON().dump());
     }
     catch(const std::exception& e)
     {

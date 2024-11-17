@@ -181,14 +181,14 @@ void IppDiscovery::update()
 
   for(std::string it : _ippsPtrs)
   {
-    if(!_targets.contains(it) || !_ports.contains(it) || !_rps.contains(it))
+    if(!_targets.contains(it) || !_ports.contains(it) || !(_TXTs.contains(it) && _TXTs[it].contains("rp")))
     {
       continue;
     }
 
     uint16_t port = _ports.at(it);
     target = _targets.at(it);
-    rp = _rps.at(it);
+    rp = _TXTs.at(it).at("rp");
 
     if(_As.contains(target))
     {
@@ -207,14 +207,14 @@ void IppDiscovery::update()
 
   for(std::string it : _ippPtrs)
   {
-    if(!_targets.contains(it) || !_ports.contains(it) || !_rps.contains(it))
+    if(!_targets.contains(it) || !_ports.contains(it) || !(_TXTs.contains(it) && _TXTs[it].contains("rp")))
     {
       continue;
     }
 
     uint16_t port = _ports.at(it);
     target = _targets.at(it);
-    rp = _rps.at(it);
+    rp = _TXTs.at(it).at("rp");
 
     if(_As.contains(target))
     {
@@ -244,7 +244,7 @@ void IppDiscovery::updateAndQueryPtrs(List<std::string>& ptrs, List<std::string>
       ptrs.push_back(ptr);
     }
     // If pointer does not resolve to a target or is missing information, query about it
-    if(!_rps.contains(ptr))
+    if(!_TXTs.contains(ptr))
     {
       // Avahi *really* hates sending TXT to anything else than a TXT query
       sendQuery(TXT, {ptr});
@@ -312,16 +312,11 @@ void IppDiscovery::discover()
           {
             while(resp.pos() < pos_before+len)
             {
-              uint8_t len = resp.get<uint8_t>();
-              if(resp >>= std::string("rp="))
-              {
-                std::string tmprp = resp.getString(len - 3);
-                _rps[aaddr] = tmprp;
-              }
-              else
-              {
-                resp += len;
-              }
+              std::string txt = resp.getString(resp.get<uint8_t>());
+              size_t pos = txt.find("=");
+              std::string key = txt.substr(0, pos);
+              std::string value = txt.substr(pos+1);
+              _TXTs[aaddr][key] = value;
             }
             break;
           }
@@ -367,7 +362,7 @@ void IppDiscovery::discover()
     DBG(<< "new ipps ptrs: " << newIppsPtrs);
     DBG(<< "ipp ptrs: " << _ippPtrs);
     DBG(<< "ipps ptrs: " << _ippsPtrs);
-    DBG(<< "rps: " << _rps);
+    DBG(<< "TXTs: " << _TXTs);
     DBG(<< "ports: " << _ports);
     DBG(<< "new targets: " << newTargets);
     DBG(<< "targets: " << _targets);

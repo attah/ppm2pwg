@@ -35,7 +35,7 @@ private:
   List<std::string> _ippPtrs;
   List<std::string> _ippsPtrs;
 
-  Map<std::string, std::string> _rps;
+  Map<std::string, Map<std::string, std::string>> _TXTs;
   Map<std::string, uint16_t> _ports;
   Map<std::string, std::string> _targets;
 

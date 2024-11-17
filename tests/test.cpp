@@ -1,7 +1,7 @@
 #include "bytestream.h"
 #include "test.h"
 #include "subprocess.hpp"
-#include "PwgPgHdr.h"
+#include "pwgpghdr.h"
 #include "pwg2ppm.h"
 #include "printparameters.h"
 #include "argget.h"

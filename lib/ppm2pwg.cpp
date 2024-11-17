@@ -3,8 +3,8 @@
 #include "array.h"
 #include "log.h"
 
-#include "PwgPgHdr.h"
-#include "UrfPgHdr.h"
+#include "pwgpghdr.h"
+#include "urfpghdr.h"
 
 #include <iostream>
 #include <map>
@@ -65,7 +65,7 @@ void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts, size_t page, const Print
     }
 
     outBts << lineRepeat;
-    if(backside&&params.getBackHFlip())
+    if(backside && params.getBackHFlip())
     {
       // Flip line into tmp buffer
       if(params.getBitsPerColor() == 1)
@@ -162,7 +162,7 @@ void compress_line(uint8_t* raw, size_t len, Bytestream& outBts, int colors)
   }
 }
 
-static std::map<std::string, UrfPgHdr::MediaType_enum>
+static const std::map<std::string, UrfPgHdr::MediaType_enum>
   UrfMediaTypeMappings {{"auto", UrfPgHdr::AutomaticMediaType},
                         {"stationery", UrfPgHdr::Stationery},
                         {"transparency", UrfPgHdr::Transparency},
@@ -187,6 +187,14 @@ void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backsi
 {
   PwgPgHdr outHdr;
 
+  static const std::map<PrintParameters::ColorMode, PwgPgHdr::ColorSpace_enum>
+    pwgColorSpaceMappings {{PrintParameters::sRGB24, PwgPgHdr::sRGB},
+                           {PrintParameters::CMYK32, PwgPgHdr::CMYK},
+                           {PrintParameters::Gray8, PwgPgHdr::sGray},
+                           {PrintParameters::Black8, PwgPgHdr::Black},
+                           {PrintParameters::Gray1, PwgPgHdr::sGray},
+                           {PrintParameters::Black1, PwgPgHdr::Black}};
+
   outHdr.MediaType = params.mediaType;
   outHdr.Duplex = params.isTwoSided();
   outHdr.HWResolutionX = params.hwResW;
@@ -201,14 +209,11 @@ void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backsi
   outHdr.BitsPerColor = params.getBitsPerColor();
   outHdr.BitsPerPixel = params.getNumberOfColors() * outHdr.BitsPerColor;
   outHdr.BytesPerLine = params.getPaperSizeWInBytes();
-  outHdr.ColorSpace = params.colorMode == PrintParameters::CMYK32 ? PwgPgHdr::CMYK
-                    : params.colorMode == PrintParameters::sRGB24 ? PwgPgHdr::sRGB
-                    : params.isBlack() ? PwgPgHdr::Black
-                    : PwgPgHdr::sGray;
+  outHdr.ColorSpace = pwgColorSpaceMappings.at(params.colorMode);
   outHdr.NumColors = params.getNumberOfColors();
   outHdr.TotalPageCount = 0;
-  outHdr.CrossFeedTransform = backside&&params.getBackHFlip() ? -1 : 1;
-  outHdr.FeedTransform = backside&&params.getBackVFlip() ? -1 : 1;
+  outHdr.CrossFeedTransform = backside && params.getBackHFlip() ? -1 : 1;
+  outHdr.FeedTransform = backside && params.getBackVFlip() ? -1 : 1;
   outHdr.AlternatePrimary = 0x00ffffff;
   outHdr.setPrintQuality(params.quality);
   outHdr.PageSizeName = params.paperSizeName;
@@ -222,19 +227,24 @@ void make_urf_hdr(Bytestream& outBts, const PrintParameters& params)
 {
   if(params.hwResW != params.hwResH)
   {
-    exit(2);
+    throw std::logic_error("Asymmetric URF resolution");
   }
 
   UrfPgHdr outHdr;
 
+  static const std::map<PrintParameters::ColorMode, UrfPgHdr::ColorSpace_enum>
+    urfColorSpaceMappings {{PrintParameters::sRGB24, UrfPgHdr::sRGB},
+                           {PrintParameters::CMYK32, UrfPgHdr::CMYK},
+                           {PrintParameters::Gray8, UrfPgHdr::sGray}};
+
+  static const std::map<PrintParameters::DuplexMode, UrfPgHdr::Duplex_enum>
+    urfDuplexMappings {{PrintParameters::OneSided, UrfPgHdr::OneSided},
+                       {PrintParameters::TwoSidedLongEdge, UrfPgHdr::TwoSidedLongEdge},
+                       {PrintParameters::TwoSidedShortEdge, UrfPgHdr::TwoSidedShortEdge}};
+
   outHdr.BitsPerPixel = 8*params.getNumberOfColors();
-  outHdr.ColorSpace = params.colorMode == PrintParameters::CMYK32 ? UrfPgHdr::CMYK
-                    : params.colorMode == PrintParameters::sRGB24 ? UrfPgHdr::sRGB
-                    : UrfPgHdr::sGray;
-  outHdr.Duplex = params.isTwoSided() ? (params.duplexMode == PrintParameters::TwoSidedShortEdge
-                                             ? UrfPgHdr::ShortSide
-                                             : UrfPgHdr::LongSide)
-                                      : UrfPgHdr::NoDuplex;
+  outHdr.ColorSpace = urfColorSpaceMappings.at(params.colorMode);
+  outHdr.Duplex = urfDuplexMappings.at(params.duplexMode);
   outHdr.setQuality(params.quality);
   outHdr.MediaType = params.mediaType == "" ? UrfPgHdr::AutomaticMediaType
                                             : UrfMediaTypeMappings.at(params.mediaType);

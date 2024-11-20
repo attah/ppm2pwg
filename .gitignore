@@ -1,6 +1,9 @@
+.vscode
 *.o
 tests/test
 tests/*.o
+tests/_test_pdf2printable_16x9_*
+tests/_test_pdf2printable_4x3_*
 ppm2pwg
 pwg2ppm
 pdf2printable
@@ -10,3 +13,6 @@ baselinify
 baselinify_mad
 ippclient
 minimime
+bsplit
+ippdecode
+ippdiscover

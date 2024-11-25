@@ -44,7 +44,7 @@ hexdump: bytestream.o hexdump.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 baselinify: bytestream.o baselinify.o baselinify_main.o
-	$(CXX) $^ -ljpeg $(LDFLAGS) -o $@
+	$(CXX) $^ $(shell pkg-config --libs libjpeg) $(LDFLAGS) -o $@
 
 baselinify_mad: bytestream.o baselinify_mad.o baselinify_main.o
 	$(CXX) $^ -ldl -o $@
@@ -56,7 +56,7 @@ bsplit: bytestream.o bsplit.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 ippclient: ippmsg.o ippattr.o ippprinter.o ippprintjob.o printparameters.o ippclient.o json11.o curlrequester.o minimime.o pdf2printable.o ppm2pwg.o baselinify.o bytestream.o
-	$(CXX) $^ $(shell pkg-config --libs poppler-glib) -ljpeg -lcurl -lz -lpthread $(LDFLAGS) -o $@
+	$(CXX) $^ $(shell pkg-config --libs poppler-glib) $(shell pkg-config --libs libjpeg) -lcurl -lz -lpthread $(LDFLAGS) -o $@
 
 minimime: minimime_main.o minimime.o bytestream.o
 	$(CXX) $^ $(LDFLAGS) -o $@

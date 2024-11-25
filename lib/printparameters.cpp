@@ -229,16 +229,28 @@ bool PrintParameters::setPageRange(const std::string& rangeStr)
   return !pageRangeList.empty();
 }
 
+double from_string(std::string str)
+{
+  size_t dotAt = str.find(".");
+  double res = std::stoul(str.substr(0, dotAt));
+  if(dotAt != std::string::npos)
+  {
+    std::string decimalString = str.substr(dotAt+1);
+    res += (std::stoul(decimalString) / (pow(10, decimalString.length())));
+  }
+  return res;
+}
+
 bool PrintParameters::setPaperSize(const std::string& sizeStr)
 {
   const std::regex nameRegex("^[0-9a-z_-]+_([0-9]+([.][0-9]+)?)x([0-9]+([.][0-9]+)?)(mm|in)$");
-  std::cmatch match;
+  std::smatch match;
 
-  if(std::regex_match(sizeStr.c_str(), match, nameRegex))
+  if(std::regex_match(sizeStr, match, nameRegex))
   {
     paperSizeName = sizeStr;
-    std::from_chars(match[1].first, match[1].second, paperSizeW);
-    std::from_chars(match[3].first, match[3].second, paperSizeH);
+    paperSizeW = from_string(match[1]);
+    paperSizeH = from_string(match[3]);
     if(match[5] == "in")
     {
       paperSizeUnits = Inches;

@@ -1000,8 +1000,8 @@ TEST(silly_locale_parse_page_size)
 
   ASSERT(params.setPaperSize("fuuuuu_13.37x42.69mm"));
   ASSERT(params.paperSizeName == "fuuuuu_13.37x42.69mm");
-  ASSERT(params.paperSizeW == 13.37);
-  ASSERT(params.paperSizeH == 42.69);
+  ASSERT((double)params.paperSizeW == (double)13.37);
+  ASSERT((float)params.paperSizeH == (float)42.69);
   ASSERT(params.paperSizeUnits == PrintParameters::Millimeters);
 
   std::setlocale(LC_ALL, locale.c_str());

@@ -39,7 +39,7 @@ public:
 
   ssize_t send(Bytestream msg)
   {
-    return sendto(_sock, (const char*)msg.raw(), msg.size(), MSG_CONFIRM,
+    return sendto(_sock, (const char*)msg.raw(), msg.size(), 0,
                   (const sockaddr*)&_servaddr, sizeof(_servaddr));
   }
 

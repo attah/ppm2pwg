@@ -8,9 +8,7 @@
 Available as rudimentary standalone applications, but mainly made for use in [SeaPrint](https://github.com/attah/harbour-seaprint).
 
 ## ppm2pwg
-Takes a pbm, pgm or ppm (P4, P5 or P6 "raw") Netpbm bitmap image and converts to PWG or URF printer raster format.
-
-...or a raw bitmap in the c++ api.
+Takes a pbm, pgm or ppm (P4, P5 or P6 "raw") Netpbm bitmap image and converts to PWG or URF printer raster format. Supports 1, 8 and **16** bits per color.
 
 ## pwg2ppm
 For debugging. Similar to [rasterview](https://github.com/michaelrsweet/rasterview), but without a GUI. Takes a PWG or URF printer raster and outputs a series of P4, P5 or P6 pbm/pgm/ppm images.
@@ -24,7 +22,7 @@ Takes a PDF document and makes it suitable for printing, by:
 
 ## baselinify
 Takes a JPEG and losslessly repacks it to the baseline ecoding profile, keeping only JFIF and Exif headers.
-Sort of like jpegtran without any arguments, but reusable in C++.
+Sort of like jpegtran without any arguments.
 
 IPP-printers are only required to support baseline-encoded jpeg according to PWG5100.14.
 

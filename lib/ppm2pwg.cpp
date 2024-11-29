@@ -10,6 +10,12 @@
 #include <map>
 #include <string.h>
 
+void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backside);
+void make_urf_hdr(Bytestream& outBts, const PrintParameters& params);
+
+void compress_lines(Bytestream& bmpBts, Bytestream& outBts, const PrintParameters& params, bool backside);
+void compress_line(uint8_t* raw, size_t len, Bytestream& outBts, size_t oneChunk);
+
 Bytestream make_pwg_file_hdr()
 {
   Bytestream pwgFileHdr;
@@ -42,21 +48,27 @@ void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts, size_t page, const Print
   size_t yRes = params.getPaperSizeHInPixels();
   uint8_t* raw = bmpBts.raw();
   size_t bytesPerLine = params.getPaperSizeWInBytes();
-  int step = backside&&params.getBackVFlip() ? -bytesPerLine : bytesPerLine;
-  uint8_t* row0 = backside&&params.getBackVFlip() ? raw+(yRes-1)*bytesPerLine : raw;
+  int oneLine = backside && params.getBackVFlip() ? -bytesPerLine : bytesPerLine;
+  uint8_t* row0 = backside && params.getBackVFlip() ? raw + (yRes - 1) * bytesPerLine : raw;
   Array<uint8_t> tmpLine(bytesPerLine);
 
-  for(size_t y=0; y<yRes; y++)
-  {
-    uint8_t* thisLine = row0+y*step;
-    uint8_t lineRepeat = 0;
-    size_t colors = params.getNumberOfColors();
+  size_t colors = params.getNumberOfColors();
+  size_t bpc = params.getBitsPerColor();
+  // A chunk is the unit used for compression.
+  // Usually this is the number of bytes per color times the number of colors,
+  // but for 1-bit, compression is applied in whole bytes.
+  size_t oneChunk = bpc == 1 ? colors : colors * bpc / 8;
 
-    uint8_t* next_line = thisLine + step;
+  for(size_t y = 0; y < yRes; y++)
+  {
+    uint8_t* thisLine = row0 + y * oneLine;
+    uint8_t lineRepeat = 0;
+
+    uint8_t* next_line = thisLine + oneLine;
     while((y+1)<yRes && memcmp(thisLine, next_line, bytesPerLine) == 0)
     {
       y++;
-      next_line += step;
+      next_line += oneLine;
       lineRepeat++;
       if(lineRepeat == 255)
       {
@@ -68,7 +80,7 @@ void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts, size_t page, const Print
     if(backside && params.getBackHFlip())
     {
       // Flip line into tmp buffer
-      if(params.getBitsPerColor() == 1)
+      if(bpc == 1)
       {
         for(size_t i = 0; i < bytesPerLine; i++)
         {
@@ -78,38 +90,40 @@ void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts, size_t page, const Print
       }
       else
       {
-        for(size_t i = 0; i < bytesPerLine; i += colors)
+        uint8_t* lastChunk = thisLine + bytesPerLine - oneChunk;
+        for(size_t i = 0; i < bytesPerLine; i += oneChunk)
         {
-          memcpy(tmpLine+i, thisLine+bytesPerLine-colors-i, colors);
+          memcpy(tmpLine+i, lastChunk-i, oneChunk);
         }
       }
-      compress_line(tmpLine, bytesPerLine, outBts, colors);
+      compress_line(tmpLine, bytesPerLine, outBts, oneChunk);
     }
     else
     {
-      compress_line(thisLine, bytesPerLine, outBts, colors);
+      compress_line(thisLine, bytesPerLine, outBts, oneChunk);
     }
   }
 }
 
-void compress_line(uint8_t* raw, size_t len, Bytestream& outBts, int colors)
+void compress_line(uint8_t* raw, size_t len, Bytestream& outBts, size_t oneChunk)
 {
   uint8_t* current;
   uint8_t* pos = raw;
-  uint8_t* epos = raw+len;
+  uint8_t* epos = raw + len;
+
   while(pos != epos)
   {
     uint8_t* currentStart = pos;
     current = pos;
-    pos += colors;
+    pos += oneChunk;
 
-    if(pos == epos || memcmp(pos, current, colors) == 0)
+    if(pos == epos || memcmp(pos, current, oneChunk) == 0)
     {
       int8_t repeat = 0;
       // Find number of repititions
-      while(pos != epos && memcmp(pos, current, colors) == 0)
+      while(pos != epos && memcmp(pos, current, oneChunk) == 0)
       {
-        pos += colors;
+        pos += oneChunk;
         repeat++;
         if(repeat == 127)
         {
@@ -117,7 +131,7 @@ void compress_line(uint8_t* raw, size_t len, Bytestream& outBts, int colors)
         }
       }
       outBts << repeat;
-      outBts.putBytes(current, colors);
+      outBts.putBytes(current, oneChunk);
     }
     else
     {
@@ -127,14 +141,14 @@ void compress_line(uint8_t* raw, size_t len, Bytestream& outBts, int colors)
       do
       {
         current = pos;
-        pos += colors;
+        pos += oneChunk;
         verbatim++;
         if(verbatim == 127)
         {
           break;
         }
       }
-      while(pos != epos && memcmp(pos, current, colors) != 0);
+      while(pos != epos && memcmp(pos, current, oneChunk) != 0);
 
       // This and the next sequence are equal,
       // assume it starts a repeating sequence.
@@ -148,15 +162,15 @@ void compress_line(uint8_t* raw, size_t len, Bytestream& outBts, int colors)
       // But in order to not lean on that (uint8_t)(256)==0, we have this.
       if(verbatim == 1)
       { // We ended up with one sequence, encode it as such
-        pos = currentStart + colors;
+        pos = currentStart + oneChunk;
         outBts << (uint8_t)0;
-        outBts.putBytes(currentStart, colors);
+        outBts.putBytes(currentStart, oneChunk);
       }
       else
       { // 2 or more non-repeating sequnces
-        pos = currentStart + verbatim*colors;
-        outBts << (uint8_t)(257-verbatim);
-        outBts.putBytes(currentStart, verbatim*colors);
+        pos = currentStart + verbatim * oneChunk;
+        outBts << (uint8_t)(257 - verbatim);
+        outBts.putBytes(currentStart, verbatim * oneChunk);
       }
     }
   }
@@ -193,7 +207,9 @@ void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backsi
                            {PrintParameters::Gray8, PwgPgHdr::sGray},
                            {PrintParameters::Black8, PwgPgHdr::Black},
                            {PrintParameters::Gray1, PwgPgHdr::sGray},
-                           {PrintParameters::Black1, PwgPgHdr::Black}};
+                           {PrintParameters::Black1, PwgPgHdr::Black},
+                           {PrintParameters::sRGB48, PwgPgHdr::sRGB},
+                           {PrintParameters::Gray16, PwgPgHdr::sGray}};
 
   outHdr.MediaType = params.mediaType;
   outHdr.Duplex = params.isTwoSided();
@@ -235,14 +251,16 @@ void make_urf_hdr(Bytestream& outBts, const PrintParameters& params)
   static const std::map<PrintParameters::ColorMode, UrfPgHdr::ColorSpace_enum>
     urfColorSpaceMappings {{PrintParameters::sRGB24, UrfPgHdr::sRGB},
                            {PrintParameters::CMYK32, UrfPgHdr::CMYK},
-                           {PrintParameters::Gray8, UrfPgHdr::sGray}};
+                           {PrintParameters::Gray8, UrfPgHdr::sGray},
+                           {PrintParameters::sRGB48, UrfPgHdr::sRGB},
+                           {PrintParameters::Gray16, UrfPgHdr::sGray}};
 
   static const std::map<PrintParameters::DuplexMode, UrfPgHdr::Duplex_enum>
     urfDuplexMappings {{PrintParameters::OneSided, UrfPgHdr::OneSided},
                        {PrintParameters::TwoSidedLongEdge, UrfPgHdr::TwoSidedLongEdge},
                        {PrintParameters::TwoSidedShortEdge, UrfPgHdr::TwoSidedShortEdge}};
 
-  outHdr.BitsPerPixel = 8*params.getNumberOfColors();
+  outHdr.BitsPerPixel = params.getNumberOfColors() * params.getBitsPerColor();
   outHdr.ColorSpace = urfColorSpaceMappings.at(params.colorMode);
   outHdr.Duplex = urfDuplexMappings.at(params.duplexMode);
   outHdr.setQuality(params.quality);

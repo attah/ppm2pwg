@@ -1,5 +1,6 @@
 .vscode
 *.o
+*.plist
 tests/test
 tests/*.o
 tests/_test_pdf2printable_16x9_*

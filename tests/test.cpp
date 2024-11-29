@@ -1,6 +1,5 @@
 #include "bytestream.h"
 #include "test.h"
-#include "subprocess.hpp"
 #include "pwgpghdr.h"
 #include "pwg2ppm.h"
 #include "printparameters.h"
@@ -11,21 +10,23 @@
 #include "ippprintjob.h"
 #include "json11.hpp"
 #include <cstring>
+#include <filesystem>
 using namespace std;
 using namespace json11;
 
 #define REPEAT(N) (uint8_t)(N-1)
 #define VERBATIM(N) (uint8_t)(257-N)
 
-Bytestream W {(uint8_t)255, (uint8_t)255, (uint8_t)255};
-Bytestream R {(uint8_t)255, (uint8_t)0,   (uint8_t)0};
-Bytestream G {(uint8_t)0,   (uint8_t)255, (uint8_t)0};
-Bytestream B {(uint8_t)0,   (uint8_t)0,   (uint8_t)255};
-Bytestream Y {(uint8_t)255, (uint8_t)255, (uint8_t)0};
-
+template <typename T>
 Bytestream PacmanPpm()
 {
-  Bytestream ppm {string("P6\n8 8\n255\n")};
+  T max = std::numeric_limits<T>::max();
+  Bytestream W {(T)max, (T)max, (T)max};
+  Bytestream R {(T)max, (T)0,   (T)0};
+  Bytestream G {(T)0,   (T)max, (T)0};
+  Bytestream B {(T)0,   (T)0,   (T)max};
+  Bytestream Y {(T)max, (T)max, (T)0};
+  Bytestream ppm {"P6\n8 8\n", to_string(max), "\n"};
   ppm << W << Y << Y << Y << W << W << W << W
       << Y << B << Y << W << W << W << G << W
       << Y << Y << W << W << W << G << G << G
@@ -37,8 +38,15 @@ Bytestream PacmanPpm()
   return ppm;
 }
 
+template <typename T>
 Bytestream RightSideUp()
 {
+  T max = std::numeric_limits<T>::max();
+  Bytestream W {(T)max, (T)max, (T)max};
+  Bytestream R {(T)max, (T)0,   (T)0};
+  Bytestream G {(T)0,   (T)max, (T)0};
+  Bytestream B {(T)0,   (T)0,   (T)max};
+  Bytestream Y {(T)max, (T)max, (T)0};
   Bytestream enc;
   enc << (uint8_t)0 << REPEAT(1) << W << REPEAT(3) << Y << REPEAT(4) << W
       << (uint8_t)0 << VERBATIM(3) << Y << B << Y << REPEAT(3) << W << VERBATIM(2) << G << W
@@ -50,8 +58,15 @@ Bytestream RightSideUp()
       return enc;
 }
 
+template <typename T>
 Bytestream UpsideDown()
 {
+  T max = std::numeric_limits<T>::max();
+  Bytestream W {(T)max, (T)max, (T)max};
+  Bytestream R {(T)max, (T)0,   (T)0};
+  Bytestream G {(T)0,   (T)max, (T)0};
+  Bytestream B {(T)0,   (T)0,   (T)max};
+  Bytestream Y {(T)max, (T)max, (T)0};
   Bytestream enc;
   enc << (uint8_t)1 << REPEAT(8) << R
       << (uint8_t)0 << REPEAT(8) << W
@@ -63,8 +78,15 @@ Bytestream UpsideDown()
       return enc;
 }
 
+template <typename T>
 Bytestream Flipped()
 {
+  T max = std::numeric_limits<T>::max();
+  Bytestream W {(T)max, (T)max, (T)max};
+  Bytestream R {(T)max, (T)0,   (T)0};
+  Bytestream G {(T)0,   (T)max, (T)0};
+  Bytestream B {(T)0,   (T)0,   (T)max};
+  Bytestream Y {(T)max, (T)max, (T)0};
   Bytestream enc;
   enc << (uint8_t)0 << REPEAT(4) << W << REPEAT(3) << Y << REPEAT(1) << W
       << (uint8_t)0 << VERBATIM(2) << W << G << REPEAT(3) << W << VERBATIM(3) << Y << B << Y
@@ -76,8 +98,15 @@ Bytestream Flipped()
       return enc;
 }
 
+template <typename T>
 Bytestream Rotated()
 {
+  T max = std::numeric_limits<T>::max();
+  Bytestream W {(T)max, (T)max, (T)max};
+  Bytestream R {(T)max, (T)0,   (T)0};
+  Bytestream G {(T)0,   (T)max, (T)0};
+  Bytestream B {(T)0,   (T)0,   (T)max};
+  Bytestream Y {(T)max, (T)max, (T)0};
   Bytestream enc;
   enc << (uint8_t)1 << REPEAT(8) << R
       << (uint8_t)0 << REPEAT(8) << W
@@ -147,27 +176,46 @@ Bytestream BilevelPwg0101_Rotated()
   return enc;
 }
 
+Bytestream run_ppm2pwg(List<std::string> args, Bytestream input, std::string tmpfile)
+{
+  std::filesystem::remove(tmpfile);
+  args.push_front("../ppm2pwg");
+  args += {"-", tmpfile};
+  FILE* file = popen(join_string(args, " ").c_str(), "w");
+  fwrite(input.raw(), input.size(), 1, file);
+  pclose(file);
+
+  std::ifstream pwg_ifs(tmpfile);
+  return Bytestream(pwg_ifs);
+}
+
+Bytestream run_pdf2printable(List<std::string> args, std::string infile, std::string outfile)
+{
+  args.push_front("../pdf2printable");
+  args += {infile, outfile};
+  FILE* file = popen(join_string(args, " ").c_str(), "w");
+  pclose(file);
+  std::ifstream pwg_ifs(outfile);
+  return Bytestream(pwg_ifs);
+}
+
 TEST(ppm2pwg)
 {
-  Bytestream ppm = PacmanPpm();
+  Bytestream ppm = PacmanPpm<uint8_t>();
 
   // For sanity, make sure the one on disk is the same as created above
   std::ifstream ppm_ifs("pacman.ppm");
   Bytestream expected_ppm(ppm_ifs);
   ASSERT(ppm == expected_ppm);
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"pacman.ppm", "-"});
-  ppm2pwg.close();
+  Bytestream pwg = run_ppm2pwg({}, ppm, __func__);
 
-  ASSERT(ppm2pwg.wait() == 0);
-
-  Bytestream pwg(ppm2pwg.stdout());
   PwgPgHdr hdr;
 
   ASSERT(pwg >>= "RaS2");
   hdr.decodeFrom(pwg);
 
-  Bytestream enc = RightSideUp();
+  Bytestream enc = RightSideUp<uint8_t>();
 
   ASSERT(pwg >>= enc);
   ASSERT(pwg.atEnd());
@@ -180,134 +228,229 @@ TEST(ppm2pwg)
   ASSERT(pwg == expected_pwg);
 }
 
+TEST(ppm2pwg_16bit)
+{
+  Bytestream ppm = PacmanPpm<uint16_t>();
+  Bytestream pwg = run_ppm2pwg({}, ppm, __func__);
+
+  PwgPgHdr hdr;
+
+  ASSERT(pwg >>= "RaS2");
+  hdr.decodeFrom(pwg);
+
+  Bytestream enc = RightSideUp<uint16_t>();
+
+  ASSERT(pwg >>= enc);
+  ASSERT(pwg.atEnd());
+}
+
 TEST(duplex_normal)
 {
   Bytestream twoSided;
-  twoSided << PacmanPpm() << PacmanPpm();
+  twoSided << PacmanPpm<uint8_t>() << PacmanPpm<uint8_t>();
 
-  setenv("DUPLEX", "true", true);
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-", "-"});
-  ppm2pwg.stdin() << twoSided;
-  ppm2pwg.close();
+  Bytestream pwg = run_ppm2pwg({"-d"}, twoSided, __func__);
 
-  ASSERT(ppm2pwg.wait() == 0);
-
-  Bytestream pwg(ppm2pwg.stdout());
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
-  ASSERT(pwg >>= RightSideUp());
+  ASSERT(pwg >>= RightSideUp<uint8_t>());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == 1);
   ASSERT(hdr2.FeedTransform == 1);
-  ASSERT(pwg >>= RightSideUp());
+  ASSERT(pwg >>= RightSideUp<uint8_t>());
+  ASSERT(pwg.atEnd());
+}
+
+TEST(duplex_normal_16bit)
+{
+  Bytestream twoSided;
+  twoSided << PacmanPpm<uint16_t>() << PacmanPpm<uint16_t>();
+
+  Bytestream pwg = run_ppm2pwg({"-d"}, twoSided, __func__);
+
+  PwgPgHdr hdr1, hdr2;
+
+  ASSERT(pwg >>= "RaS2");
+  hdr1.decodeFrom(pwg);
+  ASSERT(hdr1.CrossFeedTransform == 1);
+  ASSERT(hdr1.FeedTransform == 1);
+  ASSERT(pwg >>= RightSideUp<uint16_t>());
+  hdr2.decodeFrom(pwg);
+  ASSERT(hdr2.CrossFeedTransform == 1);
+  ASSERT(hdr2.FeedTransform == 1);
+  ASSERT(pwg >>= RightSideUp<uint16_t>());
   ASSERT(pwg.atEnd());
 }
 
 TEST(duplex_vflip)
 {
   Bytestream twoSided;
-  twoSided << PacmanPpm() << PacmanPpm();
+  twoSided << PacmanPpm<uint8_t>() << PacmanPpm<uint8_t>();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "flip", "-", "-"});
-  ppm2pwg.stdin() << twoSided;
-  ppm2pwg.close();
+  Bytestream pwg = run_ppm2pwg({"-d", "--back-xform", "flip"}, twoSided, __func__);
 
-  ASSERT(ppm2pwg.wait() == 0);
-
-  Bytestream pwg(ppm2pwg.stdout());
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
-  ASSERT(pwg >>= RightSideUp());
+  ASSERT(pwg >>= RightSideUp<uint8_t>());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == 1);
   ASSERT(hdr2.FeedTransform == -1);
-  ASSERT(pwg >>= UpsideDown());
+  ASSERT(pwg >>= UpsideDown<uint8_t>());
+  ASSERT(pwg.atEnd());
+}
+
+TEST(duplex_vflip_16bit)
+{
+  Bytestream twoSided;
+  twoSided << PacmanPpm<uint16_t>() << PacmanPpm<uint16_t>();
+
+  Bytestream pwg = run_ppm2pwg({"-d", "--back-xform", "flip"}, twoSided, __func__);
+
+  PwgPgHdr hdr1, hdr2;
+
+  ASSERT(pwg >>= "RaS2");
+  hdr1.decodeFrom(pwg);
+  ASSERT(hdr1.CrossFeedTransform == 1);
+  ASSERT(hdr1.FeedTransform == 1);
+  ASSERT(pwg >>= RightSideUp<uint16_t>());
+  hdr2.decodeFrom(pwg);
+  ASSERT(hdr2.CrossFeedTransform == 1);
+  ASSERT(hdr2.FeedTransform == -1);
+  ASSERT(pwg >>= UpsideDown<uint16_t>());
   ASSERT(pwg.atEnd());
 }
 
 TEST(duplex_hflip)
 {
   Bytestream twoSided;
-  twoSided << PacmanPpm() << PacmanPpm();
+  twoSided << PacmanPpm<uint8_t>() << PacmanPpm<uint8_t>();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "-t", "--back-xform", "flip", "-", "-"});
-  ppm2pwg.stdin() << twoSided;
-  ppm2pwg.close();
+  Bytestream pwg = run_ppm2pwg({"-d", "-t", "--back-xform", "flip"}, twoSided, __func__);
 
-  ASSERT(ppm2pwg.wait() == 0);
-
-  Bytestream pwg(ppm2pwg.stdout());
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
-  ASSERT(pwg >>= RightSideUp());
+  ASSERT(pwg >>= RightSideUp<uint8_t>());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == -1);
   ASSERT(hdr2.FeedTransform == 1);
-  ASSERT(pwg >>= Flipped());
+  ASSERT(pwg >>= Flipped<uint8_t>());
+  ASSERT(pwg.atEnd());
+}
+
+TEST(duplex_hflip_16bit)
+{
+  Bytestream twoSided;
+  twoSided << PacmanPpm<uint16_t>() << PacmanPpm<uint16_t>();
+
+  Bytestream pwg = run_ppm2pwg({"-d", "-t", "--back-xform", "flip"}, twoSided, __func__);
+
+  PwgPgHdr hdr1, hdr2;
+
+  ASSERT(pwg >>= "RaS2");
+  hdr1.decodeFrom(pwg);
+  ASSERT(hdr1.CrossFeedTransform == 1);
+  ASSERT(hdr1.FeedTransform == 1);
+  ASSERT(pwg >>= RightSideUp<uint16_t>());
+  hdr2.decodeFrom(pwg);
+  ASSERT(hdr2.CrossFeedTransform == -1);
+  ASSERT(hdr2.FeedTransform == 1);
+  ASSERT(pwg >>= Flipped<uint16_t>());
   ASSERT(pwg.atEnd());
 }
 
 TEST(duplex_rotated)
 {
   Bytestream twoSided;
-  twoSided << PacmanPpm() << PacmanPpm();
+  twoSided << PacmanPpm<uint8_t>() << PacmanPpm<uint8_t>();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "rotate", "-", "-"});
-  ppm2pwg.stdin() << twoSided;
-  ppm2pwg.close();
+  Bytestream pwg = run_ppm2pwg({"-d", "--back-xform", "rotate"}, twoSided, __func__);
 
-  ASSERT(ppm2pwg.wait() == 0);
-
-  Bytestream pwg(ppm2pwg.stdout());
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
-  ASSERT(pwg >>= RightSideUp());
+  ASSERT(pwg >>= RightSideUp<uint8_t>());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == -1);
   ASSERT(hdr2.FeedTransform == -1);
-  ASSERT(pwg >>= Rotated());
+  ASSERT(pwg >>= Rotated<uint8_t>());
+  ASSERT(pwg.atEnd());
+}
+
+TEST(duplex_rotated_16bit)
+{
+  Bytestream twoSided;
+  twoSided << PacmanPpm<uint16_t>() << PacmanPpm<uint16_t>();
+
+  Bytestream pwg = run_ppm2pwg({"-d", "--back-xform", "rotate"}, twoSided, __func__);
+
+  PwgPgHdr hdr1, hdr2;
+
+  ASSERT(pwg >>= "RaS2");
+  hdr1.decodeFrom(pwg);
+  ASSERT(hdr1.CrossFeedTransform == 1);
+  ASSERT(hdr1.FeedTransform == 1);
+  ASSERT(pwg >>= RightSideUp<uint16_t>());
+  hdr2.decodeFrom(pwg);
+  ASSERT(hdr2.CrossFeedTransform == -1);
+  ASSERT(hdr2.FeedTransform == -1);
+  ASSERT(pwg >>= Rotated<uint16_t>());
   ASSERT(pwg.atEnd());
 }
 
 TEST(two_pages_no_duplex)
 {
   Bytestream twoSided;
-  twoSided << PacmanPpm() << PacmanPpm();
+  twoSided << PacmanPpm<uint8_t>() << PacmanPpm<uint8_t>();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"--back-xform", "rotate", "-", "-"});
-  ppm2pwg.stdin() << twoSided;
-  ppm2pwg.close();
+  Bytestream pwg = run_ppm2pwg({"--back-xform", "flip"}, twoSided, __func__);
 
-  ASSERT(ppm2pwg.wait() == 0);
-
-  Bytestream pwg(ppm2pwg.stdout());
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
-  ASSERT(pwg >>= RightSideUp());
+  ASSERT(pwg >>= RightSideUp<uint8_t>());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == 1);
   ASSERT(hdr2.FeedTransform == 1);
-  ASSERT(pwg >>= RightSideUp());
+  ASSERT(pwg >>= RightSideUp<uint8_t>());
+  ASSERT(pwg.atEnd());
+}
+
+TEST(two_pages_no_duplex_16bit)
+{
+  Bytestream twoSided;
+  twoSided << PacmanPpm<uint16_t>() << PacmanPpm<uint16_t>();
+
+  Bytestream pwg = run_ppm2pwg({"--back-xform", "flip"}, twoSided, __func__);
+
+  PwgPgHdr hdr1, hdr2;
+
+  ASSERT(pwg >>= "RaS2");
+  hdr1.decodeFrom(pwg);
+  ASSERT(hdr1.CrossFeedTransform == 1);
+  ASSERT(hdr1.FeedTransform == 1);
+  ASSERT(pwg >>= RightSideUp<uint16_t>());
+  hdr2.decodeFrom(pwg);
+  ASSERT(hdr2.CrossFeedTransform == 1);
+  ASSERT(hdr2.FeedTransform == 1);
+  ASSERT(pwg >>= RightSideUp<uint16_t>());
   ASSERT(pwg.atEnd());
 }
 
@@ -315,13 +458,7 @@ TEST(bilevel)
 {
   Bytestream P4 = P4_0101();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-", "-"});
-  ppm2pwg.stdin() << P4;
-  ppm2pwg.close();
-
-  ASSERT(ppm2pwg.wait() == 0);
-
-  Bytestream pwg(ppm2pwg.stdout());
+  Bytestream pwg = run_ppm2pwg({}, P4, __func__);
 
   PwgPgHdr hdr1;
   ASSERT(pwg >>= "RaS2");
@@ -336,13 +473,8 @@ TEST(bilevel_vflip)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "flip", "-", "-"});
-  ppm2pwg.stdin() << twoSided;
-  ppm2pwg.close();
+  Bytestream pwg = run_ppm2pwg({"-d", "--back-xform", "flip"}, twoSided, __func__);
 
-  ASSERT(ppm2pwg.wait() == 0);
-
-  Bytestream pwg(ppm2pwg.stdout());
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
@@ -362,13 +494,8 @@ TEST(bilevel_hflip)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "-t", "--back-xform", "flip", "-", "-"});
-  ppm2pwg.stdin() << twoSided;
-  ppm2pwg.close();
+  Bytestream pwg = run_ppm2pwg({"-d", "-t", "--back-xform", "flip"}, twoSided, __func__);
 
-  ASSERT(ppm2pwg.wait() == 0);
-
-  Bytestream pwg(ppm2pwg.stdout());
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
@@ -389,13 +516,8 @@ TEST(bilevel_rotated)
   Bytestream twoSided;
   twoSided << P4_0101() << P4_0101();
 
-  subprocess::popen ppm2pwg("../ppm2pwg", {"-d", "--back-xform", "rotate", "-", "-"});
-  ppm2pwg.stdin() << twoSided;
-  ppm2pwg.close();
+  Bytestream pwg = run_ppm2pwg({"-d", "--back-xform", "rotate"}, twoSided, __func__);
 
-  ASSERT(ppm2pwg.wait() == 0);
-
-  Bytestream pwg(ppm2pwg.stdout());
   PwgPgHdr hdr1, hdr2;
 
   ASSERT(pwg >>= "RaS2");
@@ -420,17 +542,9 @@ bool close_enough(int a, int b, unsigned int precision)
 
 void do_test_centering(const char* test_name, std::string filename, bool asymmetric)
 {
-  subprocess::popen pdf2printable("../pdf2printable",
-                                  {"--format", "pwg",
-                                   "-rx", "300",
-                                   "-ry", asymmetric ? "600" : "300",
-                                   filename, test_name});
-  pdf2printable.close();
-  ASSERT(pdf2printable.wait() == 0);
 
-  std::ifstream ifs(test_name, std::ios::in | std::ios::binary);
-  Bytestream pwg(ifs);
-
+  Bytestream pwg = run_pdf2printable({"--format", "pwg", "-rx", "300", "-ry", asymmetric ? "600" : "300"},
+                                     filename, test_name);
   ASSERT(pwg.size() != 0);
 
   ASSERT(pwg >>= "RaS2");
@@ -1015,31 +1129,34 @@ TEST(color_mode)
   ASSERT(params.getNumberOfColors() == 3);
   ASSERT(params.getBitsPerColor() == 8);
   ASSERT(params.isBlack() == false);
-  params = PrintParameters();
   params.colorMode = PrintParameters::CMYK32;
   ASSERT(params.getNumberOfColors() == 4);
   ASSERT(params.getBitsPerColor() == 8);
   ASSERT(params.isBlack() == false);
-  params = PrintParameters();
   params.colorMode = PrintParameters::Gray8;
   ASSERT(params.getNumberOfColors() == 1);
   ASSERT(params.getBitsPerColor() == 8);
   ASSERT(params.isBlack() == false);
-  params = PrintParameters();
   params.colorMode = PrintParameters::Black8;
   ASSERT(params.getNumberOfColors() == 1);
   ASSERT(params.getBitsPerColor() == 8);
   ASSERT(params.isBlack() == true);
-  params = PrintParameters();
   params.colorMode = PrintParameters::Gray1;
   ASSERT(params.getNumberOfColors() == 1);
   ASSERT(params.getBitsPerColor() == 1);
   ASSERT(params.isBlack() == false);
-  params = PrintParameters();
   params.colorMode = PrintParameters::Black1;
   ASSERT(params.getNumberOfColors() == 1);
   ASSERT(params.getBitsPerColor() == 1);
   ASSERT(params.isBlack() == true);
+  params.colorMode = PrintParameters::sRGB48;
+  ASSERT(params.getNumberOfColors() == 3);
+  ASSERT(params.getBitsPerColor() == 16);
+  ASSERT(params.isBlack() == false);
+  params.colorMode = PrintParameters::Gray16;
+  ASSERT(params.getNumberOfColors() == 1);
+  ASSERT(params.getBitsPerColor() == 16);
+  ASSERT(params.isBlack() == false);
 }
 
 TEST(argget)

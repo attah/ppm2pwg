@@ -110,14 +110,18 @@ double PrintParameters::getPaperSizeHInPoints() const
 
 size_t PrintParameters::getPaperSizeWInBytes() const
 {
-  if(getBitsPerColor() == 1)
+  if(getBitsPerColor() == 1 && getNumberOfColors() == 1)
   {
     // Round up to whole bytes
-    return getNumberOfColors() * ((getPaperSizeWInPixels() + 7) / 8);
+    return (getPaperSizeWInPixels() + 7) / 8;
+  }
+  else if(getBitsPerColor() % 8 == 0)
+  {
+    return getPaperSizeWInPixels() * getNumberOfColors() * (getBitsPerColor() / 8);
   }
   else
   {
-    return getNumberOfColors() * (getPaperSizeWInPixels() / (8 / getBitsPerColor()));
+    throw(std::logic_error("Unhandled color and bit depth combination"));
   }
 }
 
@@ -272,6 +276,8 @@ bool PrintParameters::isBlack() const
     case CMYK32:
     case Gray8:
     case Gray1:
+    case sRGB48:
+    case Gray16:
       return false;
     case Black8:
     case Black1:
@@ -286,6 +292,7 @@ size_t PrintParameters::getNumberOfColors() const
   switch(colorMode)
   {
     case sRGB24:
+    case sRGB48:
       return 3;
     case CMYK32:
       return 4;
@@ -293,6 +300,7 @@ size_t PrintParameters::getNumberOfColors() const
     case Black8:
     case Gray1:
     case Black1:
+    case Gray16:
       return 1;
     default:
       throw(std::logic_error("Unknown color mode"));
@@ -311,6 +319,9 @@ size_t PrintParameters::getBitsPerColor() const
     case Gray1:
     case Black1:
       return 1;
+    case sRGB48:
+    case Gray16:
+      return 16;
     default:
       throw(std::logic_error("Unknown color mode"));
   }

@@ -300,6 +300,10 @@ void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameter
       }
       break;
     }
+    default:
+    {
+      throw std::logic_error("Unhandled color mode");
+    }
   }
 }
 

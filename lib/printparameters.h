@@ -32,7 +32,9 @@ public:
     Gray8,
     Black8,
     Gray1,
-    Black1
+    Black1,
+    sRGB48,
+    Gray16
   };
 
   enum Quality

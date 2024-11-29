@@ -1,7 +1,7 @@
 LDFLAGS = -ldl -Wl,--export-dynamic -lcurl -ljpeg $(shell pkg-config --libs poppler-glib) -lz
 CXXFLAGS = -std=c++17 -g -pedantic -Wall -Werror -Wextra -I ../lib -I ../json11 -I ../bytestream \
 $(shell pkg-config --cflags poppler-glib)
-TEST_INCLUDES = -I ../lib -I ../bytestream/minitest -I ../bytestream/minitest/tests
+TEST_INCLUDES = -I ../lib -I ../bytestream/minitest
 
 VPATH = ../bytestream ../lib ../json11
 

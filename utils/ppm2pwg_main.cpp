@@ -181,21 +181,50 @@ int main(int argc, char** argv)
     if(p == "P6")
     {
       inFile >> r;
-      params.colorMode = PrintParameters::sRGB24;
+      if(r == "255")
+      {
+        params.colorMode = PrintParameters::sRGB24;
+      }
+      else if(r == "65535")
+      {
+        params.colorMode = PrintParameters::sRGB48;
+      }
+      else
+      {
+        std::cerr << "Only 255 and 65535 bit-depths supported, got " << r << std::endl;
+        return 1;
+      }
     }
     else if(p == "P5")
     {
       inFile >> r;
-      params.colorMode = PrintParameters::Gray8;
+      if(r == "255")
+      {
+        params.colorMode = PrintParameters::Gray8;
+      }
+      else if(r == "65535")
+      {
+        params.colorMode = PrintParameters::Gray16;
+      }
+      else
+      {
+        std::cerr << "Only 255 and 65535 bit-depths supported, got " << r << std::endl;
+        return 1;
+      }
     }
     else if(p == "P4")
     {
       r = "1";
       params.colorMode = PrintParameters::Black1;
-      size_t x = stoi(xs);
+      size_t x = stoul(xs);
       if(x % 8 != 0)
       {
         std::cerr << "Only whole-byte width P4 PBMs supported, got " << x << std::endl;
+        return 1;
+      }
+      if(params.format == PrintParameters::URF)
+      {
+        std::cerr << "URF does not support 1-bit (P4/pbm) color." << std::endl;
         return 1;
       }
     }
@@ -210,8 +239,8 @@ int main(int argc, char** argv)
 
     DBG(<< "Found: " << p << " " << xs << "x" << ys << " " << r);
 
-    params.paperSizeW = stoi(xs);
-    params.paperSizeH = stoi(ys);
+    params.paperSizeW = stoul(xs);
+    params.paperSizeH = stoul(ys);
 
     size_t size = params.paperSizeH*params.getPaperSizeWInBytes();
     bmpBts = Bytestream(inFile, size);

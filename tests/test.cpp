@@ -244,6 +244,18 @@ TEST(ppm2pwg_16bit)
   ASSERT(pwg.atEnd());
 }
 
+template <typename T>
+void basic_pacman_asserts(const PwgPgHdr& hdr)
+{
+  ASSERT(hdr.Width == 8);
+  ASSERT(hdr.Height == 8);
+  ASSERT(hdr.BitsPerColor == 8 * sizeof(T));
+  ASSERT(hdr.BitsPerPixel == 3 * 8 * sizeof(T));
+  ASSERT(hdr.BytesPerLine == 3 * 8 * sizeof(T));
+  ASSERT(hdr.ColorSpace == PwgPgHdr::sRGB);
+  ASSERT(hdr.NumColors == 3);
+}
+
 TEST(duplex_normal)
 {
   Bytestream twoSided;
@@ -255,12 +267,16 @@ TEST(duplex_normal)
 
   ASSERT(pwg >>= "RaS2");
   hdr1.decodeFrom(pwg);
+  ASSERT(hdr1.Duplex == true);
+  ASSERT(hdr1.Tumble == false);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
+  basic_pacman_asserts<uint8_t>(hdr1);
   ASSERT(pwg >>= RightSideUp<uint8_t>());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == 1);
   ASSERT(hdr2.FeedTransform == 1);
+  basic_pacman_asserts<uint8_t>(hdr2);
   ASSERT(pwg >>= RightSideUp<uint8_t>());
   ASSERT(pwg.atEnd());
 }
@@ -278,10 +294,12 @@ TEST(duplex_normal_16bit)
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
+  basic_pacman_asserts<uint16_t>(hdr1);
   ASSERT(pwg >>= RightSideUp<uint16_t>());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == 1);
   ASSERT(hdr2.FeedTransform == 1);
+  basic_pacman_asserts<uint16_t>(hdr2);
   ASSERT(pwg >>= RightSideUp<uint16_t>());
   ASSERT(pwg.atEnd());
 }
@@ -299,10 +317,12 @@ TEST(duplex_vflip)
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
+  basic_pacman_asserts<uint8_t>(hdr1);
   ASSERT(pwg >>= RightSideUp<uint8_t>());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == 1);
   ASSERT(hdr2.FeedTransform == -1);
+  basic_pacman_asserts<uint8_t>(hdr2);
   ASSERT(pwg >>= UpsideDown<uint8_t>());
   ASSERT(pwg.atEnd());
 }
@@ -320,10 +340,12 @@ TEST(duplex_vflip_16bit)
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
+  basic_pacman_asserts<uint16_t>(hdr1);
   ASSERT(pwg >>= RightSideUp<uint16_t>());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == 1);
   ASSERT(hdr2.FeedTransform == -1);
+  basic_pacman_asserts<uint16_t>(hdr2);
   ASSERT(pwg >>= UpsideDown<uint16_t>());
   ASSERT(pwg.atEnd());
 }
@@ -341,10 +363,12 @@ TEST(duplex_hflip)
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
+  basic_pacman_asserts<uint8_t>(hdr1);
   ASSERT(pwg >>= RightSideUp<uint8_t>());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == -1);
   ASSERT(hdr2.FeedTransform == 1);
+  basic_pacman_asserts<uint8_t>(hdr2);
   ASSERT(pwg >>= Flipped<uint8_t>());
   ASSERT(pwg.atEnd());
 }
@@ -362,10 +386,12 @@ TEST(duplex_hflip_16bit)
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
+  basic_pacman_asserts<uint16_t>(hdr1);
   ASSERT(pwg >>= RightSideUp<uint16_t>());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == -1);
   ASSERT(hdr2.FeedTransform == 1);
+  basic_pacman_asserts<uint16_t>(hdr2);
   ASSERT(pwg >>= Flipped<uint16_t>());
   ASSERT(pwg.atEnd());
 }
@@ -383,10 +409,12 @@ TEST(duplex_rotated)
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
+  basic_pacman_asserts<uint8_t>(hdr1);
   ASSERT(pwg >>= RightSideUp<uint8_t>());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == -1);
   ASSERT(hdr2.FeedTransform == -1);
+  basic_pacman_asserts<uint8_t>(hdr2);
   ASSERT(pwg >>= Rotated<uint8_t>());
   ASSERT(pwg.atEnd());
 }
@@ -404,10 +432,12 @@ TEST(duplex_rotated_16bit)
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
+  basic_pacman_asserts<uint16_t>(hdr1);
   ASSERT(pwg >>= RightSideUp<uint16_t>());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == -1);
   ASSERT(hdr2.FeedTransform == -1);
+  basic_pacman_asserts<uint16_t>(hdr2);
   ASSERT(pwg >>= Rotated<uint16_t>());
   ASSERT(pwg.atEnd());
 }
@@ -425,10 +455,12 @@ TEST(two_pages_no_duplex)
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
+  basic_pacman_asserts<uint8_t>(hdr1);
   ASSERT(pwg >>= RightSideUp<uint8_t>());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == 1);
   ASSERT(hdr2.FeedTransform == 1);
+  basic_pacman_asserts<uint8_t>(hdr2);
   ASSERT(pwg >>= RightSideUp<uint8_t>());
   ASSERT(pwg.atEnd());
 }
@@ -446,12 +478,25 @@ TEST(two_pages_no_duplex_16bit)
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
+  basic_pacman_asserts<uint16_t>(hdr1);
   ASSERT(pwg >>= RightSideUp<uint16_t>());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == 1);
   ASSERT(hdr2.FeedTransform == 1);
+  basic_pacman_asserts<uint16_t>(hdr2);
   ASSERT(pwg >>= RightSideUp<uint16_t>());
   ASSERT(pwg.atEnd());
+}
+
+void basic_bilevel_asserts(const PwgPgHdr& hdr)
+{
+  ASSERT(hdr.Width == 24);
+  ASSERT(hdr.Height == 8);
+  ASSERT(hdr.BitsPerColor == 1);
+  ASSERT(hdr.BitsPerPixel == 1);
+  ASSERT(hdr.BytesPerLine == 3);
+  ASSERT(hdr.ColorSpace == PwgPgHdr::Black);
+  ASSERT(hdr.NumColors == 1);
 }
 
 TEST(bilevel)
@@ -465,6 +510,7 @@ TEST(bilevel)
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
+  basic_bilevel_asserts(hdr1);
   ASSERT(pwg >>= BilevelPwg0101());
 }
 
@@ -481,10 +527,12 @@ TEST(bilevel_vflip)
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
+  basic_bilevel_asserts(hdr1);
   ASSERT(pwg >>= BilevelPwg0101());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == 1);
   ASSERT(hdr2.FeedTransform == -1);
+  basic_bilevel_asserts(hdr2);
   ASSERT(pwg >>= BilevelPwg0101_UpsideDown());
   ASSERT(pwg.atEnd());
 }
@@ -502,11 +550,12 @@ TEST(bilevel_hflip)
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
+  basic_bilevel_asserts(hdr1);
   ASSERT(pwg >>= BilevelPwg0101());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == -1);
   ASSERT(hdr2.FeedTransform == 1);
-
+  basic_bilevel_asserts(hdr2);
   ASSERT(pwg >>= BilevelPwg0101_Flipped());
   ASSERT(pwg.atEnd());
 }
@@ -524,11 +573,12 @@ TEST(bilevel_rotated)
   hdr1.decodeFrom(pwg);
   ASSERT(hdr1.CrossFeedTransform == 1);
   ASSERT(hdr1.FeedTransform == 1);
+  basic_bilevel_asserts(hdr1);
   ASSERT(pwg >>= BilevelPwg0101());
   hdr2.decodeFrom(pwg);
   ASSERT(hdr2.CrossFeedTransform == -1);
   ASSERT(hdr2.FeedTransform == -1);
-
+  basic_bilevel_asserts(hdr2);
   ASSERT(pwg >>= BilevelPwg0101_Rotated());
   ASSERT(pwg.atEnd());
 }

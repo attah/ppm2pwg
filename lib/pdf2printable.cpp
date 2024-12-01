@@ -140,6 +140,8 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
     return Error("Unknown format");
   }
 
+  cairo_surface_set_fallback_resolution(surface, params.hwResW, params.hwResH);
+
   for(size_t pageNo : pageSequence)
   {
     outPageNo++;

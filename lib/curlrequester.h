@@ -4,6 +4,7 @@
 #include "array.h"
 #include "bytestream.h"
 #include "lthread.h"
+#include "url.h"
 
 #include <curl/curl.h>
 #include <zlib.h>

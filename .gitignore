@@ -3,8 +3,7 @@
 *.plist
 tests/test
 tests/*.o
-tests/_test_pdf2printable_16x9_*
-tests/_test_pdf2printable_4x3_*
+tests/_test*
 ppm2pwg
 pwg2ppm
 pdf2printable

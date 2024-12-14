@@ -9,6 +9,7 @@
 #include "ippprinter.h"
 #include "ippprintjob.h"
 #include "json11.hpp"
+#include "url.h"
 #include <cstring>
 #include <filesystem>
 using namespace std;
@@ -2435,5 +2436,38 @@ TEST(malicious_dns)
   bts << (uint8_t)2 << "tr" << (uint8_t)2 << "ol" << (uint16_t)0xc003;
 
   ASSERT_THROW(get_addr(bts), logic_error);
+
+}
+
+TEST(url)
+{
+  Url url("ipp://myprinter:631/ipp/print");
+  ASSERT(url.getScheme() == "ipp");
+  ASSERT(url.getHost() == "myprinter");
+  ASSERT(url.getPort() == 631);
+  ASSERT(url.getPath() == "/ipp/print");
+  ASSERT(url.toStr() == "ipp://myprinter:631/ipp/print");
+
+  url = "ipp://myprinter/ipp/print";
+  ASSERT(url.getScheme() == "ipp");
+  ASSERT(url.getHost() == "myprinter");
+  ASSERT(url.getPath() == "/ipp/print");
+  ASSERT(url.toStr() == "ipp://myprinter/ipp/print");
+
+  ASSERT_FALSE(url.getPort());
+  url.setPort(631);
+  ASSERT(url.toStr() == "ipp://myprinter:631/ipp/print");
+
+  url = "ipp://myprinter";
+  ASSERT(url.getScheme() == "ipp");
+  ASSERT(url.getHost() == "myprinter");
+  ASSERT(url.getPath() == "");
+  ASSERT(url.toStr() == "ipp://myprinter");
+
+  url.setScheme("ipps");
+  url.setHost("yourprinter");
+  url.setPort(666);
+  url.setPath("/foo/bar");
+  ASSERT(url.toStr() == "ipps://yourprinter:666/foo/bar");
 
 }

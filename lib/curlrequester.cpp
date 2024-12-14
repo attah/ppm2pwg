@@ -156,8 +156,30 @@ void CurlIppPosterBase::setCompression(Compression compression)
   deflateInit2(&_zstrm, Z_DEFAULT_COMPRESSION, Z_DEFLATED, level, 7, Z_DEFAULT_STRATEGY);
 }
 
+std::string http_url(std::string str)
+{
+  Url url(str);
+  if(url.getScheme() == "ipp")
+  {
+    url.setScheme("http");
+    if(!url.getPort())
+    {
+      url.setPort(631);
+    }
+  }
+  else if(url.getScheme() == "ipps")
+  {
+    url.setScheme("https");
+    if(!url.getPort())
+    {
+      url.setPort(443);
+    }
+  }
+  return url.toStr();
+}
+
 CurlIppPosterBase::CurlIppPosterBase(std::string addr, bool ignoreSslErrors)
-  : CurlRequester("http"+addr.erase(0,3), ignoreSslErrors)
+  : CurlRequester(http_url(addr), ignoreSslErrors)
 {
   _canWrite.unlock();
   _canRead.lock();

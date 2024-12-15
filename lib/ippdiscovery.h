@@ -14,19 +14,28 @@
 class IppDiscovery
 {
 public:
+  enum QType : uint16_t
+  {
+    A = 1,
+    PTR = 12,
+    TXT = 16,
+    AAAA = 28,
+    SRV = 33,
+    ALL = 255 //for querying
+  };
+
   IppDiscovery(std::function<void(std::string)> callback);
 
   IppDiscovery() = delete;
   IppDiscovery(const IppDiscovery&) = delete;
   IppDiscovery& operator=(const IppDiscovery&) = delete;
-  ~IppDiscovery();
 
   void discover();
 
 private:
-  void sendQuery(uint16_t qtype, List<std::string> addrs);
+  void sendQuery(QType qtype, List<std::string> addrs);
   void update();
-  void updateAndQueryPtrs(List<std::string>& ptrs, List<std::string> new_ptrs);
+  void updateAndQueryPtrs(List<std::string>& ptrs, const List<std::string>& newPtrs);
 
   UdpSocket _socket = UdpSocket("224.0.0.251", 5353);
 
@@ -41,7 +50,7 @@ private:
 
   Map<std::string, List<std::string>> _As;
 
-  Map<std::pair<uint16_t, std::string>, std::time_t> _outstandingQueries;
+  Map<std::pair<QType, std::string>, std::time_t> _outstandingQueries;
   List<std::string> _found;
 
   std::function<void(std::string)> _callback;

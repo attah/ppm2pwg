@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <filesystem>
 
-Error IppPrintJob::finalize(std::string inputFormat, int pages)
+Error IppPrintJob::finalize(const std::string& inputFormat, int pages)
 {
   targetFormat = determineTargetFormat(inputFormat);
   // Only set if regular supported format - else set OctetSteam
@@ -110,7 +110,7 @@ Error IppPrintJob::finalize(std::string inputFormat, int pages)
   {
     for(const IppIntRange& range : jobAttrs.getList<IppIntRange>("page-ranges"))
     {
-      printParams.pageRangeList.push_back({range.low, range.high});
+      printParams.pageSelection.push_back({range.low, range.high});
     }
     pageRanges.unset();
   }
@@ -163,7 +163,7 @@ Error IppPrintJob::finalize(std::string inputFormat, int pages)
   return Error();
 }
 
-std::string IppPrintJob::determineTargetFormat(std::string inputFormat)
+std::string IppPrintJob::determineTargetFormat(const std::string& inputFormat)
 {
   std::string targetFormat = documentFormat.get(MiniMime::OctetStream);
   bool canConvert = Converter::instance().canConvert(inputFormat, targetFormat);
@@ -304,7 +304,7 @@ void IppPrintJob::adjustRasterSettings(int pages)
     {
       PageSequence seq = printParams.getPageSequence(pages);
                              // No two different elements...
-      bool singlePageRange = std::adjacent_find(seq.cbegin(), seq.cend(), std::not_equal_to<const size_t>()) == seq.cend();
+      bool singlePageRange = std::adjacent_find(seq.cbegin(), seq.cend(), std::not_equal_to<>()) == seq.cend();
 
       if(pages == 1 || singlePageRange)
       {

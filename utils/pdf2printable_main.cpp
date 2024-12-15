@@ -13,7 +13,7 @@
 #define HELPTEXT "Options from 'resolution' and onwards only affect raster output formats.\n" \
                  "Use \"-\" as filename for stdin/stdout."
 
-inline void print_error(std::string hint, std::string argHelp)
+inline void print_error(const std::string& hint, const std::string& argHelp)
 {
   std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
 }
@@ -133,7 +133,7 @@ int main(int argc, char** argv)
 
   if(pagesOpt.isSet())
   {
-    if(!params.setPageRange(pages))
+    if(!params.setPageSelection(pages))
     {
       print_error("Malformed page selection", args.argHelp());
       return 1;

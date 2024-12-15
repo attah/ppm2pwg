@@ -19,7 +19,7 @@ const std::string MiniMime::GIF = "image/gif";
 const std::string MiniMime::JPEG = "image/jpeg";
 const std::string MiniMime::TIFF = "image/tiff";
 
-std::string MiniMime::getMimeType(std::string fileName)
+std::string MiniMime::getMimeType(const std::string& fileName)
 {
   std::ifstream ifs(fileName, std::ios::in | std::ios::binary);
   Bytestream bts(ifs, 7);
@@ -63,30 +63,30 @@ std::string MiniMime::getMimeType(std::string fileName)
   return OctetStream;
 }
 
-bool MiniMime::isKnownImageFormat(std::string mimeType)
+bool MiniMime::isKnownImageFormat(const std::string& mimeType)
 {
   static std::set<std::string> knownImageFormats({PNG, GIF, JPEG, TIFF});
   return knownImageFormats.find(mimeType) != knownImageFormats.cend();
 }
 
-bool MiniMime::isImage(std::string mimeType)
+bool MiniMime::isImage(const std::string& mimeType)
 {
   return string_starts_with(mimeType, "image/") && !isPrinterRaster(mimeType);
 }
 
-bool MiniMime::isPrinterRaster(std::string mimeType)
+bool MiniMime::isPrinterRaster(const std::string& mimeType)
 {
   static std::set<std::string> printerRasterFormats({PWG, URF});
   return printerRasterFormats.find(mimeType) != printerRasterFormats.cend();
 }
 
-bool MiniMime::isMultiPage(std::string mimeType)
+bool MiniMime::isMultiPage(const std::string& mimeType)
 {
   static std::set<std::string> multiPageFormats({PDF, Postscript, PWG, URF});
   return multiPageFormats.find(mimeType) != multiPageFormats.cend();
 }
 
-std::string MiniMime::defaultExtension(std::string mimeType)
+std::string MiniMime::defaultExtension(const std::string& mimeType)
 {
   static std::map<std::string, std::string> extensions {{PDF, ".pdf"},
                                                         {Postscript, ".ps"},

@@ -20,7 +20,7 @@ struct bts_source_mgr: jpeg_source_mgr
     jpeg_source_mgr::skip_input_data = skip_input_data;
     jpeg_source_mgr::resync_to_restart = jpeg_resync_to_restart;
     jpeg_source_mgr::term_source = term_source;
-    jpeg_source_mgr::bytes_in_buffer = (size_t)bts.size();
+    jpeg_source_mgr::bytes_in_buffer = bts.size();
     jpeg_source_mgr::next_input_byte = (const JOCTET *)bts.raw();
   }
 
@@ -73,7 +73,7 @@ struct bts_destination_mgr: jpeg_destination_mgr
     dest->bts.putBytes(dest->buffer, size);
   }
 
-  JOCTET buffer[BS_REASONABLE_FILE_SIZE];
+  Array<JOCTET> buffer = Array<JOCTET>(BS_REASONABLE_FILE_SIZE);
   Bytestream& bts;
 };
 
@@ -81,7 +81,8 @@ void baselinify(Bytestream& inBts, Bytestream& outBts)
 {
   struct jpeg_decompress_struct srcInfo;
   struct jpeg_compress_struct dstInfo;
-  struct jpeg_error_mgr jSrcErr, jDstErr;
+  struct jpeg_error_mgr jSrcErr;
+  struct jpeg_error_mgr jDstErr;
   jvirt_barray_ptr* coefArrays;
 
   #if MADNESS

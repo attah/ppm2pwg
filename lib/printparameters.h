@@ -147,7 +147,7 @@ public:
   size_t copies = 1;
   bool collatedCopies = true;
 
-  PageRangeList pageRangeList;
+  PageRangeList pageSelection;
 
   MediaPosition mediaPosition = AutomaticMediaPosition;
   std::string mediaType;
@@ -168,8 +168,8 @@ public:
 
   PageSequence getPageSequence(size_t pages) const;
 
-  static PageRangeList parsePageRange(const std::string& rangeStr);
-  bool setPageRange(const std::string& rangeStr);
+  static PageRangeList parsePageSelection(const std::string& pageSelectionStr);
+  bool setPageSelection(const std::string& pageSelectionStr);
 
   bool setPaperSize(const std::string& sizeStr);
 

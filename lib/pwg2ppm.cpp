@@ -57,7 +57,7 @@ void raster_to_bmp(Bytestream& outBts, Bytestream& file,
 
 void write_ppm(Bytestream& outBts, size_t width, size_t height,
                size_t colors, size_t bits, bool black,
-               std::string outfilePrefix, int page)
+               const std::string& outfilePrefix, int page)
 {
   if(bits == 1 && !black)
   {
@@ -89,7 +89,14 @@ void invert(Bytestream& bts)
 void cmyk2rgb(Bytestream& cmyk)
 {
   Bytestream rgb;
-  uint8_t c, m, y, k, r, g, b, w;
+  uint8_t c;
+  uint8_t m;
+  uint8_t y;
+  uint8_t k;
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+  uint8_t w;
   size_t size = cmyk.size()/4;
   for(size_t i=0; i < size; i++)
   {

@@ -132,7 +132,7 @@ size_t PrintParameters::getPaperSizeInBytes() const
 
 PageSequence PrintParameters::getPageSequence(size_t pages) const
 {
-  PageRangeList tmp = pageRangeList.empty() ? PageRangeList {{1, pages}} : pageRangeList;
+  PageRangeList tmp = pageSelection.empty() ? PageRangeList {{1, pages}} : pageSelection;
   PageSequence seq;
 
   for(const auto& [first, last] : tmp)
@@ -187,7 +187,7 @@ PageSequence PrintParameters::getPageSequence(size_t pages) const
   return seq;
 }
 
-PageRangeList PrintParameters::parsePageRange(const std::string& rangesStr)
+PageRangeList PrintParameters::parsePageSelection(const std::string& pageSelectionStr)
 {
   PageRangeList rangeList;
   const std::regex single("^([0-9]+)$");
@@ -195,7 +195,7 @@ PageRangeList PrintParameters::parsePageRange(const std::string& rangesStr)
   std::smatch match;
   size_t prevMax = 0;
 
-  List<std::string> rangeStrList = split_string(rangesStr, ",");
+  List<std::string> rangeStrList = split_string(pageSelectionStr, ",");
   for(const std::string& rangeStr : rangeStrList)
   {
     if(std::regex_match(rangeStr, match, single))
@@ -227,15 +227,15 @@ PageRangeList PrintParameters::parsePageRange(const std::string& rangesStr)
   return rangeList;
 }
 
-bool PrintParameters::setPageRange(const std::string& rangeStr)
+bool PrintParameters::setPageSelection(const std::string& pageSelectionStr)
 {
-  pageRangeList = parsePageRange(rangeStr);
-  return !pageRangeList.empty();
+  pageSelection = parsePageSelection(pageSelectionStr);
+  return !pageSelection.empty();
 }
 
-double from_string(std::string str)
+double from_string(const std::string& str)
 {
-  size_t dotAt = str.find(".");
+  size_t dotAt = str.find('.');
   double res = std::stoul(str.substr(0, dotAt));
   if(dotAt != std::string::npos)
   {

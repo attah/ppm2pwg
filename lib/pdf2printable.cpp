@@ -13,8 +13,9 @@
 #include <cairo-ps.h>
 #include <cairo-pdf.h>
 
+#include <algorithm>
+#include <cmath>
 #include <filesystem>
-#include <math.h>
 #include <unistd.h>
 
 #define R_RELATIVE_LUMINOSITY 0.299
@@ -27,7 +28,6 @@
                         + (RGB32_G(RGB)*G_RELATIVE_LUMINOSITY) \
                         + (RGB32_B(RGB)*B_RELATIVE_LUMINOSITY)))
 
-#define MAX3(A,B,C) std::max(std::max(A, B), C)
 #define SIXTEENTHS(parts, value) (parts*(value/16))
 
 #ifndef PDF_CREATOR
@@ -36,7 +36,7 @@
 
 #define CHECK(call) if(!(call)) {return Error("Write error");}
 
-void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameters& params);
+void copy_raster_buffer(Bytestream& bmpBts, const uint32_t* data, const PrintParameters& params);
 
 void fixup_scale(double& xScale, double& yScale, double& xOffset, double& yOffset, bool& rotate,
                  double& wIn, double& hIn, const PrintParameters& params);
@@ -52,8 +52,7 @@ inline double round2(double d)
   return round(d*100)/100;
 }
 
-Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParameters& params,
-                       ProgressFun progressFun)
+Error pdf_to_printable(const std::string& inFile, const WriteFun& writeFun, const PrintParameters& params, const ProgressFun& progressFun)
 {
   if(params.format == PrintParameters::URF && (params.hwResW != params.hwResH))
   {
@@ -82,9 +81,8 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
   }
   else
   {
-    inFile = std::filesystem::absolute(inFile);
     std::string url("file://");
-    url.append(inFile);
+    url += std::filesystem::absolute(inFile);
     doc = poppler_document_new_from_file(url.c_str(), nullptr, &error);
   }
 
@@ -168,8 +166,12 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
     if(pageNo != INVALID_PAGE)
     { // We are actually rendering a page and not just a blank...
       Pointer<PopplerPage> page(poppler_document_get_page(doc, pageNo-1), g_object_unref);
-      double pageWidth, pageHeight;
-      double xScale, yScale, xOffset, yOffset;
+      double pageWidth;
+      double pageHeight;
+      double xScale;
+      double yScale;
+      double xOffset;
+      double yOffset;
       bool rotate = false;
 
       poppler_page_get_size(page, &pageWidth, &pageHeight);
@@ -204,7 +206,7 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
     }
 
     CHECK(writeFun(std::move(outBts)));
-    outBts.reset();
+    outBts = Bytestream();
 
     progressFun(outPageNo, pageSequence.size());
   }
@@ -219,7 +221,7 @@ Error pdf_to_printable(std::string inFile, WriteFun writeFun, const PrintParamet
   return Error();
 }
 
-void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameters& params)
+void copy_raster_buffer(Bytestream& bmpBts, const uint32_t* data, const PrintParameters& params)
 {
   size_t size = params.getPaperSizeInPixels();
   bool black = params.isBlack();
@@ -294,7 +296,7 @@ void copy_raster_buffer(Bytestream& bmpBts, uint32_t* data, const PrintParameter
     {
       for(size_t i=0, j=0; i < size; i++, j+=4)
       {
-        uint32_t blackDiff = MAX3(RGB32_R(data[i]), RGB32_G(data[i]), RGB32_B(data[i]));
+        uint32_t blackDiff = std::max({RGB32_R(data[i]), RGB32_G(data[i]), RGB32_B(data[i])});
         tmp[j] = (blackDiff - RGB32_R(data[i]));
         tmp[j+1] = (blackDiff - RGB32_G(data[i]));
         tmp[j+2] = (blackDiff - RGB32_B(data[i]));
@@ -340,17 +342,20 @@ void fixup_scale(double& xScale, double& yScale, double& xOffset, double& yOffse
 
   // Finally, if we have an asymmetric resolution
   // and are not working in absolute dimensions (points), compensate for it.
+  // NB: This expects an integer scale.
   if(raster)
   { // URF will/should not end up here, but still...
     if(params.hwResW > params.hwResH)
     {
-      xScale *= (params.hwResW/params.hwResH);
-      xOffset *= (params.hwResW/params.hwResH);
+      size_t scale = params.hwResW / params.hwResH;
+      xScale *= scale;
+      xOffset *= scale;
     }
     else if(params.hwResH > params.hwResW)
     {
-      yScale *= (params.hwResH/params.hwResW);
-      yOffset *= (params.hwResH/params.hwResW);
+      size_t scale = params.hwResH / params.hwResW;
+      yScale *= scale;
+      yOffset *= scale;
     }
   }
 }

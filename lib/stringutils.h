@@ -41,16 +41,14 @@ inline List<std::string> split_string(const std::string& s, const std::string& t
   return res;
 }
 
-inline std::string join_string(List<std::string> list, const std::string& sep)
+inline std::string join_string(const List<std::string>& list, const std::string& sep)
 {
   std::string res;
-  if(!list.empty())
+  bool first = true;
+  for(const std::string& e : list)
   {
-    res = list.takeFront();
-    for(const std::string& e : list)
-    {
-      res += sep + e;
-    }
+    res += (first ? "" : sep) + e;
+    first = false;
   }
   return res;
 }

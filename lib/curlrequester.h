@@ -33,7 +33,7 @@ public:
 
 protected:
 
-  CurlRequester(std::string addr, bool ignoreSslErrors);
+  CurlRequester(const std::string& addr, bool ignoreSslErrors);
 
   void doRun();
 
@@ -94,7 +94,7 @@ public:
   }
 
 protected:
-  CurlIppPosterBase(std::string addr, bool ignoreSslErrors);
+  CurlIppPosterBase(const std::string& addr, bool ignoreSslErrors);
 
 private:
   std::mutex _canWrite;
@@ -106,19 +106,19 @@ private:
 class CurlIppPoster : public CurlIppPosterBase
 {
 public:
-  CurlIppPoster(std::string addr, Bytestream&& data, bool ignoreSslErrors = false);
+  CurlIppPoster(const std::string& addr, Bytestream&& data, bool ignoreSslErrors = false);
 };
 
 class CurlIppStreamer : public CurlIppPosterBase
 {
 public:
-  CurlIppStreamer(std::string addr, bool ignoreSslErrors = false);
+  CurlIppStreamer(const std::string& addr, bool ignoreSslErrors = false);
 };
 
 class CurlHttpGetter : public CurlRequester
 {
 public:
-  CurlHttpGetter(std::string addr, bool ignoreSslErrors = false);
+  CurlHttpGetter(const std::string& addr, bool ignoreSslErrors = false);
 };
 
 #endif // CURLREQUESTER_H

@@ -8,7 +8,7 @@ void raster_to_bmp(Bytestream& outBts, Bytestream& file,
 
 void write_ppm(Bytestream& outBts,size_t width, size_t height,
                size_t colors, size_t bits, bool black,
-               std::string outFilePrefix, int page);
+               const std::string& outFilePrefix, int page);
 
 void invert(Bytestream& bts);
 

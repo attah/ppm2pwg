@@ -8,12 +8,12 @@ class Url
 {
 public:
   Url() = delete;
-  Url(std::string str)
+  Url(const std::string& str)
   {
     match(str);
   }
 
-  Url& operator=(std::string str)
+  Url& operator=(const std::string& str)
   {
     match(str);
     return *this;
@@ -72,7 +72,7 @@ public:
 
 private:
 
-  void match(std::string str)
+  void match(const std::string& str)
   {
     static const std::regex regex("(([a-z]+)://)([a-z0-9-.]+)(:([0-9]+))?(/.*)?$");
     std::smatch match;

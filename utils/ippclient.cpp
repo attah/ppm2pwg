@@ -14,7 +14,7 @@
 
 #define HELPTEXT ""
 
-inline void print_error(std::string hint, std::string argHelp)
+inline void print_error(const std::string& hint, const std::string& argHelp)
 {
   std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
 }
@@ -43,7 +43,7 @@ T pos_clamp(U value)
   return std::min<U>(value, std::numeric_limits<T>::max());
 }
 
-std::ostream& operator<<(std::ostream& os, List<IppPrinter::Supply> supplies)
+std::ostream& operator<<(std::ostream& os, const List<IppPrinter::Supply>& supplies)
 {
   for(List<IppPrinter::Supply>::const_iterator supply = supplies.cbegin(); supply != supplies.cend(); supply++)
   {
@@ -60,7 +60,7 @@ std::ostream& operator<<(std::ostream& os, List<IppPrinter::Supply> supplies)
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, List<IppPrinter::Firmware> firmwares)
+std::ostream& operator<<(std::ostream& os, const List<IppPrinter::Firmware>& firmwares)
 {
   for(List<IppPrinter::Firmware>::const_iterator firmware = firmwares.cbegin(); firmware != firmwares.cend(); firmware++)
   {
@@ -73,13 +73,13 @@ std::ostream& operator<<(std::ostream& os, List<IppPrinter::Firmware> firmwares)
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, List<std::string> sl)
+std::ostream& operator<<(std::ostream& os, const List<std::string>& sl)
 {
   os << join_string(sl, ", ");
   return os;
 }
 
-std::string resolution_list(List<IppResolution> l)
+std::string resolution_list(const List<IppResolution>& l)
 {
   bool first = true;
   std::stringstream ss;
@@ -92,14 +92,14 @@ std::string resolution_list(List<IppResolution> l)
     ss << (first ? "" : ",") << r.toStr();
   }
 
-  if(ss.str().length() == 0)
+  if(ss.str().empty())
   {
     ss << "empty";
   }
   return ss.str();
 }
 
-std::ostream& operator<<(std::ostream& os, List<IppPrinter::JobInfo> jobInfos)
+std::ostream& operator<<(std::ostream& os, const List<IppPrinter::JobInfo>& jobInfos)
 {
   for(const IppPrinter::JobInfo& jobInfo : jobInfos)
   {
@@ -115,7 +115,7 @@ std::ostream& operator<<(std::ostream& os, List<IppPrinter::JobInfo> jobInfos)
 }
 
 template <typename T>
-void print_if_set(std::string title, T value)
+void print_if_set(const std::string& title, const T& value)
 {
   if(value != T())
   {
@@ -124,14 +124,14 @@ void print_if_set(std::string title, T value)
 }
 
 template <typename O, typename S, typename V>
-void set_or_fail(const O& opt, S& setting, V value, bool force)
+void set_or_fail(const O& opt, S& setting, const V& value, bool force)
 {
   std::string docName = opt.docName() + " (ipp: " + setting.name() + ")";
   set_or_fail(opt.isSet(), docName, "Valid values are: " + setting.supportedStr(), setting, value, force);
 }
 
 template <typename S, typename V>
-void set_or_fail(bool isSet, std::string docName, std::string inputHint, S& setting, V value, bool force)
+void set_or_fail(bool isSet, const std::string& docName, const std::string& inputHint, S& setting, const V& value, bool force)
 {
   if(isSet)
   {
@@ -408,7 +408,7 @@ int main(int argc, char** argv)
 
     if(pagesOpt.isSet())
     {
-      PageRangeList pageRanges = PrintParameters::parsePageRange(pages);
+      PageRangeList pageRanges = PrintParameters::parsePageSelection(pages);
       if(pageRanges.empty())
       {
         print_error("Invalid page range.", args.argHelp(args.subCommand()));

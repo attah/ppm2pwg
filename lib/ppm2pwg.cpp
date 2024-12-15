@@ -6,9 +6,9 @@
 #include "pwgpghdr.h"
 #include "urfpghdr.h"
 
+#include <cstring>
 #include <iostream>
 #include <map>
-#include <string.h>
 
 void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backside);
 void make_urf_hdr(Bytestream& outBts, const PrintParameters& params);
@@ -49,7 +49,7 @@ void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts, size_t page, const Print
   uint8_t* raw = bmpBts.raw();
   size_t bytesPerLine = params.getPaperSizeWInBytes();
   int oneLine = backside && params.getBackVFlip() ? -bytesPerLine : bytesPerLine;
-  uint8_t* row0 = backside && params.getBackVFlip() ? raw + (yRes - 1) * bytesPerLine : raw;
+  uint8_t* row0 = backside && params.getBackVFlip() ? raw + ((yRes - 1) * bytesPerLine) : raw;
   Array<uint8_t> tmpLine(bytesPerLine);
 
   size_t colors = params.getNumberOfColors();
@@ -61,7 +61,7 @@ void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts, size_t page, const Print
 
   for(size_t y = 0; y < yRes; y++)
   {
-    uint8_t* thisLine = row0 + y * oneLine;
+    uint8_t* thisLine = row0 + (y * oneLine);
     uint8_t lineRepeat = 0;
 
     uint8_t* next_line = thisLine + oneLine;
@@ -192,7 +192,7 @@ static const std::map<std::string, UrfPgHdr::MediaType_enum>
                         {"photographic-high-gloss", UrfPgHdr::PhotographicHighGloss},
                         {"other", UrfPgHdr::OtherMediaType}};
 
-bool isUrfMediaType(std::string mediaType)
+bool isUrfMediaType(const std::string& mediaType)
 {
   return UrfMediaTypeMappings.find(mediaType) != UrfMediaTypeMappings.cend();
 }

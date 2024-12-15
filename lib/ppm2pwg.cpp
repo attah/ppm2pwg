@@ -13,7 +13,6 @@
 void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backside);
 void make_urf_hdr(Bytestream& outBts, const PrintParameters& params);
 
-void compress_lines(Bytestream& bmpBts, Bytestream& outBts, const PrintParameters& params, bool backside);
 void compress_line(uint8_t* raw, size_t len, Bytestream& outBts, size_t oneChunk);
 
 Bytestream make_pwg_file_hdr()
@@ -28,6 +27,12 @@ Bytestream make_urf_file_hdr(uint32_t pages)
   Bytestream urfFileHdr;
   urfFileHdr << "UNIRAST" << (uint8_t)0 << pages;
   return urfFileHdr;
+}
+
+inline uint8_t reverse_byte(uint8_t b)
+{
+  // https://graphics.stanford.edu/~seander/bithacks.html#ReverseByteWith64Bits
+  return ((b * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >> 32;
 }
 
 void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts, size_t page, const PrintParameters& params)
@@ -84,8 +89,7 @@ void bmp_to_pwg(Bytestream& bmpBts, Bytestream& outBts, size_t page, const Print
       {
         for(size_t i = 0; i < bytesPerLine; i++)
         {
-          // https://graphics.stanford.edu/~seander/bithacks.html#ReverseByteWith64Bits
-          tmpLine[i] = ((thisLine[bytesPerLine-1-i] * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >> 32;
+          tmpLine[i] = reverse_byte(thisLine[bytesPerLine-1-i]);
         }
       }
       else

@@ -52,7 +52,8 @@ IppMsg::IppMsg(Bytestream& msg)
   }
 }
 
-IppMsg::IppMsg(uint16_t opOrStatus, const IppAttrs& opAttrs, const IppAttrs& jobAttrs, const IppAttrs& printerAttrs)
+IppMsg::IppMsg(uint16_t opOrStatus, const IppAttrs& opAttrs,
+               const IppAttrs& jobAttrs, const IppAttrs& printerAttrs)
 {
   _opOrStatus = opOrStatus;
   _opAttrs = opAttrs;
@@ -164,7 +165,8 @@ IppValue IppMsg::decodeValue(IppTag tag, Bytestream& data) const
       if(!(data >>= (uint16_t)0))
       {
         data >> (uint16_t)11 >> tmpDateTime.year >> tmpDateTime.month >> tmpDateTime.day
-             >> tmpDateTime.hour >> tmpDateTime.minutes >> tmpDateTime.seconds >> tmpDateTime.deciSeconds
+             >> tmpDateTime.hour >> tmpDateTime.minutes
+             >> tmpDateTime.seconds >> tmpDateTime.deciSeconds
              >> tmpDateTime.plusMinus >> tmpDateTime.utcHOffset >> tmpDateTime.utcMOffset;
       }
       return IppValue(tmpDateTime);
@@ -335,7 +337,8 @@ void IppMsg::encodeAttributes(Bytestream& msg, const IppAttrs& attrs) const
   }
 }
 
-void IppMsg::encodeAttribute(Bytestream& msg, std::string name, const IppAttr& attr, bool subCollection) const
+void IppMsg::encodeAttribute(Bytestream& msg, std::string name, const IppAttr& attr,
+                             bool subCollection) const
 {
   IppTag tag = attr.tag();
   if(subCollection)
@@ -388,7 +391,8 @@ void IppMsg::encodeValue(Bytestream& msg, IppTag tag, const IppValue& val) const
     {
       IppDateTime tmpDateTime = val.get<IppDateTime>();
       msg << (uint16_t)11 << tmpDateTime.year << tmpDateTime.month << tmpDateTime.day
-          << tmpDateTime.hour << tmpDateTime.minutes << tmpDateTime.seconds << tmpDateTime.deciSeconds
+          << tmpDateTime.hour << tmpDateTime.minutes
+          << tmpDateTime.seconds << tmpDateTime.deciSeconds
           << tmpDateTime.plusMinus << tmpDateTime.utcHOffset << tmpDateTime.utcMOffset;
       break;
     }

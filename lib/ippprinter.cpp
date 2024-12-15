@@ -7,7 +7,8 @@
 
 #include <filesystem>
 
-IppPrinter::IppPrinter(std::string addr, bool ignoreSslErrors) : _addr(std::move(addr)), _ignoreSslErrors(ignoreSslErrors)
+IppPrinter::IppPrinter(std::string addr, bool ignoreSslErrors)
+: _addr(std::move(addr)), _ignoreSslErrors(ignoreSslErrors)
 {
   _error = refresh();
 }
@@ -56,8 +57,8 @@ Error IppPrinter::refresh()
   return error;
 }
 
-Error IppPrinter::runJob(IppPrintJob& job, const std::string& inFile, const std::string& inFormat, int pages,
-                         const ProgressFun& progressFun)
+Error IppPrinter::runJob(IppPrintJob& job, const std::string& inFile, const std::string& inFormat,
+                         int pages, const ProgressFun& progressFun)
 {
   Error error;
   try
@@ -71,7 +72,8 @@ Error IppPrinter::runJob(IppPrintJob& job, const std::string& inFile, const std:
       return error;
     }
 
-    std::optional<Converter::ConvertFun> convertFun = Converter::instance().getConvertFun(inFormat, job.targetFormat);
+    std::optional<Converter::ConvertFun> convertFun =
+      Converter::instance().getConvertFun(inFormat, job.targetFormat);
 
     if(!convertFun)
     {
@@ -109,12 +111,13 @@ Error IppPrinter::runJob(IppPrintJob& job, const std::string& inFile, const std:
             IppAttrs sendDocumentOpAttrs = job.opAttrs;
             sendDocumentOpAttrs.set("job-id", IppAttr {IppTag::Integer, jobId});
             sendDocumentOpAttrs.set("last-document", IppAttr {IppTag::Boolean, true});
-            IppMsg sendDocumentMsg = _mkMsg(IppMsg::SendDocument, sendDocumentOpAttrs);
-            error = doPrint(job, inFile, convertFun.value(), sendDocumentMsg.encode(), progressFun);
+            IppMsg sendDocMsg = _mkMsg(IppMsg::SendDocument, sendDocumentOpAttrs);
+            error = doPrint(job, inFile, sendDocMsg.encode(), convertFun.value(), progressFun);
           }
           else
           {
-            error = "Create job failed: " + createJobResp.getOpAttrs().get<std::string>("status-message", "unknown");
+            error = "Create job failed: "
+                  + createJobResp.getOpAttrs().get<std::string>("status-message", "unknown");
           }
         }
       }
@@ -123,7 +126,7 @@ Error IppPrinter::runJob(IppPrintJob& job, const std::string& inFile, const std:
         IppAttrs printJobOpAttrs = job.opAttrs;
         printJobOpAttrs.set("job-name", IppAttr {IppTag::NameWithoutLanguage, fileName});
         IppMsg printJobMsg = _mkMsg(IppMsg::PrintJob, printJobOpAttrs, job.jobAttrs);
-        error = doPrint(job, inFile, convertFun.value(), printJobMsg.encode(), progressFun);
+        error = doPrint(job, inFile, printJobMsg.encode(), convertFun.value(), progressFun);
       }
     }
   }
@@ -134,7 +137,8 @@ Error IppPrinter::runJob(IppPrintJob& job, const std::string& inFile, const std:
   return error;
 }
 
-Error IppPrinter::doPrint(IppPrintJob& job, const std::string& inFile, const Converter::ConvertFun& convertFun, Bytestream&& hdr, const ProgressFun& progressFun)
+Error IppPrinter::doPrint(IppPrintJob& job, const std::string& inFile, Bytestream&& hdr,
+                          const Converter::ConvertFun& convertFun, const ProgressFun& progressFun)
 {
   Error error;
   CurlIppStreamer cr(_addr, true);
@@ -158,7 +162,7 @@ Error IppPrinter::doPrint(IppPrintJob& job, const std::string& inFile, const Con
              return cr.write(std::move(data));
            });
 
-  error = convertFun(inFile, writeFun, job, progressFun);
+  error = convertFun(inFile, job, writeFun, progressFun);
   if(error)
   {
     return error;
@@ -179,7 +183,8 @@ Error IppPrinter::doPrint(IppPrintJob& job, const std::string& inFile, const Con
     }
     else
     {
-      error = "Print job failed: " + response.getOpAttrs().get<std::string>("status-message", "unknown");
+      error = "Print job failed: "
+            + response.getOpAttrs().get<std::string>("status-message", "unknown");
     }
   }
   else
@@ -190,11 +195,13 @@ Error IppPrinter::doPrint(IppPrintJob& job, const std::string& inFile, const Con
   return error;
 }
 
-Error IppPrinter::doPrintToFile(IppPrintJob& job, const std::string& inFile, const Converter::ConvertFun& convertFun, const ProgressFun& progressFun)
+Error IppPrinter::doPrintToFile(IppPrintJob& job, const std::string& inFile,
+                                const Converter::ConvertFun& convertFun,
+                                const ProgressFun& progressFun)
 {
-  std::string fileName = std::filesystem::path(inFile).filename();
-  std::string ext = MiniMime::defaultExtension(job.targetFormat);
-  std::filesystem::path tmpFile = std::filesystem::temp_directory_path() / ("ippclient-debug-" + fileName + ext);
+  std::string fileName = "ippclient-debug-" + std::filesystem::path(inFile).filename().string();
+  fileName += MiniMime::defaultExtension(job.targetFormat);
+  std::filesystem::path tmpFile = std::filesystem::temp_directory_path() / fileName;
   std::ofstream ofs(tmpFile, std::ios::out | std::ios::binary);
 
   WriteFun writeFun([&ofs](Bytestream&& data) -> bool
@@ -203,7 +210,7 @@ Error IppPrinter::doPrintToFile(IppPrintJob& job, const std::string& inFile, con
              return (bool)ofs;
            });
 
-  Error error = convertFun(inFile, writeFun, job, progressFun);
+  Error error = convertFun(inFile, job, writeFun, progressFun);
   if(error)
   {
     return error;
@@ -311,7 +318,8 @@ List<IppPrinter::Firmware> IppPrinter::firmware()
 {
   List<IppPrinter::Firmware> firmware;
   List<std::string> names = _printerAttrs.getList<std::string>("printer-firmware-name");
-  List<std::string> versions = _printerAttrs.getList<std::string>("printer-firmware-string-version");
+  List<std::string> versions =
+    _printerAttrs.getList<std::string>("printer-firmware-string-version");
 
   for(List<std::string>::const_iterator name = names.cbegin(), version = versions.cbegin();
       name != names.cend() && version != versions.cend();
@@ -353,7 +361,8 @@ List<std::string> IppPrinter::additionalDocumentFormats()
     additionalFormats.push_back(MiniMime::PDF);
   }
   if(!baseFormats.contains(MiniMime::Postscript) &&
-     (string_contains(printerDeviceId, "POSTSCRIPT") || string_contains(printerDeviceId, "PostScript")))
+     (string_contains(printerDeviceId, "POSTSCRIPT") ||
+      string_contains(printerDeviceId, "PostScript")))
   {
     additionalFormats.push_back(MiniMime::Postscript);
   }
@@ -363,7 +372,8 @@ List<std::string> IppPrinter::additionalDocumentFormats()
     additionalFormats.push_back(MiniMime::PWG);
   }
   if(!baseFormats.contains(MiniMime::URF) &&
-     (string_contains(printerDeviceId, "URF") || string_contains(printerDeviceId, "AppleRaster")))
+     (string_contains(printerDeviceId, "URF") ||
+      string_contains(printerDeviceId, "AppleRaster")))
   {
     additionalFormats.push_back(MiniMime::URF);
   }
@@ -372,7 +382,8 @@ List<std::string> IppPrinter::additionalDocumentFormats()
 
 List<std::string> IppPrinter::possibleInputFormats()
 {
-  return Converter::instance().possibleInputFormats(documentFormats() += additionalDocumentFormats());
+  return Converter::instance().possibleInputFormats(documentFormats()
+         += additionalDocumentFormats());
 }
 
 bool IppPrinter::supportsPrinterRaster()
@@ -543,7 +554,8 @@ Error IppPrinter::_doRequest(const IppMsg& req, IppMsg& resp)
   return error;
 }
 
-IppMsg IppPrinter::_mkMsg(uint16_t opOrStatus, IppAttrs opAttrs, const IppAttrs& jobAttrs, const IppAttrs& printerAttrs)
+IppMsg IppPrinter::_mkMsg(uint16_t opOrStatus, IppAttrs opAttrs,
+                          const IppAttrs& jobAttrs, const IppAttrs& printerAttrs)
 {
   IppAttrs baseOpAttrs = IppMsg::baseOpAttrs(_addr);
   opAttrs.insert(baseOpAttrs.cbegin(), baseOpAttrs.cend());
@@ -574,7 +586,7 @@ void IppPrinter::_applyOverrides()
       {
         for(const auto& [matchAttrValue, overrideObj] : matchAttr.object_items())
         {
-          if(_printerAttrs.has(matchAttrName) && _printerAttrs.at(matchAttrName).get<std::string>() == matchAttrValue)
+          if(_printerAttrs.hasWithValue(matchAttrName, matchAttrValue))
           {
             IppAttrs overrideAttrs = IppAttrs::fromJSON(overrideObj.object_items());
             DBG(<< "Overriding printer attributes: " << overrideAttrs.toJSON().dump());

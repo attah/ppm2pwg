@@ -37,6 +37,8 @@ private:
   void update();
   void updateAndQueryPtrs(List<std::string>& ptrs, const List<std::string>& newPtrs);
 
+  bool hasTxtEntry(const std::string& ptr, const std::string& key);
+
   UdpSocket _socket = UdpSocket("224.0.0.251", 5353);
 
   uint16_t _transactionId = 0;

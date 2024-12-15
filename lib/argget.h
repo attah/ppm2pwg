@@ -388,7 +388,8 @@ public:
   SubArgGet(const SubArgGet&) = delete;
   SubArgGet& operator=(const SubArgGet&) = delete;
 
-  SubArgGet(std::list<std::pair<std::string, std::pair<std::list<SwitchArgBase*>, std::list<PosArg*>>>> map)
+  SubArgGet(std::list<std::pair<std::string,
+                                std::pair<std::list<SwitchArgBase*>, std::list<PosArg*>>>> map)
   {
     for(const auto& [subCommand, args] : map)
     {

@@ -29,70 +29,76 @@ public:
   }
 
   typedef std::pair<std::string, std::string> ConvertKey;
-  typedef std::function<Error(std::string inFileName, WriteFun writeFun, const IppPrintJob& job, ProgressFun progressFun)> ConvertFun;
+  typedef std::function<Error(std::string inFileName, const IppPrintJob& job,
+                              WriteFun writeFun, ProgressFun progressFun)> ConvertFun;
 
-  ConvertFun Pdf2Printable = [](std::string inFileName, WriteFun writeFun, const IppPrintJob& job, ProgressFun progressFun)
-                             {
-                               return pdf_to_printable(inFileName, writeFun, job.printParams, progressFun);
-                             };
+  ConvertFun Pdf2Printable =
+    [](std::string inFileName, const IppPrintJob& job, WriteFun writeFun, ProgressFun progressFun)
+    {
+      return pdf_to_printable(inFileName, job.printParams, writeFun, progressFun);
+    };
 
-  ConvertFun Baselinify = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun)
-                          {
-                            InBinFile in(inFileName);
-                            if(!in)
-                            {
-                              return Error("Failed to open input");
-                            }
-                            Bytestream inBts(in);
-                            Bytestream baselinified;
-                            baselinify(inBts, baselinified);
-                            writeFun(std::move(baselinified));
-                            progressFun(1, 1);
-                            // We'll check on the cURL status in just a bit, so no point in returning errors here.
-                            return Error();
-                          };
+  ConvertFun Baselinify =
+    [](std::string inFileName, const IppPrintJob&, WriteFun writeFun, ProgressFun progressFun)
+    {
+      InBinFile in(inFileName);
+      if(!in)
+      {
+        return Error("Failed to open input");
+      }
+      Bytestream inBts(in);
+      Bytestream baselinified;
+      baselinify(inBts, baselinified);
+      writeFun(std::move(baselinified));
+      progressFun(1, 1);
+      // We'll check on the cURL status in just a bit, so no point in returning errors here.
+      return Error();
+    };
 
-  ConvertFun JustUpload = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun)
-                          {
-                            InBinFile in(inFileName);
-                            if(!in)
-                            {
-                              return Error("Failed to open input");
-                            }
-                            Bytestream inBts(in);
-                            writeFun(std::move(inBts));
-                            progressFun(1, 1);
-                            return Error();
-                          };
+  ConvertFun JustUpload =
+    [](std::string inFileName, const IppPrintJob&, WriteFun writeFun, ProgressFun progressFun)
+    {
+      InBinFile in(inFileName);
+      if(!in)
+      {
+        return Error("Failed to open input");
+      }
+      Bytestream inBts(in);
+      writeFun(std::move(inBts));
+      progressFun(1, 1);
+      return Error();
+    };
 
-  ConvertFun FixupText = [](std::string inFileName, WriteFun writeFun, const IppPrintJob&, ProgressFun progressFun)
-                         {
-                           InBinFile in(inFileName);
-                           if(!in)
-                           {
-                             return Error("Failed to open input");
-                           }
-                           Bytestream inBts(in);
-                           std::string allText = inBts.getString(inBts.size());
+  ConvertFun FixupText =
+  [](std::string inFileName, const IppPrintJob&, WriteFun writeFun, ProgressFun progressFun)
+  {
+    InBinFile in(inFileName);
+    if(!in)
+    {
+      return Error("Failed to open input");
+    }
+    Bytestream inBts(in);
+    std::string allText = inBts.getString(inBts.size());
 
-                           List<std::string> lines;
-                           for(const std::string& rnline : split_string(allText, "\r\n"))
-                           {
-                             lines += split_string(rnline, "\n");
-                           }
-                           std::string outString = join_string(lines, "\r\n");
+    List<std::string> lines;
+    for(const std::string& rnline : split_string(allText, "\r\n"))
+    {
+      lines += split_string(rnline, "\n");
+    }
+    std::string outString = join_string(lines, "\r\n");
 
-                           writeFun(outString);
-                           progressFun(1, 1);
-                           return Error();
-                         };
+    writeFun(outString);
+    progressFun(1, 1);
+    return Error();
+  };
 
-  List<std::pair<ConvertKey, ConvertFun>> Pipelines {{{MiniMime::PDF, MiniMime::PDF}, Pdf2Printable},
-                                                     {{MiniMime::PDF, MiniMime::Postscript}, Pdf2Printable},
-                                                     {{MiniMime::PDF, MiniMime::PWG}, Pdf2Printable},
-                                                     {{MiniMime::PDF, MiniMime::URF}, Pdf2Printable},
-                                                     {{MiniMime::JPEG, MiniMime::JPEG}, Baselinify},
-                                                     {{"text/plain", "text/plain"}, FixupText}};
+  List<std::pair<ConvertKey, ConvertFun>> Pipelines
+    {{{MiniMime::PDF, MiniMime::PDF}, Pdf2Printable},
+     {{MiniMime::PDF, MiniMime::Postscript}, Pdf2Printable},
+     {{MiniMime::PDF, MiniMime::PWG}, Pdf2Printable},
+     {{MiniMime::PDF, MiniMime::URF}, Pdf2Printable},
+     {{MiniMime::JPEG, MiniMime::JPEG}, Baselinify},
+     {{"text/plain", "text/plain"}, FixupText}};
 
   std::optional<ConvertFun> getConvertFun(std::string inputFormat, std::string targetFormat)
   {
@@ -115,7 +121,8 @@ public:
     return (bool)getConvertFun(inputFormat, targetFormat);
   }
 
-  std::optional<std::string> getTargetFormat(std::string inputFormat, List<std::string> supportedFormats)
+  std::optional<std::string> getTargetFormat(std::string inputFormat,
+                                             List<std::string> supportedFormats)
   {
     for(const auto& [convertKey, convertFun] : Pipelines)
     {

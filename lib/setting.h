@@ -11,7 +11,8 @@ class Setting
 
 public:
   Setting() = delete;
-  Setting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag, std::string name, std::string subKey = "")
+  Setting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag,
+          std::string name, std::string subKey = "")
   : _printerAttrs(printerAttrs), _attrs(attrs), _tag(tag), _name(name), _subKey(subKey)
   {}
 
@@ -132,7 +133,8 @@ template <typename T>
 class ChoiceSetting : public Setting<T>
 {
 public:
-  ChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag, std::string name, std::string subKey = "")
+  ChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag,
+                std::string name, std::string subKey = "")
   : Setting<T>(printerAttrs, attrs, tag, name, subKey)
   {}
 
@@ -152,7 +154,8 @@ template <typename T>
 class PreferredChoiceSetting : public ChoiceSetting<T>
 {
 public:
-  PreferredChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag, std::string name, std::string pref)
+  PreferredChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag,
+                         std::string name, std::string pref)
   : ChoiceSetting<T>(printerAttrs, attrs, tag, name), _pref(pref)
   {}
 

@@ -204,7 +204,7 @@ int main(int argc, char** argv)
               {
                 DBG(<< "Progress: " << page << "/" << total);
               });
-  error = pdf_to_printable(inFileName, writeFun, params, progressFun);
+  error = pdf_to_printable(inFileName, params, writeFun, progressFun);
 
   if(error)
   {

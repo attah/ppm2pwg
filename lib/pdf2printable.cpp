@@ -52,7 +52,8 @@ inline double round2(double d)
   return round(d*100)/100;
 }
 
-Error pdf_to_printable(const std::string& inFile, const WriteFun& writeFun, const PrintParameters& params, const ProgressFun& progressFun)
+Error pdf_to_printable(const std::string& inFile, const PrintParameters& params,
+                       const WriteFun& writeFun, const ProgressFun& progressFun)
 {
   if(params.format == PrintParameters::URF && (params.hwResW != params.hwResH))
   {
@@ -119,7 +120,8 @@ Error pdf_to_printable(const std::string& inFile, const WriteFun& writeFun, cons
                                                   params.getPaperSizeWInPoints(),
                                                   params.getPaperSizeHInPoints());
     #if CAIRO_VERSION < CAIRO_VERSION_ENCODE(1, 17, 6)
-    // Cairo is robust against setting "too new" versions - pretend we know about 1.7 even if we don't
+    // Cairo is robust against setting "too new" versions
+    // - pretend we know about 1.7 even if we don't
     #define CAIRO_PDF_VERSION_1_7 (cairo_pdf_version_t)(CAIRO_PDF_VERSION_1_5 + 2)
     #endif
     // 1.7 aka ISO32000 is the recommended version according to PWG5100.14

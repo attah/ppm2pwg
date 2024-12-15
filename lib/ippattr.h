@@ -147,6 +147,12 @@ struct IppAttrs: public std::map<std::string, IppAttr>
   }
 
   template <typename T>
+  bool hasWithValue(const std::string& key, const T& value) const
+  {
+    return has(key) && at(key).get<T>() == value;
+  }
+
+  template <typename T>
   T get(std::string name, T defaultValue=T()) const
   {
     try

@@ -9,8 +9,9 @@
 CurlRequester::CurlRequester(const std::string& addr, bool ignoreSslErrors)
   : _curl(curl_easy_init())
 {
+  bool debugEnabled = LogController::instance().isEnabled(LogController::Debug);
   curl_easy_setopt(_curl, CURLOPT_URL, addr.c_str());
-  curl_easy_setopt(_curl, CURLOPT_VERBOSE, LogController::instance().isEnabled(LogController::Debug));
+  curl_easy_setopt(_curl, CURLOPT_VERBOSE, debugEnabled);
   curl_easy_setopt(_curl, CURLOPT_CONNECTTIMEOUT_MS, 2000);
   curl_easy_setopt(_curl, CURLOPT_FAILONERROR, 1);
 

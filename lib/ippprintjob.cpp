@@ -6,7 +6,6 @@
 #include "mediaposition.h"
 #include "stringutils.h"
 
-#include <algorithm>
 #include <filesystem>
 
 Error IppPrintJob::finalize(const std::string& inputFormat, int pages)
@@ -101,7 +100,8 @@ Error IppPrintJob::finalize(const std::string& inputFormat, int pages)
     printParams.format = PrintParameters::Invalid;
   }
 
-  IppResolution ippResolution = resolution.get({printParams.hwResW, printParams.hwResH, IppResolution::DPI});
+  IppResolution defaultResolution {printParams.hwResW, printParams.hwResH, IppResolution::DPI};
+  IppResolution ippResolution = resolution.get(defaultResolution);
   printParams.hwResW = ippResolution.x;
   printParams.hwResH = ippResolution.y;
 
@@ -177,7 +177,8 @@ std::string IppPrintJob::determineTargetFormat(const std::string& inputFormat)
   {
     List<std::string> supportedFormats = documentFormat.getSupported();
     supportedFormats += _additionalDocumentFormats;
-    std::optional<std::string> betterFormat = Converter::instance().getTargetFormat(inputFormat, supportedFormats);
+    std::optional<std::string> betterFormat =
+      Converter::instance().getTargetFormat(inputFormat, supportedFormats);
     if(betterFormat)
     {
       targetFormat = betterFormat.value();
@@ -207,7 +208,8 @@ void IppPrintJob::adjustRasterSettings(int pages)
       {
         continue;
       }
-      uint32_t tmpDiff = std::abs(int(printParams.hwResW-res.x)) + std::abs(int(printParams.hwResH-res.y));
+      uint32_t tmpDiff = std::abs(int(printParams.hwResW-res.x))
+                       + std::abs(int(printParams.hwResH-res.y));
       if(tmpDiff < diff)
       {
         diff = tmpDiff;
@@ -302,11 +304,7 @@ void IppPrintJob::adjustRasterSettings(int pages)
 
     if(sides.get() != "one-sided")
     {
-      PageSequence seq = printParams.getPageSequence(pages);
-                             // No two different elements...
-      bool singlePageRange = std::adjacent_find(seq.cbegin(), seq.cend(), std::not_equal_to<>()) == seq.cend();
-
-      if(pages == 1 || singlePageRange)
+      if(pages == 1 || printParams.getPageSequence(pages).isSinglePage())
       {
         sides.set("one-sided");
       }
@@ -329,10 +327,10 @@ void IppPrintJob::restoreSettings()
   if(canSaveSettings())
   {
     std::string uuid = _printerAttrs.get<std::string>("printer-uuid");
-    std::ifstream ifs = std::ifstream(settings_dir() / uuid, std::ios::in | std::ios::binary);
-    if(ifs)
+    InBinFile inFile(settings_dir() / uuid);
+    if(inFile)
     {
-      Bytestream bts(ifs);
+      Bytestream bts(inFile);
       std::string errStr;
       Json::object jsonObj = Json::parse(bts.getString(bts.size()), errStr).object_items();
       Json::object opJson = jsonObj["op-attrs"].object_items();
@@ -357,7 +355,7 @@ bool IppPrintJob::saveSettings()
   {
     std::string uuid = _printerAttrs.get<std::string>("printer-uuid");
     std::filesystem::create_directories(settings_dir());
-    std::ofstream ofs = std::ofstream(settings_dir() / uuid, std::ios::out | std::ios::binary);
+    OutBinFile outFile(settings_dir() / uuid);
     Json::object json;
     if(!opAttrs.empty())
     {
@@ -367,7 +365,7 @@ bool IppPrintJob::saveSettings()
     {
       json["job-attrs"] = jobAttrs.toJSON();
     }
-    ofs << Json(json).dump();
+    outFile << Json(json).dump();
     return true;
   }
   return false;

@@ -4,7 +4,8 @@
 #include <iostream>
 #include <map>
 
-#define LOG(category, ...) if(LogController::instance().isEnabled(category)){std::cerr __VA_ARGS__ << std::endl;}
+#define LOG(category, ...) if(LogController::instance().isEnabled(category))\
+                           {std::cerr __VA_ARGS__ << std::endl;}
 #define DBG(...) LOG(LogController::Debug, __VA_ARGS__)
 
 class LogController

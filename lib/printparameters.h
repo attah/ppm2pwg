@@ -3,13 +3,22 @@
 
 #include "list.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <string>
 
 #define INVALID_PAGE 0
 
-typedef List<size_t> PageSequence;
+class PageSequence : public List<size_t>
+{
+  using List<size_t>::List;
+public:
+  bool isSinglePage() const
+  {
+    return std::adjacent_find(cbegin(), cend(), std::not_equal_to<>()) == cend();
+  }
+};
 typedef List<std::pair<size_t, size_t>> PageRangeList;
 
 class PrintParameters

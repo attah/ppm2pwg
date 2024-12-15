@@ -16,3 +16,5 @@ minimime
 bsplit
 ippdecode
 ippdiscover
+fuzz
+fuzz-*

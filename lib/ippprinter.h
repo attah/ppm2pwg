@@ -58,7 +58,8 @@ public:
     return IppPrintJob(_printerAttrs, additionalDocumentFormats());
   }
 
-  Error runJob(IppPrintJob& job, const std::string& inFile, const std::string& inFormat, int pages, const ProgressFun& progressFun = noOpProgressfun);
+  Error runJob(IppPrintJob& job, const std::string& inFile, const std::string& inFormat, int pages,
+               const ProgressFun& progressFun = noOpProgressfun);
 
   std::string name();
   std::string uuid();
@@ -97,7 +98,10 @@ public:
 private:
   Error _doRequest(IppMsg::Operation op, IppMsg& resp);
   Error _doRequest(const IppMsg& req, IppMsg& resp);
-  IppMsg _mkMsg(uint16_t opOrStatus, IppAttrs opAttrs=IppAttrs(), const IppAttrs& jobAttrs=IppAttrs(), const IppAttrs& printerAttrs=IppAttrs());
+  IppMsg _mkMsg(uint16_t opOrStatus,
+                IppAttrs opAttrs=IppAttrs(),
+                const IppAttrs& jobAttrs=IppAttrs(),
+                const IppAttrs& printerAttrs=IppAttrs());
   void _applyOverrides();
 
   std::string _addr;
@@ -107,8 +111,10 @@ private:
   Error _error;
   IppAttrs _printerAttrs;
 
-  Error doPrint(IppPrintJob& job, const std::string& inFile, const Converter::ConvertFun& convertFun, Bytestream&& hdr, const ProgressFun& progressFun);
-  Error doPrintToFile(IppPrintJob& job, const std::string& inFile, const Converter::ConvertFun& convertFun, const ProgressFun& progressFun);
+  Error doPrint(IppPrintJob& job, const std::string& inFile, Bytestream&& hdr,
+                const Converter::ConvertFun& convertFun, const ProgressFun& progressFun);
+  Error doPrintToFile(IppPrintJob& job, const std::string& inFile,
+                      const Converter::ConvertFun& convertFun, const ProgressFun& progressFun);
 
 };
 

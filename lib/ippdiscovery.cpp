@@ -39,7 +39,8 @@ std::string ip4str(uint32_t ip)
        + std::to_string(ip & 0xff);
 }
 
-std::string make_addr(const std::string& proto, uint16_t defaultPort, uint16_t port, const std::string& ip, const std::string& rp)
+std::string make_addr(const std::string& proto, uint16_t defaultPort, uint16_t port,
+                      const std::string& ip, const std::string& rp)
 {
   std::string maybePort = port != defaultPort ? ":"+std::to_string(port) : "";
   std::string addr = proto+"://"+ip+maybePort+"/"+rp;
@@ -169,16 +170,16 @@ void IppDiscovery::update()
   std::string target;
   std::string rp;
 
-  for(const std::string& it : _ippsPtrs)
+  for(const std::string& ptr : _ippsPtrs)
   {
-    if(!_targets.contains(it) || !_ports.contains(it) || !(_TXTs.contains(it) && _TXTs[it].contains("rp")))
+    if(!_targets.contains(ptr) || !_ports.contains(ptr) || !hasTxtEntry(ptr, "rp"))
     {
       continue;
     }
 
-    uint16_t port = _ports.at(it);
-    target = _targets.at(it);
-    rp = _TXTs.at(it).at("rp");
+    uint16_t port = _ports.at(ptr);
+    target = _targets.at(ptr);
+    rp = _TXTs.at(ptr).at("rp");
 
     if(_As.contains(target))
     {
@@ -195,16 +196,16 @@ void IppDiscovery::update()
     }
   }
 
-  for(const std::string& it : _ippPtrs)
+  for(const std::string& ptr : _ippPtrs)
   {
-    if(!_targets.contains(it) || !_ports.contains(it) || !(_TXTs.contains(it) && _TXTs[it].contains("rp")))
+    if(!_targets.contains(ptr) || !_ports.contains(ptr) || !hasTxtEntry(ptr, "rp"))
     {
       continue;
     }
 
-    uint16_t port = _ports.at(it);
-    target = _targets.at(it);
-    rp = _TXTs.at(it).at("rp");
+    uint16_t port = _ports.at(ptr);
+    target = _targets.at(ptr);
+    rp = _TXTs.at(ptr).at("rp");
 
     if(_As.contains(target))
     {
@@ -395,4 +396,9 @@ void IppDiscovery::discover()
     update();
 
   }
+}
+
+bool IppDiscovery::hasTxtEntry(const std::string& ptr, const std::string& key)
+{
+  return (_TXTs.contains(ptr) && _TXTs[ptr].contains(key));
 }

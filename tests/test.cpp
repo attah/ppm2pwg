@@ -2399,7 +2399,7 @@ TEST(converter)
 
   // Custom function
   ASSERT_FALSE(Converter::instance().getConvertFun("foo", "bar"));
-  Converter::ConvertFun FooBar = [](std::string, WriteFun, const IppPrintJob&, ProgressFun){return Error();};
+  Converter::ConvertFun FooBar = [](std::string, const IppPrintJob&, WriteFun, ProgressFun){return Error();};
   Converter::instance().Pipelines.push_back({{"foo", "bar"}, FooBar});
   ASSERT(Converter::instance().getConvertFun("foo", "bar"));
 

@@ -4,7 +4,7 @@
 #include "ippdiscovery.h"
 #include "log.h"
 
-inline void print_error(std::string hint, std::string argHelp)
+inline void print_error(const std::string& hint, const std::string& argHelp)
 {
   std::cerr << hint << std::endl << std::endl << argHelp << std::endl;
 }
@@ -36,6 +36,6 @@ int main(int argc, char** argv)
     LogController::instance().enable(LogController::Debug);
   }
 
-  IppDiscovery ippDiscovery([](std::string addr){std::cout << addr << std::endl;});
+  IppDiscovery ippDiscovery([](const std::string& addr){std::cout << addr << std::endl;});
   ippDiscovery.discover();
 }

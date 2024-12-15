@@ -23,7 +23,5 @@ jobs:
     - name: test
       run: ./test
       working-directory: ./tests
-    - name: analyze
-      run: make analyze
     - name: tidy
       run: make tidy

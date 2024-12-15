@@ -7,7 +7,7 @@
 
 #include <string>
 
-Error pdf_to_printable(std::string infile, WriteFun writeFun, const PrintParameters& params,
-                       ProgressFun progressFun = noOpProgressfun);
+Error pdf_to_printable(const std::string& infile, const WriteFun& writeFun, const PrintParameters& params,
+                       const ProgressFun& progressFun = noOpProgressfun);
 
 #endif //PDF2PRINTABLE_H

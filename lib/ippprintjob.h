@@ -58,7 +58,7 @@ public:
   ChoiceSetting<int> leftMargin = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppTag::Integer, "media-left-margin", "media-col");
   ChoiceSetting<int> rightMargin = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppTag::Integer, "media-right-margin", "media-col");
 
-  Error finalize(std::string inputFormat, int pages=0);
+  Error finalize(const std::string& inputFormat, int pages=0);
 
   bool canSaveSettings();
   void restoreSettings();
@@ -84,8 +84,8 @@ public:
 
 private:
 
-  std::string determineTargetFormat(std::string inputFormat);
-  bool isImage(std::string format);
+  std::string determineTargetFormat(const std::string& inputFormat);
+  bool isImage(const std::string& format);
   void adjustRasterSettings(int pages);
 
   IppAttrs _printerAttrs;

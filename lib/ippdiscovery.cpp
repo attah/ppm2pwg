@@ -11,22 +11,14 @@
 
 using namespace std::literals;
 
-#define A 1
-#define PTR 12
-#define TXT 16
-#define AAAA 28
-#define SRV 33
-
-#define ALL 255 //for querying
-
-std::ostream& operator<<(std::ostream& os, List<std::string> sl)
+std::ostream& operator<<(std::ostream& os, const List<std::string>& sl)
 {
   os << join_string(sl, ", ");
   return os;
 }
 
 template <typename T, typename U>
-std::ostream& operator<<(std::ostream& os, Map<T, U> m)
+std::ostream& operator<<(std::ostream& os, const Map<T, U>& m)
 {
   List<std::string> sl;
   for(const std::pair<T, U> p : m)
@@ -47,19 +39,19 @@ std::string ip4str(uint32_t ip)
        + std::to_string(ip & 0xff);
 }
 
-std::string make_addr(std::string proto, uint16_t defaultPort, uint16_t port, std::string ip, std::string rp)
+std::string make_addr(const std::string& proto, uint16_t defaultPort, uint16_t port, const std::string& ip, const std::string& rp)
 {
   std::string maybePort = port != defaultPort ? ":"+std::to_string(port) : "";
   std::string addr = proto+"://"+ip+maybePort+"/"+rp;
   return addr;
 }
 
-std::string make_ipp_addr(uint16_t port, std::string ip, std::string rp)
+std::string make_ipp_addr(uint16_t port, const std::string& ip, const std::string& rp)
 {
   return make_addr("ipp", 631, port, ip, rp);
 }
 
-std::string make_ipps_addr(uint16_t port, std::string ip, std::string rp)
+std::string make_ipps_addr(uint16_t port, const std::string& ip, const std::string& rp)
 {
   return make_addr("ipps", 443, port, ip, rp);
 }
@@ -96,15 +88,11 @@ std::string get_addr_str(Bytestream& bts)
 }
 
 IppDiscovery::IppDiscovery(std::function<void(std::string)> callback)
-: _callback(callback)
+: _callback(std::move(callback))
 {
 }
 
-IppDiscovery::~IppDiscovery()
-{
-}
-
-void IppDiscovery::sendQuery(uint16_t qtype, List<std::string> addrs)
+void IppDiscovery::sendQuery(QType qtype, List<std::string> addrs)
 {
   std::chrono::time_point<std::chrono::system_clock> nowClock = std::chrono::system_clock::now();
   std::time_t now = std::chrono::system_clock::to_time_t(nowClock);
@@ -128,7 +116,7 @@ void IppDiscovery::sendQuery(uint16_t qtype, List<std::string> addrs)
     return;
   }
 
-  DBG(<< "querying " << qtype << " " << addrs);
+  DBG(<< "querying " << (uint16_t)qtype << " " << addrs);
 
   Bytestream query;
   Map<std::string, uint16_t> suffixPositions;
@@ -138,12 +126,13 @@ void IppDiscovery::sendQuery(uint16_t qtype, List<std::string> addrs)
 
   query << _transactionId++ << flags << questions << (uint16_t)0 << (uint16_t)0 << (uint16_t)0;
 
-  for(std::string addr : addrs)
+  for(const std::string& addr : addrs)
   {
     _outstandingQueries.insert({{qtype, addr}, now});
 
     List<std::string> addrParts = split_string(addr, ".");
-    std::string addrPart, restAddr;
+    std::string addrPart;
+    std::string restAddr;
     while(!addrParts.empty())
     {
       restAddr = join_string(addrParts, ".");
@@ -166,7 +155,7 @@ void IppDiscovery::sendQuery(uint16_t qtype, List<std::string> addrs)
       query << (uint8_t)0;
     }
 
-    query << qtype << (uint16_t)0x0001;
+    query << (uint16_t)qtype << (uint16_t)0x0001;
 
   }
 
@@ -177,9 +166,10 @@ void IppDiscovery::sendQuery(uint16_t qtype, List<std::string> addrs)
 void IppDiscovery::update()
 {
   List<std::pair<std::string,std::string>> ippsIpRps;
-  std::string target, rp;
+  std::string target;
+  std::string rp;
 
-  for(std::string it : _ippsPtrs)
+  for(const std::string& it : _ippsPtrs)
   {
     if(!_targets.contains(it) || !_ports.contains(it) || !(_TXTs.contains(it) && _TXTs[it].contains("rp")))
     {
@@ -192,7 +182,7 @@ void IppDiscovery::update()
 
     if(_As.contains(target))
     {
-      for(std::string ip : _As.at(target))
+      for(const std::string& ip : _As.at(target))
       {
         std::string addr = make_ipps_addr(port, ip, rp);
         if(!_found.contains(addr))
@@ -205,7 +195,7 @@ void IppDiscovery::update()
     }
   }
 
-  for(std::string it : _ippPtrs)
+  for(const std::string& it : _ippPtrs)
   {
     if(!_targets.contains(it) || !_ports.contains(it) || !(_TXTs.contains(it) && _TXTs[it].contains("rp")))
     {
@@ -218,7 +208,7 @@ void IppDiscovery::update()
 
     if(_As.contains(target))
     {
-      for(std::string ip : _As.at(target))
+      for(const std::string& ip : _As.at(target))
       {
         std::string addr = make_ipp_addr(port, ip, rp);
         if(!_found.contains(addr) && !ippsIpRps.contains({ip, rp}))
@@ -231,9 +221,9 @@ void IppDiscovery::update()
   }
 }
 
-void IppDiscovery::updateAndQueryPtrs(List<std::string>& ptrs, List<std::string> newPtrs)
+void IppDiscovery::updateAndQueryPtrs(List<std::string>& ptrs, const List<std::string>& newPtrs)
 {
-  for(std::string ptr : newPtrs)
+  for(const std::string& ptr : newPtrs)
   {
     if(ptrs.contains(ptr))
     {
@@ -268,9 +258,17 @@ void IppDiscovery::discover()
     List<std::string> newIppsPtrs;
     List<std::string> newTargets;
 
-    std::string qaddr, aaddr, tmpname, target;
+    std::string qaddr;
+    std::string aaddr;
+    std::string tmpname;
+    std::string target;
 
-    uint16_t transactionidResp, flags, questions, answerRRs, authRRs, addRRs;
+    uint16_t transactionidResp;
+    uint16_t flags;
+    uint16_t questions;
+    uint16_t answerRRs;
+    uint16_t authRRs;
+    uint16_t addRRs;
 
     try
     {
@@ -279,14 +277,17 @@ void IppDiscovery::discover()
 
       for(size_t i = 0; i < questions; i++)
       {
-        uint16_t qtype, qflags;
+        uint16_t qtype;
+        uint16_t qflags;
         qaddr = get_addr_str(resp);
         resp >> qtype >> qflags;
       }
 
       for(size_t i = 0; i < totalRRs; i++)
       {
-        uint16_t atype, aflags, len;
+        uint16_t atype;
+        uint16_t aflags;
+        uint16_t len;
         uint32_t ttl;
 
         aaddr = get_addr_str(resp);
@@ -313,7 +314,7 @@ void IppDiscovery::discover()
             while(resp.pos() < pos_before+len)
             {
               std::string txt = resp.getString(resp.get<uint8_t>());
-              size_t pos = txt.find("=");
+              size_t pos = txt.find('=');
               std::string key = txt.substr(0, pos);
               std::string value = txt.substr(pos+1);
               _TXTs[aaddr][key] = value;
@@ -322,7 +323,9 @@ void IppDiscovery::discover()
           }
           case SRV:
           {
-            uint16_t prio, w, port;
+            uint16_t prio;
+            uint16_t w;
+            uint16_t port;
             resp >> prio >> w >> port;
             target = get_addr_str(resp);
             _ports[aaddr] = port;
@@ -375,7 +378,7 @@ void IppDiscovery::discover()
 
     List<std::string> unresolvedAddrs;
 
-    for(std::string t : newTargets)
+    for(const std::string& t : newTargets)
     {
       // If target does not resolve to an address, query about it
       if(!_As.contains(t))

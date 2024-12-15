@@ -38,8 +38,7 @@ public:
 
   IppMsg() = default;
   IppMsg(Bytestream& msg);
-  IppMsg(uint16_t opOrStatus, IppAttrs opAttrs,
-         IppAttrs jobAttrs=IppAttrs(), IppAttrs printerAttrs=IppAttrs());
+  IppMsg(uint16_t opOrStatus, const IppAttrs& opAttrs, const IppAttrs& jobAttrs=IppAttrs(), const IppAttrs& printerAttrs=IppAttrs());
   IppMsg(const IppMsg& other) = default;
   ~IppMsg() = default;
 
@@ -49,10 +48,10 @@ public:
   uint16_t getStatus() const {return _opOrStatus;}
 
   Bytestream encode() const;
-  void setOpAttr(std::string name, IppAttr attr);
+  void setOpAttr(const std::string& name, const IppAttr& attr);
   void setVersion(uint8_t majVsn, uint8_t minVsn);
 
-  static IppAttrs baseOpAttrs(std::string url);
+  static IppAttrs baseOpAttrs(const std::string& url);
 
   static void setReqId(uint32_t reqId)
   {

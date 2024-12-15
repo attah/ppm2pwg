@@ -1,8 +1,8 @@
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <limits>
-#include <string.h>
 
 #include "argget.h"
 #include "binfile.h"
@@ -14,7 +14,7 @@
 
 #define HELPTEXT "Use \"-\" as filename for stdin/stdout."
 
-inline void print_error(std::string hint, std::string argHelp)
+inline void print_error(const std::string& hint, const std::string& argHelp)
 {
   std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
 }
@@ -171,7 +171,10 @@ int main(int argc, char** argv)
     outBts.reset();
     page++;
 
-    std::string p, xs, ys, r;
+    std::string p;
+    std::string xs;
+    std::string ys;
+    std::string r;
     inFile >> p;
 
     ignore_comments(inFile);

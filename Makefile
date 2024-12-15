@@ -67,9 +67,6 @@ ippdiscover: ippdiscover.o ippdiscovery.o bytestream.o
 clean:
 	rm -f *.o $(OFFICIAL) $(EXTRAS)
 
-analyze:
-	$(CLANGXX) --analyze $(CXXFLAGS) $(SILLY_CLANG_FLAGS) lib/*.cpp utils/*.cpp
-
 tidy:
 	$(CLANG_TIDY) lib/*.cpp utils/*.cpp -- $(CXXFLAGS)
 

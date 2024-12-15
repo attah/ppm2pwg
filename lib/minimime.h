@@ -21,13 +21,13 @@ public:
   static const std::string JPEG;
   static const std::string TIFF;
 
-  static std::string getMimeType(std::string fileName);
+  static std::string getMimeType(const std::string& fileName);
 
-  static bool isKnownImageFormat(std::string mimeType);
-  static bool isImage(std::string mimeType);
-  static bool isPrinterRaster(std::string mimeType);
-  static bool isMultiPage(std::string mimeType);
-  static std::string defaultExtension(std::string mimeType);
+  static bool isKnownImageFormat(const std::string& mimeType);
+  static bool isImage(const std::string& mimeType);
+  static bool isPrinterRaster(const std::string& mimeType);
+  static bool isMultiPage(const std::string& mimeType);
+  static std::string defaultExtension(const std::string& mimeType);
 };
 
 #endif // MINIMIME_H

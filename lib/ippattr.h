@@ -55,7 +55,7 @@ struct IppIntRange
 
   bool operator==(const IppIntRange& other) const;
   std::string toStr() const;
-  static IppIntRange fromJSON(const Json::object json);
+  static IppIntRange fromJSON(const Json::object& json);
   Json::object toJSON() const;
 };
 
@@ -74,7 +74,7 @@ struct IppResolution
 
   bool operator==(const IppResolution& other) const;
   std::string toStr() const;
-  static IppResolution fromJSON(const Json::object json);
+  static IppResolution fromJSON(const Json::object& json);
   Json::object toJSON() const;
 };
 
@@ -93,7 +93,7 @@ struct IppDateTime
 
   bool operator==(const IppDateTime& other) const;
   std::string toStr() const;
-  static IppDateTime fromJSON(const Json::object json);
+  static IppDateTime fromJSON(const Json::object& json);
   Json toJSON() const;
 };
 
@@ -109,8 +109,8 @@ struct IppOneSetOf: public List<IppValue>
 struct IppCollection: public std::map<std::string, IppAttr>
 {
   using std::map<std::string, IppAttr>::map;
-  bool has(std::string key) const;
-  void set(std::string key, IppAttr value);
+  bool has(const std::string& key) const;
+  void set(const std::string& key, IppAttr value);
 };
 
 class IppAttr : public IppValue
@@ -124,14 +124,14 @@ public:
 
   IppTag tag() const {return _tag;}
   IppValue value() const {return *this;}
-  static IppAttr fromString(std::string string, IppTag tag);
+  static IppAttr fromString(const std::string& string, IppTag tag);
 
-  static IppAttr fromJSON(Json::object json);
+  static IppAttr fromJSON(const Json::object& json);
   Json toJSON() const;
 
 private:
   static IppValue valuefromJSON(IppTag tag, const Json& json);
-  static Json valueToJSON(IppValue value);
+  static Json valueToJSON(const IppValue& value);
 
   IppTag _tag;
 
@@ -141,7 +141,7 @@ struct IppAttrs: public std::map<std::string, IppAttr>
 {
   using std::map<std::string, IppAttr>::map;
 
-  bool has(std::string key) const
+  bool has(const std::string& key) const
   {
     return find(key) != end();
   }
@@ -159,13 +159,13 @@ struct IppAttrs: public std::map<std::string, IppAttr>
     }
   }
 
-  void set(std::string key, IppAttr value)
+  void set(const std::string& key, IppAttr value)
   {
     insert_or_assign(key, value);
   }
 
   template <typename T>
-  List<T> getList(std::string name) const
+  List<T> getList(const std::string& name) const
   {
     List<T> res;
     if(has(name))
@@ -178,7 +178,7 @@ struct IppAttrs: public std::map<std::string, IppAttr>
     return res;
   }
 
-  static IppAttrs fromJSON(Json::object json);
+  static IppAttrs fromJSON(const Json::object& json);
   Json toJSON() const;
 
 };

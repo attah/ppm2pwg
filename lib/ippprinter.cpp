@@ -7,7 +7,7 @@
 
 #include <filesystem>
 
-IppPrinter::IppPrinter(std::string addr, bool ignoreSslErrors) : _addr(addr), _ignoreSslErrors(ignoreSslErrors)
+IppPrinter::IppPrinter(std::string addr, bool ignoreSslErrors) : _addr(std::move(addr)), _ignoreSslErrors(ignoreSslErrors)
 {
   _error = refresh();
 }
@@ -56,7 +56,8 @@ Error IppPrinter::refresh()
   return error;
 }
 
-Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inFormat, int pages, ProgressFun progressFun)
+Error IppPrinter::runJob(IppPrintJob& job, const std::string& inFile, const std::string& inFormat, int pages,
+                         const ProgressFun& progressFun)
 {
   Error error;
   try
@@ -133,7 +134,7 @@ Error IppPrinter::runJob(IppPrintJob job, std::string inFile, std::string inForm
   return error;
 }
 
-Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, Bytestream&& hdr, ProgressFun progressFun)
+Error IppPrinter::doPrint(IppPrintJob& job, const std::string& inFile, const Converter::ConvertFun& convertFun, Bytestream&& hdr, const ProgressFun& progressFun)
 {
   Error error;
   CurlIppStreamer cr(_addr, true);
@@ -151,7 +152,9 @@ Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::Conve
   WriteFun writeFun([&cr](Bytestream&& data) -> bool
            {
              if(data.size() == 0)
+             {
                return true;
+             }
              return cr.write(std::move(data));
            });
 
@@ -187,7 +190,7 @@ Error IppPrinter::doPrint(IppPrintJob& job, std::string inFile, Converter::Conve
   return error;
 }
 
-Error IppPrinter::doPrintToFile(IppPrintJob& job, std::string inFile, Converter::ConvertFun convertFun, ProgressFun progressFun)
+Error IppPrinter::doPrintToFile(IppPrintJob& job, const std::string& inFile, const Converter::ConvertFun& convertFun, const ProgressFun& progressFun)
 {
   std::string fileName = std::filesystem::path(inFile).filename();
   std::string ext = MiniMime::defaultExtension(job.targetFormat);
@@ -431,7 +434,7 @@ Error IppPrinter::identify()
   return error;
 }
 
-Error IppPrinter::setAttributes(List<std::pair<std::string, std::string>> attrStrs)
+Error IppPrinter::setAttributes(const List<std::pair<std::string, std::string>>& attrStrs)
 {
   Error error;
   IppAttrs attrs;
@@ -540,7 +543,7 @@ Error IppPrinter::_doRequest(const IppMsg& req, IppMsg& resp)
   return error;
 }
 
-IppMsg IppPrinter::_mkMsg(uint16_t opOrStatus, IppAttrs opAttrs, IppAttrs jobAttrs, IppAttrs printerAttrs)
+IppMsg IppPrinter::_mkMsg(uint16_t opOrStatus, IppAttrs opAttrs, const IppAttrs& jobAttrs, const IppAttrs& printerAttrs)
 {
   IppAttrs baseOpAttrs = IppMsg::baseOpAttrs(_addr);
   opAttrs.insert(baseOpAttrs.cbegin(), baseOpAttrs.cend());
@@ -563,7 +566,7 @@ void IppPrinter::_applyOverrides()
       Bytestream bts(ifs);
       std::string errStr;
       Json overridesJson = Json::parse(bts.getString(bts.size()), errStr);
-      if(errStr != "")
+      if(!errStr.empty())
       {
         std::cerr << "Bad overrides file: " << errStr << std::endl;
       }

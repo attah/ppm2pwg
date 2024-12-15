@@ -4,18 +4,18 @@
 
 uint32_t IppMsg::_reqId=1;
 
-IppMsg::IppMsg(Bytestream& bts)
+IppMsg::IppMsg(Bytestream& msg)
 {
   uint32_t reqId;
 
-  bts >> _majVsn >> _minVsn >> _opOrStatus >> reqId;
+  msg >> _majVsn >> _minVsn >> _opOrStatus >> reqId;
 
   IppAttrs attrs;
   IppTag currentAttrType = IppTag::EndAttrs;
 
-  while(!bts.atEnd())
+  while(!msg.atEnd())
   {
-    if(bts.peek<uint8_t>() <= (uint8_t)IppTag::UnsupportedAttrs)
+    if(msg.peek<uint8_t>() <= (uint8_t)IppTag::UnsupportedAttrs)
     {
       if(currentAttrType == IppTag::OpAttrs)
       {
@@ -37,23 +37,22 @@ IppMsg::IppMsg(Bytestream& bts)
 #endif
       }
 
-      if(bts >>= (uint8_t)IppTag::EndAttrs)
+      if(msg >>= (uint8_t)IppTag::EndAttrs)
       {
         break;
       }
 
-      currentAttrType = (IppTag)bts.get<uint8_t>();
+      currentAttrType = (IppTag)msg.get<uint8_t>();
       attrs = IppAttrs();
     }
     else
     {
-      consumeAttributes(attrs, bts);
+      consumeAttributes(attrs, msg);
     }
   }
 }
 
-IppMsg::IppMsg(uint16_t opOrStatus, IppAttrs opAttrs,
-               IppAttrs jobAttrs, IppAttrs printerAttrs)
+IppMsg::IppMsg(uint16_t opOrStatus, const IppAttrs& opAttrs, const IppAttrs& jobAttrs, const IppAttrs& printerAttrs)
 {
   _opOrStatus = opOrStatus;
   _opAttrs = opAttrs;
@@ -105,7 +104,7 @@ Bytestream IppMsg::encode() const
   return ipp;
 }
 
-void IppMsg::setOpAttr(std::string name, IppAttr attr)
+void IppMsg::setOpAttr(const std::string& name, const IppAttr& attr)
 {
   _opAttrs.insert({name, attr});
 }
@@ -116,10 +115,10 @@ void IppMsg::setVersion(uint8_t majVsn, uint8_t minVsn)
   _minVsn = minVsn;
 }
 
-IppAttrs IppMsg::baseOpAttrs(std::string url)
+IppAttrs IppMsg::baseOpAttrs(const std::string& url)
 {
   char* user = getenv("USER");
-  std::string name = user ? user : "anonymous";
+  std::string name = user != nullptr ? user : "anonymous";
   IppAttrs o
   {
     {"attributes-charset",          IppAttr(IppTag::Charset,             "utf-8")},
@@ -439,6 +438,7 @@ void IppMsg::encodeValue(Bytestream& msg, IppTag tag, const IppValue& val) const
   }
 }
 
+#ifdef FUZZ
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size)
 {
   Bytestream bts(Data, Size);
@@ -449,7 +449,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size)
   }
   catch(const std::exception& e)
   {
-
   }
   return 0;
 }
+#endif

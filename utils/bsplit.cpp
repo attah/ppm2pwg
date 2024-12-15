@@ -7,7 +7,7 @@
 
 #define HELPTEXT "Negative numbers means \"all but\" number of bytes from the beginning/end."
 
-inline void print_error(std::string hint, std::string argHelp)
+inline void print_error(const std::string& hint, const std::string& argHelp)
 {
   std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
 }

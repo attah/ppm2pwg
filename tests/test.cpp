@@ -877,7 +877,7 @@ TEST(pagerange)
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 100);
 
-  params.pageRangeList = {{4, 7}};
+  params.pageSelection = {{4, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 4);
   ASSERT(seq == PageSequence({4, 5, 6, 7}));
@@ -885,7 +885,7 @@ TEST(pagerange)
   params.copies = 2;
   params.collatedCopies = true;
   params.format = PrintParameters::PWG;
-  params.pageRangeList = {{4, 7}};
+  params.pageSelection = {{4, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 8);
   ASSERT(seq == PageSequence({4, 5, 6, 7,
@@ -895,7 +895,7 @@ TEST(pagerange)
   params.copies = 2;
   params.collatedCopies = true;
   params.format = PrintParameters::PWG;
-  params.pageRangeList = {{4, 6}};
+  params.pageSelection = {{4, 6}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 6);
   ASSERT(seq == PageSequence({4, 5, 6,
@@ -904,7 +904,7 @@ TEST(pagerange)
   params.duplexMode = PrintParameters::OneSided;
   params.copies = 3;
   params.collatedCopies = true;
-  params.pageRangeList = {{4, 6}};
+  params.pageSelection = {{4, 6}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 9);
   ASSERT(seq == PageSequence({4, 5, 6,
@@ -915,7 +915,7 @@ TEST(pagerange)
   params.copies = 2;
   params.collatedCopies = true;
   params.format = PrintParameters::PWG;
-  params.pageRangeList = {{4, 6}};
+  params.pageSelection = {{4, 6}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 8);
   ASSERT(seq == PageSequence({4, 5, 6, INVALID_PAGE,
@@ -923,7 +923,7 @@ TEST(pagerange)
 
   params.duplexMode = PrintParameters::TwoSidedLongEdge;
   params.copies = 3;
-  params.pageRangeList = {{4, 6}};
+  params.pageSelection = {{4, 6}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 12);
   ASSERT(seq == PageSequence({4, 5, 6, INVALID_PAGE,
@@ -933,7 +933,7 @@ TEST(pagerange)
   params.duplexMode = PrintParameters::OneSided;
   params.copies = 2;
   params.collatedCopies = false;
-  params.pageRangeList = {{4, 7}};
+  params.pageSelection = {{4, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 8);
   ASSERT(seq == PageSequence({4, 4,
@@ -944,7 +944,7 @@ TEST(pagerange)
   params.duplexMode = PrintParameters::TwoSidedLongEdge;
   params.copies = 2;
   params.collatedCopies = false;
-  params.pageRangeList = {{4, 7}};
+  params.pageSelection = {{4, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 8);
   ASSERT(seq == PageSequence({4, 5,
@@ -955,7 +955,7 @@ TEST(pagerange)
   params.duplexMode = PrintParameters::OneSided;
   params.copies = 3;
   params.collatedCopies = true;
-  params.pageRangeList = {{1, 2}, {5, 7}};
+  params.pageSelection = {{1, 2}, {5, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 15);
   ASSERT(seq == PageSequence({1, 2, 5, 6, 7,
@@ -965,7 +965,7 @@ TEST(pagerange)
   params.duplexMode = PrintParameters::TwoSidedLongEdge;
   params.copies = 3;
   params.collatedCopies = true;
-  params.pageRangeList = {{1, 2}, {5, 7}};
+  params.pageSelection = {{1, 2}, {5, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 18);
   ASSERT(seq == PageSequence({1, 2, 5, 6, 7, INVALID_PAGE,
@@ -975,7 +975,7 @@ TEST(pagerange)
   params.duplexMode = PrintParameters::TwoSidedLongEdge;
   params.copies = 3;
   params.collatedCopies = true;
-  params.pageRangeList = {{1, 2}, {6, 7}};
+  params.pageSelection = {{1, 2}, {6, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 12);
   ASSERT(seq == PageSequence({1, 2, 6, 7,
@@ -985,7 +985,7 @@ TEST(pagerange)
   params.duplexMode = PrintParameters::OneSided;
   params.copies = 2;
   params.collatedCopies = false;
-  params.pageRangeList = {{1, 2}, {5, 7}};
+  params.pageSelection = {{1, 2}, {5, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 10);
   ASSERT(seq == PageSequence({1, 1,
@@ -997,7 +997,7 @@ TEST(pagerange)
   params.duplexMode = PrintParameters::TwoSidedLongEdge;
   params.copies = 2;
   params.collatedCopies = false;
-  params.pageRangeList = {{1, 2}, {5, 7}};
+  params.pageSelection = {{1, 2}, {5, 7}};
   seq = params.getPageSequence(100);
   ASSERT(seq.size() == 12);
   ASSERT(seq == PageSequence({1, 2,
@@ -1009,7 +1009,7 @@ TEST(pagerange)
 
   params.duplexMode = PrintParameters::OneSided;
   params.copies = 1;
-  params.pageRangeList = {};
+  params.pageSelection = {};
   seq = params.getPageSequence(3);
   ASSERT(seq.size() == 3);
   ASSERT(seq == PageSequence({1, 2, 3}));
@@ -1017,7 +1017,7 @@ TEST(pagerange)
   params.duplexMode = PrintParameters::OneSided;
   params.copies = 2;
   params.collatedCopies = true;
-  params.pageRangeList = {};
+  params.pageSelection = {};
   seq = params.getPageSequence(3);
   ASSERT(seq.size() == 6);
   ASSERT(seq == PageSequence({1, 2, 3,
@@ -1026,7 +1026,7 @@ TEST(pagerange)
   params.duplexMode = PrintParameters::OneSided;
   params.copies = 2;
   params.collatedCopies = false;
-  params.pageRangeList = {};
+  params.pageSelection = {};
   seq = params.getPageSequence(3);
   ASSERT(seq.size() == 6);
   ASSERT(seq == PageSequence({1, 1,
@@ -1036,7 +1036,7 @@ TEST(pagerange)
   params.duplexMode = PrintParameters::TwoSidedLongEdge;
   params.copies = 2;
   params.collatedCopies = true;
-  params.pageRangeList = {};
+  params.pageSelection = {};
   seq = params.getPageSequence(3);
   ASSERT(seq.size() == 8);
   ASSERT(seq == PageSequence({1, 2, 3, INVALID_PAGE,
@@ -1045,7 +1045,7 @@ TEST(pagerange)
   params.duplexMode = PrintParameters::TwoSidedLongEdge;
   params.copies = 2;
   params.collatedCopies = false;
-  params.pageRangeList = {};
+  params.pageSelection = {};
   seq = params.getPageSequence(3);
   ASSERT(seq.size() == 8);
   ASSERT(seq == PageSequence({1, 2,
@@ -1055,13 +1055,13 @@ TEST(pagerange)
 
   params.duplexMode = PrintParameters::OneSided;
   params.copies = 1;
-  params.pageRangeList = {{17,42}};
+  params.pageSelection = {{17,42}};
   seq = params.getPageSequence(42);
   ASSERT(seq.size() == 26);
   seq = params.getPageSequence(32);
   ASSERT(seq.size() == 16);
 
-  params.pageRangeList = {{1,2},{17,42}};
+  params.pageSelection = {{1,2},{17,42}};
   seq = params.getPageSequence(42);
   ASSERT(seq.size() == 28);
   seq = params.getPageSequence(32);
@@ -1072,48 +1072,48 @@ TEST(pagerange)
 TEST(parse_pagerange)
 {
   PrintParameters params;
-  ASSERT(params.setPageRange("1"));
-  ASSERT(params.pageRangeList == PageRangeList({{1,1}}));
-  ASSERT(params.setPageRange("1-1"));
-  ASSERT(params.pageRangeList == PageRangeList({{1,1}}));
-  ASSERT(params.setPageRange("1,2,3"));
-  ASSERT(params.pageRangeList == PageRangeList({{1,1},{2,2},{3,3}}));
-  ASSERT(params.setPageRange("1-3,5"));
-  ASSERT(params.pageRangeList == PageRangeList({{1,3},{5,5}}));
-  ASSERT(params.setPageRange("1-3,5,6,17-42"));
-  ASSERT(params.pageRangeList == PageRangeList({{1,3},{5,5},{6,6},{17,42}}));
+  ASSERT(params.setPageSelection("1"));
+  ASSERT(params.pageSelection == PageRangeList({{1,1}}));
+  ASSERT(params.setPageSelection("1-1"));
+  ASSERT(params.pageSelection == PageRangeList({{1,1}}));
+  ASSERT(params.setPageSelection("1,2,3"));
+  ASSERT(params.pageSelection == PageRangeList({{1,1},{2,2},{3,3}}));
+  ASSERT(params.setPageSelection("1-3,5"));
+  ASSERT(params.pageSelection == PageRangeList({{1,3},{5,5}}));
+  ASSERT(params.setPageSelection("1-3,5,6,17-42"));
+  ASSERT(params.pageSelection == PageRangeList({{1,3},{5,5},{6,6},{17,42}}));
 
-  params.pageRangeList = {};
-  ASSERT_FALSE(params.setPageRange("1,"));
-  ASSERT(params.pageRangeList.empty());
-  ASSERT_FALSE(params.setPageRange(""));
-  ASSERT(params.pageRangeList.empty());
-  ASSERT_FALSE(params.setPageRange(","));
-  ASSERT(params.pageRangeList.empty());
-  ASSERT_FALSE(params.setPageRange("-,-"));
-  ASSERT(params.pageRangeList.empty());
-  ASSERT_FALSE(params.setPageRange("fail"));
-  ASSERT(params.pageRangeList.empty());
-  ASSERT_FALSE(params.setPageRange("fail1"));
-  ASSERT(params.pageRangeList.empty());
-  ASSERT_FALSE(params.setPageRange("fail,1-2"));
-  ASSERT(params.pageRangeList.empty());
-  ASSERT_FALSE(params.setPageRange("1-2,fail"));
-  ASSERT(params.pageRangeList.empty());
-  ASSERT_FALSE(params.setPageRange("1-0"));
-  ASSERT(params.pageRangeList.empty());
+  params.pageSelection = {};
+  ASSERT_FALSE(params.setPageSelection("1,"));
+  ASSERT(params.pageSelection.empty());
+  ASSERT_FALSE(params.setPageSelection(""));
+  ASSERT(params.pageSelection.empty());
+  ASSERT_FALSE(params.setPageSelection(","));
+  ASSERT(params.pageSelection.empty());
+  ASSERT_FALSE(params.setPageSelection("-,-"));
+  ASSERT(params.pageSelection.empty());
+  ASSERT_FALSE(params.setPageSelection("fail"));
+  ASSERT(params.pageSelection.empty());
+  ASSERT_FALSE(params.setPageSelection("fail1"));
+  ASSERT(params.pageSelection.empty());
+  ASSERT_FALSE(params.setPageSelection("fail,1-2"));
+  ASSERT(params.pageSelection.empty());
+  ASSERT_FALSE(params.setPageSelection("1-2,fail"));
+  ASSERT(params.pageSelection.empty());
+  ASSERT_FALSE(params.setPageSelection("1-0"));
+  ASSERT(params.pageSelection.empty());
 
-  ASSERT_FALSE(params.setPageRange("0-1"));
-  ASSERT(params.pageRangeList.empty());
-  ASSERT_FALSE(params.setPageRange("1-2,2-3"));
-  ASSERT(params.pageRangeList.empty());
-  ASSERT_FALSE(params.setPageRange("1-,2-"));
-  ASSERT(params.pageRangeList.empty());
+  ASSERT_FALSE(params.setPageSelection("0-1"));
+  ASSERT(params.pageSelection.empty());
+  ASSERT_FALSE(params.setPageSelection("1-2,2-3"));
+  ASSERT(params.pageSelection.empty());
+  ASSERT_FALSE(params.setPageSelection("1-,2-"));
+  ASSERT(params.pageSelection.empty());
 
-  ASSERT(params.setPageRange("2-"));
+  ASSERT(params.setPageSelection("2-"));
   ASSERT(params.getPageSequence(3) == PageSequence({2,3}));
   ASSERT(params.getPageSequence(4) == PageSequence({2,3,4}));
-  ASSERT(params.setPageRange("1,2-"));
+  ASSERT(params.setPageSelection("1,2-"));
   ASSERT(params.getPageSequence(3) == PageSequence({1,2,3}));
   ASSERT(params.getPageSequence(4) == PageSequence({1,2,3,4}));
 }
@@ -1926,7 +1926,7 @@ TEST(finalize)
   ASSERT(ip.printParams.paperSizeName == "na_letter_8.5x11in");
   ASSERT(ip.printParams.hwResW == 600);
   ASSERT(ip.printParams.hwResH == 600);
-  ASSERT((ip.printParams.pageRangeList == PageRangeList {{17, 42}}));
+  ASSERT((ip.printParams.pageSelection == PageRangeList {{17, 42}}));
   ASSERT(ip.printParams.duplexMode == PrintParameters::TwoSidedLongEdge);
   ASSERT(ip.printParams.quality == PrintParameters::HighQuality);
   ASSERT(ip.printParams.colorMode == PrintParameters::Gray8);

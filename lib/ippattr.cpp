@@ -19,7 +19,7 @@ std::string IppIntRange::toStr() const
   return ss.str();
 }
 
-IppIntRange IppIntRange::fromJSON(const Json::object json)
+IppIntRange IppIntRange::fromJSON(const Json::object& json)
 {
   return IppIntRange {json.at("low").int_value(), json.at("high").int_value()};
 }
@@ -41,7 +41,7 @@ std::string IppResolution::toStr() const
   return ss.str();
 }
 
-IppResolution IppResolution::fromJSON(const Json::object json)
+IppResolution IppResolution::fromJSON(const Json::object& json)
 {
   return IppResolution {(uint32_t)json.at("x").int_value(),
                         (uint32_t)json.at("y").int_value(),
@@ -80,7 +80,7 @@ std::string IppDateTime::toStr() const
   return ss.str();
 }
 
-IppDateTime IppDateTime::fromJSON(const Json::object)
+IppDateTime IppDateTime::fromJSON(const Json::object&)
 {
   // TODO
   return IppDateTime();
@@ -103,7 +103,7 @@ IppOneSetOf IppAttr::asList() const
   }
 }
 
-IppAttr IppAttr::fromString(std::string string, IppTag tag)
+IppAttr IppAttr::fromString(const std::string& string, IppTag tag)
 {
   switch(tag)
   {
@@ -157,7 +157,7 @@ IppAttr IppAttr::fromString(std::string string, IppTag tag)
   }
 }
 
-IppAttr IppAttr::fromJSON(Json::object json)
+IppAttr IppAttr::fromJSON(const Json::object& json)
 {
   IppTag tag = (IppTag)json.at("tag").int_value();
   return IppAttr(tag, valuefromJSON(tag, json.at("value")));
@@ -218,7 +218,7 @@ IppValue IppAttr::valuefromJSON(IppTag tag, const Json& json)
   }
 }
 
-Json IppAttr::valueToJSON(IppValue value)
+Json IppAttr::valueToJSON(const IppValue& value)
 {
   Json j;
   if(value.is<std::string>())
@@ -317,17 +317,17 @@ std::ostream& operator<<(std::ostream& os, const IppValue& iv)
   return os;
 }
 
-bool IppCollection::has(std::string key) const
+bool IppCollection::has(const std::string& key) const
 {
   return find(key) != end();
 }
 
-void IppCollection::set(std::string key, IppAttr value)
+void IppCollection::set(const std::string& key, IppAttr value)
 {
   insert_or_assign(key, value);
 }
 
-IppAttrs IppAttrs::fromJSON(Json::object json)
+IppAttrs IppAttrs::fromJSON(const Json::object& json)
 {
   IppAttrs attrs;
   for(const auto& [key, value] : json)

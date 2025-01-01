@@ -30,27 +30,27 @@ public:
     return _scheme + "://" + _host + maybePort + _path;
   }
 
-  std::string getScheme()
+  std::string getScheme() const
   {
     return _scheme;
   }
 
   void setScheme(std::string scheme)
   {
-    _scheme = scheme;
+    _scheme = std::move(scheme);
   }
 
-  std::string getHost()
+  std::string getHost() const
   {
     return _host;
   }
 
   void setHost(std::string host)
   {
-    _host = host;
+    _host = std::move(host);
   }
 
-  uint16_t getPort()
+  uint16_t getPort() const
   {
     return _port;
   }
@@ -60,14 +60,14 @@ public:
     _port = port;
   }
 
-  std::string getPath()
+  std::string getPath() const
   {
     return _path;
   }
 
   void setPath(std::string path)
   {
-    _path = path;
+    _path = std::move(path);
   }
 
 private:

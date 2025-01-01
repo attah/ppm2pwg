@@ -4,8 +4,7 @@
 class LThread
 {
 public:
-  LThread()
-  {}
+  LThread() = default;
   ~LThread()
   {
     await();
@@ -13,16 +12,16 @@ public:
   LThread(const LThread&) = delete;
   LThread& operator=(const LThread&) = delete;
 
-  typedef std::function<void()> runnable;
+  using runnable = std::function<void()>;
 
   void run(runnable lambda)
   {
-    _lambda = lambda;
+    _lambda = std::move(lambda);
     _complete = false;
     _thread = std::thread([this](){_lambda(); _complete = true;});
   }
 
-  bool isRunning()
+  bool isRunning() const
   {
     return !_complete;
   }

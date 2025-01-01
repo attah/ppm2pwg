@@ -120,7 +120,7 @@ public:
   IppOneSetOf asList() const;
 
   template <typename T>
-  IppAttr(IppTag tag, T value) : IppValue(value), _tag(tag) {}
+  IppAttr(IppTag tag, const T& value) : IppValue(value), _tag(tag) {}
 
   IppTag tag() const {return _tag;}
   IppValue value() const {return *this;}
@@ -153,7 +153,7 @@ struct IppAttrs: public std::map<std::string, IppAttr>
   }
 
   template <typename T>
-  T get(std::string name, T defaultValue=T()) const
+  T get(const std::string& name, T defaultValue=T()) const
   {
     try
     {

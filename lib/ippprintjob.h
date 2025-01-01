@@ -10,7 +10,7 @@ class IppPrintJob
 {
 public:
   IppPrintJob(IppAttrs printerAttrs, List<std::string> additionalDocumentFormats = {})
-  : _printerAttrs(printerAttrs), _additionalDocumentFormats(additionalDocumentFormats)
+  : _printerAttrs(std::move(printerAttrs)), _additionalDocumentFormats(std::move(additionalDocumentFormats))
   {}
 
   IppPrintJob& operator=(const IppPrintJob& other)

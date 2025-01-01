@@ -12,7 +12,7 @@ public:
   InBinFile(const InBinFile&) = delete;
   InBinFile& operator=(const InBinFile&) = delete;
 
-  InBinFile(std::string name)
+  InBinFile(const std::string& name)
   {
     if(name == "-")
     {
@@ -60,7 +60,7 @@ public:
 
   using value_type = std::ostream&;
 
-  OutBinFile(std::string name)
+  OutBinFile(const std::string& name)
   {
     if(name == "-")
     {

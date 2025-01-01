@@ -4,6 +4,6 @@
 #include <optional>
 #include <string>
 
-typedef std::optional<std::string> Error;
+using Error = std::optional<std::string>;
 
 #endif // ERROR_H

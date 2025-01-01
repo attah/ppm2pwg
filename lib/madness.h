@@ -6,7 +6,9 @@
 class LibLoader
 {
 public:
-  LibLoader(std::string libName)
+  LibLoader(const LibLoader&) = delete;
+  LibLoader& operator=(const LibLoader&) = delete;
+  LibLoader(const std::string& libName)
   {
     handle = dlopen(libName.c_str(), RTLD_LAZY);
     if(handle == nullptr)
@@ -20,10 +22,6 @@ public:
   }
 
   void* handle;
-
-private:
-  LibLoader(const LibLoader&);
-  LibLoader& operator=(const LibLoader&);
 };
 
 #define LIB(name, filename) \

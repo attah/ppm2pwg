@@ -6,14 +6,15 @@
 template <typename T>
 class Setting
 {
+public:
+  Setting() = delete;
   Setting(Setting&) = delete;
   Setting& operator=(const Setting&) = delete;
 
-public:
-  Setting() = delete;
   Setting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag,
           std::string name, std::string subKey = "")
-  : _printerAttrs(printerAttrs), _attrs(attrs), _tag(tag), _name(name), _subKey(subKey)
+  : _printerAttrs(printerAttrs), _attrs(attrs), _tag(tag),
+    _name(std::move(name)), _subKey(std::move(subKey))
   {}
 
   std::string name()
@@ -21,7 +22,7 @@ public:
     return _name;
   }
 
-  virtual bool isSupported()
+  virtual bool isSupported() const
   {
     return _printerAttrs->has(_name+"-supported");
   }
@@ -42,12 +43,12 @@ public:
 
   T getDefault(T fallback=T()) const
   {
-    return _printerAttrs->get<T>(_name+"-default", fallback);
+    return _printerAttrs->get<T>(_name+"-default", std::move(fallback));
   }
 
-  virtual bool isSupportedValue(T value) = 0;
+  virtual bool isSupportedValue(T value) const = 0;
 
-  void set(T value)
+  void set(const T& value)
   {
     if(_subKey != "")
     {
@@ -117,7 +118,7 @@ public:
     }
     else
     {
-      return getDefault(fallback);
+      return getDefault(std::move(fallback));
     }
   }
 
@@ -135,10 +136,10 @@ class ChoiceSetting : public Setting<T>
 public:
   ChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag,
                 std::string name, std::string subKey = "")
-  : Setting<T>(printerAttrs, attrs, tag, name, subKey)
+  : Setting<T>(printerAttrs, attrs, tag, std::move(name), std::move(subKey))
   {}
 
-  virtual bool isSupportedValue(T value)
+  bool isSupportedValue(T value) const override
   {
     return getSupported().contains(value);
   }
@@ -156,7 +157,7 @@ class PreferredChoiceSetting : public ChoiceSetting<T>
 public:
   PreferredChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag,
                          std::string name, std::string pref)
-  : ChoiceSetting<T>(printerAttrs, attrs, tag, name), _pref(pref)
+  : ChoiceSetting<T>(printerAttrs, attrs, tag, std::move(name)), _pref(std::move(pref))
   {}
 
   List<T> getPreferred() const
@@ -170,7 +171,7 @@ public:
     return preferred;
   }
 
-  virtual std::string supportedStr()
+  std::string supportedStr() override
   {
     if(this->_printerAttrs->has(this->_name+"-supported"))
     {
@@ -209,20 +210,20 @@ class IntegerSetting : public Setting<int>
 {
 public:
   IntegerSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag, std::string name)
-  : Setting<int>(printerAttrs, attrs, tag, name)
+  : Setting<int>(printerAttrs, attrs, tag, std::move(name))
   {}
 
-  virtual bool isSupportedValue(int value)
+  bool isSupportedValue(int value) const override
   {
     return isSupported() && value >= getSupportedMin() && value <= getSupportedMax();
   }
 
-  int getSupportedMin()
+  int getSupportedMin() const
   {
     return _printerAttrs->get<IppIntRange>(this->_name+"-supported").low;
   }
 
-  int getSupportedMax()
+  int getSupportedMax() const
   {
     return _printerAttrs->get<IppIntRange>(this->_name+"-supported").high;
   }
@@ -232,10 +233,10 @@ class IntegerRangeListSetting : public Setting<IppOneSetOf>
 {
 public:
   IntegerRangeListSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag, std::string name)
-  : Setting<IppOneSetOf>(printerAttrs, attrs, tag, name)
+  : Setting<IppOneSetOf>(printerAttrs, attrs, tag, std::move(name))
   {}
 
-  virtual bool isSupportedValue(IppOneSetOf)
+  bool isSupportedValue(IppOneSetOf) const override
   {
     return isSupported();
   }
@@ -250,10 +251,10 @@ class IntegerChoiceSetting : public Setting<int>
 {
 public:
   IntegerChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag, std::string name)
-  : Setting<int>(printerAttrs, attrs, tag, name)
+  : Setting<int>(printerAttrs, attrs, tag, std::move(name))
   {}
 
-  virtual bool isSupportedValue(int value)
+  bool isSupportedValue(int value) const override
   {
     return getSupported().contains(value);
   }

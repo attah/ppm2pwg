@@ -219,67 +219,67 @@ Error IppPrinter::doPrintToFile(IppPrintJob& job, const std::string& inFile,
   return Error();
 }
 
-std::string IppPrinter::name()
+std::string IppPrinter::name() const
 {
   return _printerAttrs.get<std::string>("printer-name");
 }
 
-std::string IppPrinter::uuid()
+std::string IppPrinter::uuid() const
 {
   return _printerAttrs.get<std::string>("printer-uuid");
 }
 
-std::string IppPrinter::makeAndModel()
+std::string IppPrinter::makeAndModel() const
 {
   return _printerAttrs.get<std::string>("printer-make-and-model");
 }
 
-std::string IppPrinter::location()
+std::string IppPrinter::location() const
 {
   return _printerAttrs.get<std::string>("printer-location");
 }
 
-int IppPrinter::state()
+int IppPrinter::state() const
 {
   return _printerAttrs.get<int>("printer-state");
 }
 
-std::string IppPrinter::stateMessage()
+std::string IppPrinter::stateMessage() const
 {
   return _printerAttrs.get<std::string>("printer-state-message");
 }
 
-List<std::string> IppPrinter::stateReasons()
+List<std::string> IppPrinter::stateReasons() const
 {
   return _printerAttrs.getList<std::string>("printer-state-reasons");
 }
 
-List<std::string> IppPrinter::ippVersionsSupported()
+List<std::string> IppPrinter::ippVersionsSupported() const
 {
   return _printerAttrs.getList<std::string>("ipp-versions-supported");
 }
 
-List<std::string> IppPrinter::ippFeaturesSupported()
+List<std::string> IppPrinter::ippFeaturesSupported() const
 {
   return _printerAttrs.getList<std::string>("ipp-features-supported");
 }
 
-int IppPrinter::pagesPerMinute()
+int IppPrinter::pagesPerMinute() const
 {
   return _printerAttrs.get<int>("pages-per-minute");
 }
 
-int IppPrinter::pagesPerMinuteColor()
+int IppPrinter::pagesPerMinuteColor() const
 {
   return _printerAttrs.get<int>("pages-per-minute-color");
 }
 
-bool IppPrinter::identifySupported()
+bool IppPrinter::identifySupported() const
 {
   return _printerAttrs.has("identify-actions-supported");
 }
 
-List<IppPrinter::Supply> IppPrinter::supplies()
+List<IppPrinter::Supply> IppPrinter::supplies() const
 {
   List<IppPrinter::Supply> supplies;
   List<std::string> names = _printerAttrs.getList<std::string>("marker-names");
@@ -314,7 +314,7 @@ List<IppPrinter::Supply> IppPrinter::supplies()
   return supplies;
 }
 
-List<IppPrinter::Firmware> IppPrinter::firmware()
+List<IppPrinter::Firmware> IppPrinter::firmware() const
 {
   List<IppPrinter::Firmware> firmware;
   List<std::string> names = _printerAttrs.getList<std::string>("printer-firmware-name");
@@ -330,27 +330,27 @@ List<IppPrinter::Firmware> IppPrinter::firmware()
   return firmware;
 }
 
-List<std::string> IppPrinter::settableAttributes()
+List<std::string> IppPrinter::settableAttributes() const
 {
   return _printerAttrs.getList<std::string>("printer-settable-attributes-supported");
 }
 
-List<std::string> IppPrinter::icons()
+List<std::string> IppPrinter::icons() const
 {
   return _printerAttrs.getList<std::string>("printer-icons");
 }
 
-std::string IppPrinter::strings()
+std::string IppPrinter::strings() const
 {
   return _printerAttrs.get<std::string>("printer-strings-uri");
 }
 
-List<std::string> IppPrinter::documentFormats()
+List<std::string> IppPrinter::documentFormats() const
 {
   return _printerAttrs.getList<std::string>("document-format-supported");
 }
 
-List<std::string> IppPrinter::additionalDocumentFormats()
+List<std::string> IppPrinter::additionalDocumentFormats() const
 {
   List<std::string> additionalFormats;
   List<std::string> baseFormats = documentFormats();
@@ -380,13 +380,13 @@ List<std::string> IppPrinter::additionalDocumentFormats()
   return additionalFormats;
 }
 
-List<std::string> IppPrinter::possibleInputFormats()
+List<std::string> IppPrinter::possibleInputFormats() const
 {
   return Converter::instance().possibleInputFormats(documentFormats()
          += additionalDocumentFormats());
 }
 
-bool IppPrinter::supportsPrinterRaster()
+bool IppPrinter::supportsPrinterRaster() const
 {
   List<std::string> formats = documentFormats();
   return formats.contains(MiniMime::PWG) || formats.contains(MiniMime::URF);
@@ -418,7 +418,7 @@ bool IppPrinter::Firmware::operator==(const IppPrinter::Firmware& other) const
          other.version == version;
 }
 
-bool IppPrinter::isWarningState()
+bool IppPrinter::isWarningState() const
 {
   if(state() > 4)
   {
@@ -434,7 +434,7 @@ bool IppPrinter::isWarningState()
   return false;
 }
 
-Error IppPrinter::identify()
+Error IppPrinter::identify() const
 {
   if(!identifySupported())
   {
@@ -470,7 +470,7 @@ Error IppPrinter::setAttributes(const List<std::pair<std::string, std::string>>&
   return error;
 }
 
-Error IppPrinter::getJobs(List<IppPrinter::JobInfo>& jobInfos)
+Error IppPrinter::getJobs(List<IppPrinter::JobInfo>& jobInfos) const
 {
   IppAttrs getJobsOpAttrs = {{"requested-attributes", {IppTag::Keyword, "all"}}};
   IppMsg req = _mkMsg(IppMsg::GetJobs, getJobsOpAttrs);
@@ -490,7 +490,7 @@ Error IppPrinter::getJobs(List<IppPrinter::JobInfo>& jobInfos)
   return error;
 }
 
-Error IppPrinter::cancelJob(int jobId)
+Error IppPrinter::cancelJob(int jobId) const
 {
   Error error;
   IppAttrs cancelJobOpAttrs = {{"job-id", {IppTag::Integer, jobId}}};
@@ -508,13 +508,13 @@ Error IppPrinter::cancelJob(int jobId)
   return error;
 }
 
-Error IppPrinter::_doRequest(IppMsg::Operation op, IppMsg& resp)
+Error IppPrinter::_doRequest(IppMsg::Operation op, IppMsg& resp) const
 {
   IppMsg req = _mkMsg(op);
   return _doRequest(req, resp);
 }
 
-Error IppPrinter::_doRequest(const IppMsg& req, IppMsg& resp)
+Error IppPrinter::_doRequest(const IppMsg& req, IppMsg& resp) const
 {
   Error error;
 
@@ -555,7 +555,7 @@ Error IppPrinter::_doRequest(const IppMsg& req, IppMsg& resp)
 }
 
 IppMsg IppPrinter::_mkMsg(uint16_t opOrStatus, IppAttrs opAttrs,
-                          const IppAttrs& jobAttrs, const IppAttrs& printerAttrs)
+                          const IppAttrs& jobAttrs, const IppAttrs& printerAttrs) const
 {
   IppAttrs baseOpAttrs = IppMsg::baseOpAttrs(_addr);
   opAttrs.insert(baseOpAttrs.cbegin(), baseOpAttrs.cend());

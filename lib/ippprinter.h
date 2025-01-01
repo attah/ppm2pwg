@@ -39,21 +39,21 @@ public:
   };
 
   IppPrinter(std::string addr, bool ignoreSslErrors=true);
-  IppPrinter(IppAttrs printerAttrs) : _printerAttrs(printerAttrs)
+  IppPrinter(IppAttrs printerAttrs) : _printerAttrs(std::move(printerAttrs))
   {}
   Error refresh();
 
-  IppAttrs attributes()
+  IppAttrs attributes() const
   {
     return _printerAttrs;
   }
 
-  Error error()
+  Error error() const
   {
     return _error;
   }
 
-  IppPrintJob createJob()
+  IppPrintJob createJob() const
   {
     return IppPrintJob(_printerAttrs, additionalDocumentFormats());
   }
@@ -61,34 +61,34 @@ public:
   Error runJob(IppPrintJob& job, const std::string& inFile, const std::string& inFormat, int pages,
                const ProgressFun& progressFun = noOpProgressfun);
 
-  std::string name();
-  std::string uuid();
-  std::string makeAndModel();
-  std::string location();
-  int state();
-  std::string stateMessage();
-  List<std::string> stateReasons();
-  List<std::string> ippVersionsSupported();
-  List<std::string> ippFeaturesSupported();
-  int pagesPerMinute();
-  int pagesPerMinuteColor();
-  List<Supply> supplies();
-  List<Firmware> firmware();
-  List<std::string> settableAttributes();
-  List<std::string> icons();
-  std::string strings();
-  List<std::string> documentFormats();
-  List<std::string> additionalDocumentFormats();
-  List<std::string> possibleInputFormats();
-  bool supportsPrinterRaster();
+  std::string name() const;
+  std::string uuid() const;
+  std::string makeAndModel() const;
+  std::string location() const;
+  int state() const;
+  std::string stateMessage() const;
+  List<std::string> stateReasons() const;
+  List<std::string> ippVersionsSupported() const;
+  List<std::string> ippFeaturesSupported() const;
+  int pagesPerMinute() const;
+  int pagesPerMinuteColor() const;
+  List<Supply> supplies() const;
+  List<Firmware> firmware() const;
+  List<std::string> settableAttributes() const;
+  List<std::string> icons() const;
+  std::string strings() const;
+  List<std::string> documentFormats() const;
+  List<std::string> additionalDocumentFormats() const;
+  List<std::string> possibleInputFormats() const;
+  bool supportsPrinterRaster() const;
 
-  bool isWarningState();
+  bool isWarningState() const;
 
-  bool identifySupported();
-  Error identify();
+  bool identifySupported() const;
+  Error identify() const;
   Error setAttributes(const List<std::pair<std::string, std::string>>& attrStrs);
-  Error getJobs(List<JobInfo>& jobInfos);
-  Error cancelJob(int jobId);
+  Error getJobs(List<JobInfo>& jobInfos) const;
+  Error cancelJob(int jobId) const;
 
   void printJobId(bool printJobId)
   {
@@ -96,12 +96,12 @@ public:
   }
 
 private:
-  Error _doRequest(IppMsg::Operation op, IppMsg& resp);
-  Error _doRequest(const IppMsg& req, IppMsg& resp);
+  Error _doRequest(IppMsg::Operation op, IppMsg& resp) const;
+  Error _doRequest(const IppMsg& req, IppMsg& resp) const;
   IppMsg _mkMsg(uint16_t opOrStatus,
                 IppAttrs opAttrs=IppAttrs(),
                 const IppAttrs& jobAttrs=IppAttrs(),
-                const IppAttrs& printerAttrs=IppAttrs());
+                const IppAttrs& printerAttrs=IppAttrs()) const;
   void _applyOverrides();
 
   std::string _addr;

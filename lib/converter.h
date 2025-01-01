@@ -28,18 +28,20 @@ public:
     return converter;
   }
 
-  typedef std::pair<std::string, std::string> ConvertKey;
-  typedef std::function<Error(std::string inFileName, const IppPrintJob& job,
-                              WriteFun writeFun, ProgressFun progressFun)> ConvertFun;
+  using ConvertKey = std::pair<std::string, std::string>;
+  using ConvertFun = std::function<Error(const std::string& inFileName, const IppPrintJob& job,
+                                         const WriteFun& writeFun, const ProgressFun& progressFun)>;
 
   ConvertFun Pdf2Printable =
-    [](std::string inFileName, const IppPrintJob& job, WriteFun writeFun, ProgressFun progressFun)
+    [](const std::string& inFileName, const IppPrintJob& job,
+       const WriteFun& writeFun, const ProgressFun& progressFun)
     {
       return pdf_to_printable(inFileName, job.printParams, writeFun, progressFun);
     };
 
   ConvertFun Baselinify =
-    [](std::string inFileName, const IppPrintJob&, WriteFun writeFun, ProgressFun progressFun)
+    [](const std::string& inFileName, const IppPrintJob&,
+       const WriteFun& writeFun, const ProgressFun& progressFun)
     {
       InBinFile in(inFileName);
       if(!in)
@@ -56,7 +58,8 @@ public:
     };
 
   ConvertFun JustUpload =
-    [](std::string inFileName, const IppPrintJob&, WriteFun writeFun, ProgressFun progressFun)
+    [](const std::string& inFileName, const IppPrintJob&,
+       const WriteFun& writeFun, const ProgressFun& progressFun)
     {
       InBinFile in(inFileName);
       if(!in)
@@ -70,7 +73,8 @@ public:
     };
 
   ConvertFun FixupText =
-  [](std::string inFileName, const IppPrintJob&, WriteFun writeFun, ProgressFun progressFun)
+  [](const std::string& inFileName, const IppPrintJob&,
+     const WriteFun& writeFun, const ProgressFun& progressFun)
   {
     InBinFile in(inFileName);
     if(!in)
@@ -100,7 +104,8 @@ public:
      {{MiniMime::JPEG, MiniMime::JPEG}, Baselinify},
      {{"text/plain", "text/plain"}, FixupText}};
 
-  std::optional<ConvertFun> getConvertFun(std::string inputFormat, std::string targetFormat)
+  std::optional<ConvertFun> getConvertFun(const std::string& inputFormat,
+                                          const std::string& targetFormat)
   {
     for(const auto& [convertKey, convertFun] : Pipelines)
     {
@@ -116,13 +121,13 @@ public:
     return {};
   }
 
-  bool canConvert(std::string inputFormat, std::string targetFormat)
+  bool canConvert(const std::string& inputFormat, const std::string& targetFormat)
   {
     return (bool)getConvertFun(inputFormat, targetFormat);
   }
 
-  std::optional<std::string> getTargetFormat(std::string inputFormat,
-                                             List<std::string> supportedFormats)
+  std::optional<std::string> getTargetFormat(const std::string& inputFormat,
+                                             const List<std::string>& supportedFormats)
   {
     for(const auto& [convertKey, convertFun] : Pipelines)
     {
@@ -138,7 +143,7 @@ public:
     return {};
   }
 
-  List<std::string> possibleInputFormats(List<std::string> supportedFormats)
+  List<std::string> possibleInputFormats(const List<std::string>& supportedFormats)
   {
     List<std::string> inputFormats;
     for(const auto& [convertKey, convertFun] : Pipelines)

@@ -22,7 +22,7 @@ public:
     return tmp;
   }
 
-  bool contains(const T elem) const
+  bool contains(const T& elem) const
   {
     for(const T& e : *this)
     {

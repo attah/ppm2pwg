@@ -30,7 +30,7 @@ class SwitchArgBase : public ArgBase
 public:
   SwitchArgBase(std::initializer_list<std::string> names,
                 std::string doc, std::string errorHint="")
-  : _names(names), _doc(doc), _errorHint(errorHint)
+  : _names(names), _doc(std::move(doc)), _errorHint(std::move(errorHint))
   {
     if(names.size() < 1)
     {
@@ -38,7 +38,7 @@ public:
     }
   }
 
-  bool parse(std::list<std::string>& argv)
+  bool parse(std::list<std::string>& argv) override
   {
     if(match(argv))
     {
@@ -67,7 +67,7 @@ public:
 
   virtual bool get_value(std::list<std::string>&) = 0;
 
-  std::string docName() const
+  std::string docName() const override
   {
     std::stringstream docName;
     std::string sep = ", ";
@@ -109,13 +109,13 @@ public:
   SwitchArg& operator=(const SwitchArg&) = delete;
 
   SwitchArg(T& value, std::initializer_list<std::string> names, std::string doc)
-  : SwitchArgBase(names, doc), _value(value)
+  : SwitchArgBase(names, std::move(doc)), _value(value)
   {}
 
 private:
-  bool get_value(std::list<std::string>& argv)
+  bool get_value(std::list<std::string>& argv) override
   {
-    if(std::is_same<T, bool>::value)
+    if(std::is_same_v<T, bool>)
     {
       _value = true;
       return true;
@@ -129,30 +129,30 @@ private:
     return false;
   }
 
-  std::string typeHint() const
+  std::string typeHint() const override
   {
-    if(std::is_same<T, bool>::value)
+    if(std::is_same_v<T, bool>)
     {
       return "";
     }
-    else if(std::is_same<T, std::string>::value)
+    else if(std::is_same_v<T, std::string>)
     {
       return " <string>";
     }
-    else if(std::is_integral<T>::value)
+    else if(std::is_integral_v<T>)
     {
       return " <int>";
     }
   }
 
-  void convert(std::string& res, std::string s) {res = s;}
-  void convert(bool& res, std::string) {res = true;}
-  void convert(int& res, std::string s) {res = std::stoi(s);}
-  void convert(long& res, std::string s) {res = std::stol(s);}
-  void convert(long long& res, std::string s) {res = std::stoll(s);}
-  void convert(unsigned int& res, std::string s) {res = std::stoul(s);} // Silly C++ has no stou
-  void convert(unsigned long& res, std::string s) {res = std::stoul(s);}
-  void convert(unsigned long long& res, std::string s) {res = std::stoull(s);}
+  void convert(std::string& res, const std::string& s) {res = s;}
+  void convert(bool& res, const std::string&) {res = true;}
+  void convert(int& res, const std::string& s) {res = std::stoi(s);}
+  void convert(long& res, const std::string& s) {res = std::stol(s);}
+  void convert(long long& res, const std::string& s) {res = std::stoll(s);}
+  void convert(unsigned int& res, const std::string& s) {res = std::stoul(s);} // Silly C++ has no stou
+  void convert(unsigned long& res, const std::string& s) {res = std::stoul(s);}
+  void convert(unsigned long long& res, const std::string& s) {res = std::stoull(s);}
 
   T& _value;
 };
@@ -161,16 +161,16 @@ template<typename T>
 class EnumSwitchArg : public SwitchArgBase
 {
 public:
-  typedef std::map<std::string, T> Mappings;
-  typedef std::map<T, std::string> BackMappings;
+  using Mappings = std::map<std::string, T>;
+  using BackMappings = std::map<T, std::string>;
 
   EnumSwitchArg() = delete;
   EnumSwitchArg(const EnumSwitchArg&) = delete;
   EnumSwitchArg& operator=(const EnumSwitchArg&) = delete;
 
-  EnumSwitchArg(T& value, Mappings mappings, std::initializer_list<std::string> names,
+  EnumSwitchArg(T& value, const Mappings& mappings, std::initializer_list<std::string> names,
                 std::string doc, std::string errorHint="")
-  : SwitchArgBase(names, doc, errorHint), _value(value), _mappings(mappings)
+  : SwitchArgBase(names, std::move(doc), std::move(errorHint)), _value(value), _mappings(mappings)
   {
     for(const auto& [k, v] : mappings)
     {
@@ -178,7 +178,7 @@ public:
     }
   }
 
-  std::string typeHint() const
+  std::string typeHint() const override
   {
     return " <choice>";
   }
@@ -190,7 +190,7 @@ public:
 
 private:
 
-  bool get_value(std::list<std::string>& argv)
+  bool get_value(std::list<std::string>& argv) override
   {
     if(!argv.empty())
     {
@@ -218,10 +218,10 @@ public:
   PosArg& operator=(const PosArg&) = delete;
 
   PosArg(std::string& value, std::string name, bool optional=false)
-  : _value(value), _name(name), _optional(optional)
+  : _value(value), _name(std::move(name)), _optional(optional)
   {}
 
-  bool parse(std::list<std::string>& argv)
+  bool parse(std::list<std::string>& argv) override
   {
     if(!argv.empty())
     {
@@ -233,7 +233,7 @@ public:
     return _optional;
   }
 
-  std::string docName() const
+  std::string docName() const override
   {
     return _optional ? "["+_name+"]" : "<"+_name+">";
   }
@@ -254,7 +254,7 @@ public:
   ArgGet& operator=(const ArgGet&) = default;
 
   ArgGet(std::list<SwitchArgBase*> argDefs, std::list<PosArg*> posArgDefs = {})
-  : _argDefs(argDefs), _posArgDefs(posArgDefs)
+  : _argDefs(std::move(argDefs)), _posArgDefs(std::move(posArgDefs))
   {}
 
   bool get_args(int argc, char** argv)
@@ -269,7 +269,7 @@ public:
 
     for(int i = 1; i < argc; i++)
     {
-      argList.push_back(argv[i]);
+      argList.emplace_back(argv[i]);
     }
 
     bool progress = true;
@@ -388,12 +388,13 @@ public:
   SubArgGet(const SubArgGet&) = delete;
   SubArgGet& operator=(const SubArgGet&) = delete;
 
-  SubArgGet(std::list<std::pair<std::string,
-                                std::pair<std::list<SwitchArgBase*>, std::list<PosArg*>>>> map)
+  SubArgGet(const std::list<std::pair<std::string,
+                                      std::pair<std::list<SwitchArgBase*>,
+                                                std::list<PosArg*>>>>& map)
   {
     for(const auto& [subCommand, args] : map)
     {
-      _order.push_back(subCommand);
+      _order.emplace_back(subCommand);
       _subCommands[subCommand] = ArgGet(args.first, args.second);
     }
   }
@@ -410,7 +411,7 @@ public:
 
     for(int i = 1; i < argc; i++)
     {
-      argList.push_back(argv[i]);
+      argList.emplace_back(argv[i]);
     }
 
     if(argc < 2)
@@ -435,7 +436,7 @@ public:
     return true;
   }
 
-  std::string argHelp(std::string subCommand="")
+  std::string argHelp(const std::string& subCommand="")
   {
     std::stringstream help;
 
@@ -446,7 +447,7 @@ public:
     }
     else
     {
-      for(std::string subCommand : _order)
+      for(const std::string& subCommand : _order)
       {
         help << _name << " " << subCommand << _subCommands.at(subCommand)._argHelp() << std::endl;
       }

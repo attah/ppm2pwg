@@ -19,7 +19,7 @@ public:
     return std::adjacent_find(cbegin(), cend(), std::not_equal_to<>()) == cend();
   }
 };
-typedef List<std::pair<size_t, size_t>> PageRangeList;
+using PageRangeList = List<std::pair<size_t, size_t>>;
 
 class PrintParameters
 {

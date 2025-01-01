@@ -5,7 +5,7 @@
 
 #include "list.h"
 
-inline bool string_starts_with(std::string s, std::string start)
+inline bool string_starts_with(const std::string& s, const std::string& start)
 {
   if(start.length() <= s.length())
   {
@@ -14,7 +14,7 @@ inline bool string_starts_with(std::string s, std::string start)
   return false;
 }
 
-inline bool string_ends_with(std::string s, std::string ending)
+inline bool string_ends_with(const std::string& s, const std::string& ending)
 {
   if(ending.length() <= s.length())
   {
@@ -23,7 +23,7 @@ inline bool string_ends_with(std::string s, std::string ending)
   return false;
 }
 
-inline bool string_contains(std::string s, std::string what)
+inline bool string_contains(const std::string& s, const std::string& what)
 {
   return s.find(what) != std::string::npos;
 }

@@ -68,7 +68,7 @@ protected:
   Bytestream _data;
 
   CURL* _curl;
-  struct curl_slist* _opts = NULL;
+  struct curl_slist* _opts = nullptr;
 
   z_stream _zstrm;
   Compression _nextCompression = Compression::None;
@@ -80,7 +80,7 @@ class CurlIppPosterBase : public CurlRequester
 {
 public:
   ~CurlIppPosterBase();
-  virtual CURLcode await(Bytestream* = nullptr);
+  CURLcode await(Bytestream* = nullptr) override;
 
   bool write(Bytestream&& data);
   size_t requestWrite(char* dest, size_t size);

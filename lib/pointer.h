@@ -8,8 +8,8 @@ template<typename T, typename D = std::function<void(T*)>>
 class Pointer : public std::unique_ptr<T, D>
 {
 public:
-  Pointer(T* ptr, D deleter)
-  : std::unique_ptr<T, D>(ptr, [deleter](T* p){if(p) deleter(p);})
+  Pointer(T* ptr, const D& deleter)
+  : std::unique_ptr<T, D>(ptr, [deleter](T* p){if(p) {deleter(p);}})
   {}
   Pointer<T, D>& operator=(T* Ptr)
   {

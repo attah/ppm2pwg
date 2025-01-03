@@ -38,7 +38,7 @@ public:
 
   IntegerRangeListSetting pageRanges = IntegerRangeListSetting(&_printerAttrs, &jobAttrs, IppTag::IntegerRange, "page-ranges");
 
-  IntegerChoiceSetting numberUp = IntegerChoiceSetting(&_printerAttrs, &jobAttrs, IppTag::Integer, "number-up");
+  ChoiceSetting<int> numberUp = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppTag::Integer, "number-up");
 
   ChoiceSetting<std::string> colorMode = ChoiceSetting<std::string>(&_printerAttrs, &jobAttrs, IppTag::Keyword, "print-color-mode");
   ChoiceSetting<int> printQuality = ChoiceSetting<int>(&_printerAttrs, &jobAttrs, IppTag::Enum, "print-quality");

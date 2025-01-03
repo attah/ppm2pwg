@@ -146,9 +146,37 @@ public:
 
   List<T> getSupported() const
   {
-    IppAttrs* pa = this->_printerAttrs;
-    return pa->getList<T>(this->_name+"-supported");
+    return _getSupported(T());
   }
+
+private:
+  template <typename U>
+  List<U> _getSupported(const U&) const
+  {
+    IppAttrs* pa = this->_printerAttrs;
+    return pa->getList<U>(this->_name+"-supported");
+  }
+
+  List<int> _getSupported(int) const
+  {
+    IppAttrs* pa = this->_printerAttrs;
+    if(pa->has(this->_name+"-supported"))
+    {
+      IppAttr val = pa->at(this->_name+"-supported");
+      if(val.is<IppIntRange>())
+      {
+        List<int> res;
+        IppIntRange range = val.get<IppIntRange>();
+        for(int i = range.low; i <= range.high; i++)
+        {
+          res.push_back(i);
+        }
+        return res;
+      }
+    }
+    return pa->getList<int>(this->_name+"-supported");
+  }
+
 };
 
 template <typename T>
@@ -244,38 +272,6 @@ public:
   bool getSupported() const
   {
     return _printerAttrs->get<bool>(this->_name+"-supported");
-  }
-};
-
-class IntegerChoiceSetting : public Setting<int>
-{
-public:
-  IntegerChoiceSetting(IppAttrs* printerAttrs, IppAttrs* attrs, IppTag tag, std::string name)
-  : Setting<int>(printerAttrs, attrs, tag, std::move(name))
-  {}
-
-  bool isSupportedValue(int value) const override
-  {
-    return getSupported().contains(value);
-  }
-
-  List<int> getSupported() const
-  {
-    List<int> res;
-    if(_printerAttrs->has(_name+"-supported") &&
-        _printerAttrs->at(_name+"-supported").is<IppIntRange>())
-    {
-      IppIntRange range = _printerAttrs->at(_name+"-supported").get<IppIntRange>();
-      for(int i = range.low; i <= range.high; i++)
-      {
-        res.push_back(i);
-      }
-    }
-    else
-    {
-      res = _printerAttrs->getList<int>(_name+"-supported");
-    }
-    return res;
   }
 };
 

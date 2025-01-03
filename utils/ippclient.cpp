@@ -164,6 +164,7 @@ int main(int argc, char** argv)
   std::string pages;
   int copies;
   std::string collatedCopies;
+  int numberUp;
   std::string paperSize;
   uint32_t hwRes;
   uint32_t hwResX;
@@ -206,6 +207,8 @@ int main(int argc, char** argv)
   EnumSwitchArg<std::string> collatedCopiesOpt(collatedCopies, {{"yes", "separate-documents-collated-copies"},
                                                                 {"no", "separate-documents-uncollated-copies"}},
                                                {"--collated-copies"}, "Request collated copies (yes/no)");
+
+  SwitchArg<int> numberUpOpt(numberUp, {"-n", "--number-up"}, "Pager per page (as per IPP)");
 
   SwitchArg<std::string> paperSizeOpt(paperSize, {"--paper-size"}, "Paper size to output, e.g.: iso_a4_210x297mm");
   SwitchArg<uint32_t> resolutionOpt(hwRes, {"-r", "--resolution"}, "Resolution (in DPI) for rasterization");
@@ -258,7 +261,7 @@ int main(int argc, char** argv)
                   {"cancel-job", {{&helpOpt, &verboseOpt, &idOpt},
                                   {&addrArg}}},
                   {"print", {{&helpOpt, &verboseOpt, &forceOpt, &oneStageOpt,
-                              &pagesOpt, &copiesOpt, &collatedCopiesOpt, &paperSizeOpt,
+                              &pagesOpt, &copiesOpt, &collatedCopiesOpt, &numberUpOpt, &paperSizeOpt,
                               &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
                               &sidesOpt, &colorModeOpt, &qualityOpt, &scalingOpt,
                               &formatOpt, &mimeTypeOpt,
@@ -424,6 +427,7 @@ int main(int argc, char** argv)
 
     set_or_fail(copiesOpt, job.copies, copies, force || printer.supportsPrinterRaster());
     set_or_fail(collatedCopiesOpt, job.multipleDocumentHandling, collatedCopies, force);
+    set_or_fail(numberUpOpt, job.numberUp, numberUp, force);
     set_or_fail(paperSizeOpt, job.media, paperSize, force);
 
     if(resolutionXOpt.isSet() != resolutionYOpt.isSet())

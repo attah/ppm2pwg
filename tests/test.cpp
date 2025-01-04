@@ -2214,6 +2214,16 @@ TEST(json)
   ASSERT(printerAttrs == IppAttrs::fromJSON(json.object_items()));
 }
 
+TEST(stringify)
+{
+  IppIntRange r = {1, 1};
+  ASSERT(r.toStr() == "1");
+  r = {17, 42};
+  ASSERT(r.toStr() == "17-42");
+  r = {69, std::numeric_limits<int32_t>::max()};
+  ASSERT(r.toStr() == "69-");
+}
+
 TEST(attribute_getters)
 {
   IppAttrs printerAttrs;

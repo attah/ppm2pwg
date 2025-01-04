@@ -1,6 +1,7 @@
 #include "ippattr.h"
 
 #include <iomanip>
+#include <limits>
 
 bool IppAttr::isList() const
 {
@@ -14,9 +15,16 @@ bool IppIntRange::operator==(const IppIntRange& other) const
 
 std::string IppIntRange::toStr() const
 {
-  std::stringstream ss;
-  ss << low << "-" << high;
-  return ss.str();
+  std::string res = std::to_string(low);
+  if(high != low)
+  {
+    res += "-";
+    if(high != std::numeric_limits<int32_t>::max())
+    {
+      res += std::to_string(high);
+    }
+  }
+  return res;
 }
 
 IppIntRange IppIntRange::fromJSON(const Json::object& json)

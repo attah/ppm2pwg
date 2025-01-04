@@ -2274,6 +2274,8 @@ TEST(attribute_getters)
      {"printer-firmware-name", IppAttr(IppTag::NameWithoutLanguage, IppOneSetOf {"Firmware 1", "Firmware 2"})},
      {"printer-firmware-string-version", IppAttr(IppTag::TextWithoutLanguage, IppOneSetOf {"1.0", "2.0"})},
      {"printer-settable-attributes-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"printer-name", "printer-location"})},
+     {"printer-icons", IppAttr(IppTag::Uri, IppOneSetOf {"http://myprinter/iconM.png", "http://myprinter/iconL.png"})},
+     {"printer-uri-supported", IppAttr(IppTag::Uri, "ipp://myprinter/ipp/print")},
      {"document-format-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"application/octet-stream",
                                                                          "image/urf",
                                                                          "image/pwg-raster",
@@ -2298,6 +2300,8 @@ TEST(attribute_getters)
   ASSERT(ip.supplies().size() == 3);
   ASSERT(ip.firmware() == (List<IppPrinter::Firmware> {{"Firmware 1", "1.0"}, {"Firmware 2", "2.0"}}));
   ASSERT(ip.settableAttributes() == (List<std::string> {"printer-name", "printer-location"}));
+  ASSERT(ip.icons() == (List<std::string> {"http://myprinter/iconM.png", "http://myprinter/iconL.png"}));
+  ASSERT(ip.urisSupported() == (List<std::string> {"ipp://myprinter/ipp/print"}));
   ASSERT(ip.documentFormats() == (List<std::string> {"application/octet-stream",
                                                      "image/urf",
                                                      "image/pwg-raster",

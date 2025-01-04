@@ -76,6 +76,7 @@ public:
   List<Firmware> firmware() const;
   List<std::string> settableAttributes() const;
   List<std::string> icons() const;
+  List<std::string> urisSupported() const;
   std::string strings() const;
   List<std::string> documentFormats() const;
   List<std::string> additionalDocumentFormats() const;

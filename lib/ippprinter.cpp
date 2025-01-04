@@ -340,6 +340,11 @@ List<std::string> IppPrinter::icons() const
   return _printerAttrs.getList<std::string>("printer-icons");
 }
 
+List<std::string> IppPrinter::urisSupported() const
+{
+  return _printerAttrs.getList<std::string>("printer-uri-supported");
+}
+
 std::string IppPrinter::strings() const
 {
   return _printerAttrs.get<std::string>("printer-strings-uri");

@@ -311,6 +311,7 @@ int main(int argc, char** argv)
     print_if_set("Firmware:", printer.firmware());
     print_if_set("Settable attributes:", join_string(printer.settableAttributes(), "\n"));
     print_if_set("Icons:", join_string(printer.icons(), "\n"));
+    print_if_set("Printer URIs supported:", join_string(printer.urisSupported(), "\n"));
     print_if_set("Strings:", printer.strings());
     print_if_set("Document formats (native):", join_string(printer.documentFormats(), "\n"));
     print_if_set("Document formats (guessed):", join_string(printer.additionalDocumentFormats(), "\n"));

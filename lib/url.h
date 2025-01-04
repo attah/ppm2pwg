@@ -19,6 +19,11 @@ public:
     return *this;
   }
 
+  bool isValid()
+  {
+    return _valid;
+  }
+
   operator std::string()
   {
     return toStr();
@@ -26,6 +31,10 @@ public:
 
   std::string toStr()
   {
+    if(!_valid)
+    {
+      return "";
+    }
     std::string maybePort = _port != 0 ? ":" + std::to_string(_port) : "";
     return _scheme + "://" + _host + maybePort + _path;
   }
@@ -76,16 +85,24 @@ private:
   {
     static const std::regex regex("(([a-z]+)://)([a-z0-9-.]+)(:([0-9]+))?(/.*)?$");
     std::smatch match;
-    if(!std::regex_match(str, match, regex))
+
+    _valid = false;
+    _scheme = "";
+    _host = "";
+    _port = 0;
+    _path = "";
+
+    if(std::regex_match(str, match, regex))
     {
-      throw(std::logic_error("Invalid url"));
+      _valid = true;
+      _scheme = match[2];
+      _host = match[3];
+      _port = match[5] == "" ? 0 : stoul(match[5]);
+      _path = match[6];
     }
-    _scheme = match[2];
-    _host = match[3];
-    _port = match[5] == "" ? 0 : stoul(match[5]);
-    _path = match[6];
   }
 
+  bool _valid;
   std::string _scheme;
   std::string _host;
   uint16_t _port;

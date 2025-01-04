@@ -2461,6 +2461,7 @@ TEST(url)
   url = "ipp://myprinter/ipp/print";
   ASSERT(url.getScheme() == "ipp");
   ASSERT(url.getHost() == "myprinter");
+  ASSERT(url.getPort() == 0);
   ASSERT(url.getPath() == "/ipp/print");
   ASSERT(url.toStr() == "ipp://myprinter/ipp/print");
 
@@ -2471,6 +2472,7 @@ TEST(url)
   url = "ipp://myprinter";
   ASSERT(url.getScheme() == "ipp");
   ASSERT(url.getHost() == "myprinter");
+  ASSERT(url.getPort() == 0);
   ASSERT(url.getPath() == "");
   ASSERT(url.toStr() == "ipp://myprinter");
 
@@ -2480,4 +2482,10 @@ TEST(url)
   url.setPath("/foo/bar");
   ASSERT(url.toStr() == "ipps://yourprinter:666/foo/bar");
 
+  url = "foo/bar/baz";
+  ASSERT(url.getScheme() == "");
+  ASSERT(url.getHost() == "");
+  ASSERT(url.getPort() == 0);
+  ASSERT(url.getPath() == "");
+  ASSERT(url.toStr() == "");
 }

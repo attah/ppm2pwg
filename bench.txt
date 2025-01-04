@@ -7,6 +7,7 @@ time ./pdf2printable -r 600 -c gray8 ~/reference.pdf out.pwg
 ./configure
 make -Bj$(nproc)
 LD_LIBRARY_PATH=./cups/ time ./tools/ipptransform -m image/pwg-raster -r 600 -t srgb_8 ~/reference.pdf > out.pwg
+LD_LIBRARY_PATH=./cups/ time ./tools/ipptransform -m image/pwg-raster -r 600 -t sgray_8 ~/reference.pdf > out.pwg
 
 # jrender
 
@@ -30,4 +31,4 @@ time jrender-*/bin/jrender ~/reference.pdf out.pwg
 # mutool
 make -Bj$(nproc)
 time ./build/release/mutool convert -O resolution=600 -A 0 -o out.pwg ~/reference.pdf
-time ./build/release/mutool convert -O resolution=600,colorspace=gray -A 0 -o out2.pwg  ~/reference.pdf
+time ./build/release/mutool convert -O resolution=600,colorspace=gray -A 0 -o out.pwg  ~/reference.pdf

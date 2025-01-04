@@ -51,7 +51,7 @@ Build:
 
 ## pdf2printable vs the competition
 
-(As of 2024-03-02)
+(As of 2025-01-04)
 
 A bit of friendly comparison helps make sure the featureset is well-rounded and performance is on par.
 
@@ -98,11 +98,11 @@ Good printers should support PDF or PWG. After that, URF is the biggest enabler.
 ### Performance
 Measured with a representative 90-page document for PWG-raster at 600 DPI on a AMD 3950X.
 
-|                        | Speed (RGB) | Speed (Gray) | Size (RGB)  | Size (Gray) |
-| ---------------------- | ----------- | -------------| ----------- | ----------- |
-| pdf2printable          | 9s          | 9s           | 152MB       | 76MB        |
-| ipptransform           | 26s         | 27s          | 159MB       | 76MB        |
-| mutool (AA off)        | 19s         | 26s          | 152MB       | 76MB        |
-| jrender (600dpi patch) | 25s         | N/A          | 334MB&sup1; | N/A         |
+|                        | Speed (RGB) | Speed (Gray) | Size (RGB)   | Size (Gray) |
+| ---------------------- | ----------- | -------------| ------------ | ----------- |
+| pdf2printable          | 500 PPM     | 529 PPM      | 152 MB       | 76 MB       |
+| ipptransform           | 204 PPM     | 194 PPM      | 159 MB       | 76 MB       |
+| mutool (AA off)        | 260 PPM     | 184 PPM      | 152 MB       | 76 MB       |
+| jrender (600dpi patch) | 171 PPM     | N/A          | 334 MB&sup1; | N/A         |
 
 1. Antialiasing seems to be enabled and would account for the size difference. However, at these resolutions that doesn't really provide much benefit. For pdf2printable and mutool it can be optionally enabled/disabled.

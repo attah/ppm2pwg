@@ -1,3 +1,6 @@
+#ifndef CONVERTER_H
+#define CONVERTER_H
+
 #include "baselinify.h"
 #include "binfile.h"
 #include "error.h"
@@ -163,3 +166,5 @@ public:
     return inputFormats;
   }
 };
+
+#endif // CONVERTER_H

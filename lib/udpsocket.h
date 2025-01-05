@@ -1,3 +1,6 @@
+#ifndef UDPSOCKET_H
+#define UDPSOCKET_H
+
 #include "bytestream.h"
 
 #include <arpa/inet.h>
@@ -73,3 +76,5 @@ private:
   sockaddr_in _servaddr;
 
 };
+
+#endif // CONVERTER_H

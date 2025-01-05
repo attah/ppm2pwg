@@ -1,3 +1,6 @@
+#ifndef LTHREADH_H
+#define LTHREADH_H
+
 #include <functional>
 #include <thread>
 
@@ -40,3 +43,5 @@ private:
   bool _complete = false;
 
 };
+
+#endif // LTHREADH_H

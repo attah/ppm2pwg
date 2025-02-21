@@ -1,7 +1,8 @@
 # ppm2pwg - misc printing utilities
 (should really be renamed)
 
-[![C/C++ CI](https://github.com/attah/ppm2pwg/workflows/C%2FC%2B%2B%20CI/badge.svg)](https://github.com/attah/ppm2pwg/actions/workflows/ccpp.yml)
+[![Unit tests](https://github.com/attah/ppm2pwg/workflows/Unit%20tests/badge.svg)](https://github.com/attah/ppm2pwg/actions/workflows/unit-test.yml)
+[![Clang-tidy](https://github.com/attah/ppm2pwg/workflows/Clang-tidy/badge.svg)](https://github.com/attah/ppm2pwg/actions/workflows/clang-tidy.yml)
 [![CodeQL](https://github.com/attah/ppm2pwg/workflows/CodeQL/badge.svg)](https://github.com/attah/ppm2pwg/actions/workflows/codeql-analysis.yml)
 [![IRC-ppm2pwg@OFTC](https://img.shields.io/badge/IRC-%23ppm2pwg@OFTC-blue)](https://webchat.oftc.net/?channels=ppm2pwg)
 

@@ -1,0 +1,19 @@
+name: "Clang-tidy"
+
+on: [push]
+
+jobs:
+  build-and-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: update submodules
+      run: git submodule sync --recursive && git submodule update --init --force --recursive --depth=1
+    - name: install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libpoppler-dev libpoppler-glib-dev libcairo2-dev libglib2.0-dev libjpeg-dev libcurl4-openssl-dev zlib1g-dev
+    - name: tidy
+      run: make tidy -j$(nproc)

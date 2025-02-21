@@ -67,8 +67,12 @@ ippdiscover: ippdiscover.o ippdiscovery.o bytestream.o
 clean:
 	rm -f *.o $(OFFICIAL) $(EXTRAS)
 
-tidy:
-	$(CLANG_TIDY) lib/*.cpp utils/*.cpp -- $(CXXFLAGS)
+%.tidy: %.cpp
+	$(CLANG_TIDY) $< -- $(CXXFLAGS)
+
+TIDY_SOURCES = $(wildcard lib/*.cpp) $(wildcard utils/*.cpp)
+
+tidy: $(subst .cpp,.tidy, $(TIDY_SOURCES))
 
 fuzz:
 	$(CLANGXX) -g -fsanitize=fuzzer $(CXXFLAGS) $(SILLY_CLANG_FLAGS) -O0 -DFUZZ lib/ippmsg.cpp lib/ippattr.cpp bytestream/bytestream.cpp json11/json11.cpp -o $@

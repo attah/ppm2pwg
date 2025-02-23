@@ -9,8 +9,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: update submodules
-      run: git submodule sync --recursive && git submodule update --init --force --recursive --depth=1
+      with:
+        submodules: recursive
     - name: install dependencies
       run: |
         sudo apt-get update

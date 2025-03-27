@@ -16,13 +16,15 @@ test.o: test.cpp
 
 # Silly clang
 json11.o: json11.cpp
-	$(CXX) -c $(CXXFLAGS) -Wno-unqualified-std-cast-call $<
+	$(CXX) -MMD -c $(CXXFLAGS) -Wno-unqualified-std-cast-call $<
 
 %.o: %.cpp
-	$(CXX) -c $(CXXFLAGS) $<
+	$(CXX) -MMD -c $(CXXFLAGS) $<
 
 test: bytestream.o ippprinter.o ippprintjob.o curlrequester.o printparameters.o ppm2pwg.o pwg2ppm.o pdf2printable.o baselinify.o ippmsg.o ippattr.o json11.o minimime.o ippdiscovery.o test.o
 	$(CXX) $(CXXFLAGS) $^ $(LDFLAGS) -o $@
 
 clean:
-	rm -f test *.o
+	rm -f test *.o *.d
+
+-include *.d

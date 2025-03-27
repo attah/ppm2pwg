@@ -17,16 +17,16 @@ EXTRAS = hexdump ippdecode bsplit
 all: $(OFFICIAL) $(EXTRAS)
 
 pdf2printable_mad.o: pdf2printable.cpp
-	$(CXX) -c -DMADNESS=1 $(CXXFLAGS) $^ -o $@
+	$(CXX) -MMD -c -DMADNESS=1 $(CXXFLAGS) $^ -o $@
 
 baselinify_mad.o: baselinify.cpp
-	$(CXX) -c -DMADNESS=1 $(CXXFLAGS) $^ -o $@
+	$(CXX) -MMD -c -DMADNESS=1 $(CXXFLAGS) $^ -o $@
 
 json11.o: json11.cpp
-	$(CXX) -c $(CXXFLAGS) $(SILLY_CLANG_FLAGS) $<
+	$(CXX) -MMD -c $(CXXFLAGS) $(SILLY_CLANG_FLAGS) $<
 
 %.o: %.cpp
-	$(CXX) -c $(CXXFLAGS) $<
+	$(CXX) -MMD -c $(CXXFLAGS) $<
 
 ppm2pwg: bytestream.o printparameters.o ppm2pwg.o ppm2pwg_main.o
 	$(CXX) $^ $(LDFLAGS) -o $@
@@ -65,7 +65,7 @@ ippdiscover: ippdiscover.o ippdiscovery.o bytestream.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 clean:
-	rm -f *.o $(OFFICIAL) $(EXTRAS)
+	rm -f *.o *.d $(OFFICIAL) $(EXTRAS)
 
 %.tidy: %.cpp
 	$(CLANG_TIDY) $< -- $(CXXFLAGS)
@@ -79,3 +79,5 @@ fuzz:
 
 install: $(OFFICIAL)
 	cp $^ /usr/bin/
+
+-include *.d

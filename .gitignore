@@ -1,8 +1,10 @@
 .vscode
 *.o
+*.d
 *.plist
 tests/test
 tests/*.o
+tests/*.d
 tests/_test*
 ppm2pwg
 pwg2ppm

@@ -189,7 +189,7 @@ std::string IppPrintJob::determineTargetFormat(const std::string& inputFormat)
 
 void IppPrintJob::adjustRasterSettings(int pages)
 {
-  if(printParams.format != PrintParameters::PWG && printParams.format != PrintParameters::URF)
+  if(!printParams.isRasterFormat())
   {
     return;
   }

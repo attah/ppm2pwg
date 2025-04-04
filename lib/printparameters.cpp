@@ -13,6 +13,22 @@ bool PrintParameters::isTwoSided() const
   return duplexMode != OneSided;
 }
 
+bool PrintParameters::isRasterFormat() const
+{
+  switch(format)
+  {
+    case PDF:
+    case Postscript:
+    case Invalid:
+      return false;
+    case PWG:
+    case URF:
+      return true;
+    default:
+      throw(std::logic_error("Unknown format"));
+  }
+}
+
 size_t PrintParameters::getPaperSizeWInPixels() const
 {
   switch(paperSizeUnits)

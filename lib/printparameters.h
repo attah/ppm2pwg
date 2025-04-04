@@ -161,6 +161,8 @@ public:
   MediaPosition mediaPosition = AutomaticMediaPosition;
   std::string mediaType;
 
+  bool isRasterFormat() const;
+
   size_t getPaperSizeWInPixels() const;
   size_t getPaperSizeHInPixels() const;
 

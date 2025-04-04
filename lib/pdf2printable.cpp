@@ -64,9 +64,6 @@ Error pdf_to_printable(const std::string& inFile, const PrintParameters& params,
   #include "libfuncs"
   #endif
 
-  bool raster = params.format == PrintParameters::PWG ||
-                params.format == PrintParameters::URF;
-
   Pointer<cairo_surface_t> surface(nullptr, cairo_surface_destroy);
   Pointer<cairo_t> cairo(nullptr, cairo_destroy);
   cairo_status_t status;
@@ -100,7 +97,7 @@ Error pdf_to_printable(const std::string& inFile, const PrintParameters& params,
 
   size_t outPageNo = 0;
 
-  if(raster)
+  if(params.isRasterFormat())
   {
     surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24,
                                          params.getPaperSizeWInPixels(),
@@ -148,7 +145,7 @@ Error pdf_to_printable(const std::string& inFile, const PrintParameters& params,
 
     cairo = cairo_create(surface);
 
-    if(raster)
+    if(params.isRasterFormat())
     {
       if(!params.antiAlias)
       {
@@ -199,7 +196,7 @@ Error pdf_to_printable(const std::string& inFile, const PrintParameters& params,
     }
     cairo_surface_show_page(surface);
 
-    if(raster)
+    if(params.isRasterFormat())
     {
       cairo_surface_flush(surface);
       uint32_t* data = (uint32_t*)cairo_image_surface_get_data(surface);
@@ -330,11 +327,10 @@ void fixup_scale(double& xScale, double& yScale, double& xOffset, double& yOffse
   tmp.hwResW = std::min(params.hwResW, params.hwResH);
   tmp.hwResH = std::min(params.hwResW, params.hwResH);
 
-  bool raster = params.format == PrintParameters::PWG ||
-                params.format == PrintParameters::URF;
-
-  size_t hOut = raster ? tmp.getPaperSizeHInPixels() : tmp.getPaperSizeHInPoints();
-  size_t wOut = raster ? tmp.getPaperSizeWInPixels() : tmp.getPaperSizeWInPoints();
+  size_t hOut = params.isRasterFormat() ? tmp.getPaperSizeHInPixels()
+                                        : tmp.getPaperSizeHInPoints();
+  size_t wOut = params.isRasterFormat() ? tmp.getPaperSizeWInPixels()
+                                        : tmp.getPaperSizeWInPoints();
   double scale = round2(std::min(wOut/wIn, hOut/hIn));
   xOffset = roundf((wOut-(wIn*scale))/2);
   yOffset = roundf((hOut-(hIn*scale))/2);
@@ -345,7 +341,7 @@ void fixup_scale(double& xScale, double& yScale, double& xOffset, double& yOffse
   // Finally, if we have an asymmetric resolution
   // and are not working in absolute dimensions (points), compensate for it.
   // NB: This expects an integer scale.
-  if(raster)
+  if(params.isRasterFormat())
   { // URF will/should not end up here, but still...
     if(params.hwResW > params.hwResH)
     {

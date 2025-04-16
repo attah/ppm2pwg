@@ -159,8 +159,11 @@ int main(int argc, char** argv)
 {
   bool help = false;
   bool verbose = false;
+  bool verifySsl = false;
+  std::string pinnedPublicKey;
   bool force = false;
   bool oneStage = false;
+
   std::string pages;
   int copies;
   std::string collatedCopies;
@@ -199,6 +202,8 @@ int main(int argc, char** argv)
 
   SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
   SwitchArg<bool> verboseOpt(verbose, {"-v", "--verbose"}, "Be verbose, print headers and progress");
+  SwitchArg<bool> verifySslOpt(verifySsl, {"--verify-ssl"}, "Verify the printer's SSL cerificate");
+  SwitchArg<std::string> pinnedPublicKeyOpt(pinnedPublicKey, {"--ssl-pubkey"}, "Require a certain SSL public key to match");
   SwitchArg<bool> forceOpt(force, {"-f", "--force"}, "Force use of unsupported options");
   SwitchArg<bool> oneStageOpt(oneStage, {"--one-stage"}, "Force use of one-stage print job");
 
@@ -248,7 +253,7 @@ int main(int argc, char** argv)
   PosArg attrsArg(attrs, "name=value[,name=value]");
   PosArg pdfArg(inFile, "input file");
 
-  SubArgGet args({&helpOpt, &verboseOpt},
+  SubArgGet args({&helpOpt, &verboseOpt, &verifySslOpt, &pinnedPublicKeyOpt},
                  {{"info", {{},
                             {&addrArg}}},
                   {"identify", {{},
@@ -288,7 +293,19 @@ int main(int argc, char** argv)
     LogController::instance().enable(LogController::Debug);
   }
 
-  IppPrinter printer(addr);
+  if(verifySslOpt.isSet() && !string_starts_with(addr, "ipps://"))
+  {
+    std::cerr << "--verify-ssl given, but address is not ipps." << std::endl;
+    return 1;
+  }
+
+  if(pinnedPublicKeyOpt.isSet() && !string_starts_with(addr, "ipps://"))
+  {
+    std::cerr << "--ssl-pubkey given, but address is not ipps." << std::endl;
+    return 1;
+  }
+
+  IppPrinter printer(addr, {verifySsl, pinnedPublicKey});
   Error error = printer.error();
   if(error)
   {

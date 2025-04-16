@@ -2,13 +2,12 @@
 
 #include "configdir.h"
 #include "log.h"
-#include "curlrequester.h"
 #include "stringutils.h"
 
 #include <filesystem>
 
-IppPrinter::IppPrinter(std::string addr, bool ignoreSslErrors)
-: _addr(std::move(addr)), _ignoreSslErrors(ignoreSslErrors)
+IppPrinter::IppPrinter(std::string addr, SslConfig sslConfig)
+: _addr(std::move(addr)), _sslConfig(std::move(sslConfig))
 {
   _error = refresh();
 }
@@ -141,7 +140,7 @@ Error IppPrinter::doPrint(IppPrintJob& job, const std::string& inFile, Bytestrea
                           const Converter::ConvertFun& convertFun, const ProgressFun& progressFun)
 {
   Error error;
-  CurlIppStreamer cr(_addr, true);
+  CurlIppStreamer cr(_addr, _sslConfig);
   cr.write(std::move(hdr));
 
   if(job.compression.get() == "gzip")
@@ -531,7 +530,7 @@ Error IppPrinter::_doRequest(const IppMsg& req, IppMsg& resp) const
   }
   DBG(<< "Printer attrs: " << req.getPrinterAttrs().toJSON().dump());
 
-  CurlIppPoster reqPoster(_addr, req.encode(), _ignoreSslErrors);
+  CurlIppPoster reqPoster(_addr, req.encode(), _sslConfig);
   Bytestream respBts;
   CURLcode res0 = reqPoster.await(&respBts);
   if(res0 == CURLE_OK)

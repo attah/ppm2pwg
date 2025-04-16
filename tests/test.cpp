@@ -1335,6 +1335,9 @@ TEST(argget)
 
 TEST(argget_subcommand)
 {
+  bool help = false;
+  SwitchArg<bool> helpopt(help, {"-h", "--help"}, "Help!");
+
   bool b = false;
   SwitchArg<bool> boolopt(b, {"-b", "--bool"}, "A bool option");
 
@@ -1344,7 +1347,8 @@ TEST(argget_subcommand)
   std::string a1;
   PosArg arg1(a1, "arg1");
 
-  SubArgGet get({{"boolify", {{&boolopt}, {}}},
+  SubArgGet get({&helpopt},
+                {{"boolify", {{&boolopt}, {}}},
                  {"stringify", {{&stringopt}, {}}},
                  {"posify", {{}, {&arg1}}}});
   char* argv[3] = {(char*)"myprog",
@@ -1377,6 +1381,14 @@ TEST(argget_subcommand)
                     (char*)"-b"};
 
   ASSERT_FALSE(get.get_args(3, argv3));
+
+  char* argv4[3] = {(char*)"myprog",
+                    (char*)"boolify",
+                    (char*)"-h"};
+
+  ASSERT(get.get_args(3, argv4));
+  ASSERT(helpopt.isSet());
+  ASSERT(help);
 
 }
 

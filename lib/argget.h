@@ -259,6 +259,24 @@ public:
 
   bool get_args(int argc, char** argv)
   {
+    return _get_args(argc, argv, _argDefs);
+  }
+
+  std::string argHelp()
+  {
+    std::string help = "Usage: " + _name + _argHelp();
+    return help;
+  }
+
+  std::string errmsg()
+  {
+    return _errMsg;
+  }
+
+protected:
+
+  bool _get_args(int argc, char** argv, const std::list<SwitchArgBase*>& argDefs)
+  {
     std::list<std::string> argList;
 
     if(argc < 1)
@@ -276,7 +294,7 @@ public:
     while(progress && argList.size() != 0)
     {
       progress = false;
-      for(SwitchArgBase* argDef : _argDefs)
+      for(SwitchArgBase* argDef : argDefs)
       {
         try
         {
@@ -333,25 +351,11 @@ public:
     }
   }
 
-  std::string argHelp()
-  {
-    std::string help = "Usage: " + _name + _argHelp();
-    return help;
-  }
-
-  std::string errmsg()
-  {
-    return _errMsg;
-  }
-
-protected:
-
-  std::string _argHelp() const
+  std::string _argHelp(bool commonOptions=false) const
   {
     std::stringstream help;
-    size_t w = 0;
 
-    if(!_argDefs.empty())
+    if(!_argDefs.empty() || commonOptions)
     {
       help << " [options]";
     }
@@ -360,12 +364,20 @@ protected:
       help << " " << posArg->docName();
     }
     help << std::endl;
+    help << _argDefHelp(_argDefs);
+    return help.str();
+  }
 
-    for(SwitchArgBase* argDef : _argDefs)
+  static std::string _argDefHelp(const std::list<SwitchArgBase*>& argDefs)
+  {
+    std::stringstream help;
+    size_t w = 0;
+
+    for(SwitchArgBase* argDef : argDefs)
     {
       w = std::max(w, argDef->docName().length());
     }
-    for(SwitchArgBase* argDef : _argDefs)
+    for(SwitchArgBase* argDef : argDefs)
     {
       help << "  " << std::left << std::setw(w) << argDef->docName() << "    "
            << argDef->doc() << std::endl;
@@ -388,11 +400,14 @@ public:
   SubArgGet(const SubArgGet&) = delete;
   SubArgGet& operator=(const SubArgGet&) = delete;
 
-  SubArgGet(const std::list<std::pair<std::string,
-                                      std::pair<std::list<SwitchArgBase*>,
-                                                std::list<PosArg*>>>>& map)
+  using SubArgs = std::list<std::pair<std::string,std::pair<std::list<SwitchArgBase*>,std::list<PosArg*>>>>;
+
+  SubArgGet(const SubArgs& subArgs) : SubArgGet({}, subArgs)
+  {}
+  SubArgGet(std::list<SwitchArgBase*> commonArgDefs, const SubArgs& subArgs)
+  : _commonArgDefs(std::move(commonArgDefs))
   {
-    for(const auto& [subCommand, args] : map)
+    for(const auto& [subCommand, args] : subArgs)
     {
       _order.emplace_back(subCommand);
       _subCommands[subCommand] = ArgGet(args.first, args.second);
@@ -427,7 +442,9 @@ public:
     }
 
     ArgGet& argGet = _subCommands[_subCommand];
-    if(!argGet.get_args(argc-1, &argv[1]))
+    std::list<SwitchArgBase*> allArgDefs = _commonArgDefs;
+    allArgDefs.insert(allArgDefs.cend(), argGet._argDefs.cbegin(), argGet._argDefs.cend());
+    if(!argGet._get_args(argc-1, &argv[1], allArgDefs))
     {
       _errMsg = argGet.errmsg();
       return false;
@@ -443,14 +460,19 @@ public:
     help << "Usage: " << _name << " <sub-command> [options]" << std::endl << std::endl;
     if(_subCommands.find(subCommand) != _subCommands.cend())
     {
-      help << _name << " " << subCommand << _subCommands[subCommand]._argHelp() << std::endl;
+      help << _name << " " << subCommand << _subCommands[subCommand]._argHelp(true) << std::endl;
     }
     else
     {
       for(const std::string& subCommand : _order)
       {
-        help << _name << " " << subCommand << _subCommands.at(subCommand)._argHelp() << std::endl;
+        help << _name << " " << subCommand << _subCommands.at(subCommand)._argHelp(true) << std::endl;
       }
+    }
+    if(!_commonArgDefs.empty())
+    {
+      help << "Common options for all sub-commands:" << std::endl;
+      help << ArgGet::_argDefHelp(_commonArgDefs) << std::endl;
     }
     return help.str();
   }
@@ -468,6 +490,7 @@ public:
 private:
   std::string _name;
   std::string _subCommand;
+  std::list<SwitchArgBase*> _commonArgDefs;
   std::map<std::string, ArgGet> _subCommands;
   std::list<std::string> _order;
   std::string _errMsg;

@@ -2,6 +2,7 @@
 #define IPPPRINTER_H
 
 #include "converter.h"
+#include "curlrequester.h"
 #include "error.h"
 #include "ippattr.h"
 #include "ippmsg.h"
@@ -38,7 +39,7 @@ public:
     std::string stateMessage;
   };
 
-  IppPrinter(std::string addr, bool ignoreSslErrors=true);
+  IppPrinter(std::string addr, SslConfig sslConfig);
   IppPrinter(IppAttrs printerAttrs) : _printerAttrs(std::move(printerAttrs))
   {}
   Error refresh();
@@ -106,7 +107,7 @@ private:
   void _applyOverrides();
 
   std::string _addr;
-  bool _ignoreSslErrors = true;
+  SslConfig _sslConfig;
   bool _printJobId = false;
 
   Error _error;

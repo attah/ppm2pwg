@@ -21,6 +21,12 @@ enum class Compression
   Gzip
 };
 
+struct SslConfig
+{
+  bool verifySsl = true;
+  std::string pinnedPublicKey;
+};
+
 class CurlRequester
 {
 public:
@@ -33,7 +39,7 @@ public:
 
 protected:
 
-  CurlRequester(const std::string& addr, bool ignoreSslErrors);
+  CurlRequester(const std::string& addr, const SslConfig& sslConfig=SslConfig());
 
   void doRun();
 
@@ -94,7 +100,7 @@ public:
   }
 
 protected:
-  CurlIppPosterBase(const std::string& addr, bool ignoreSslErrors);
+  CurlIppPosterBase(const std::string& addr, const SslConfig& sslConfig=SslConfig());
 
 private:
   std::mutex _canWrite;
@@ -106,19 +112,19 @@ private:
 class CurlIppPoster : public CurlIppPosterBase
 {
 public:
-  CurlIppPoster(const std::string& addr, Bytestream&& data, bool ignoreSslErrors = false);
+  CurlIppPoster(const std::string& addr, Bytestream&& data, const SslConfig& sslConfig=SslConfig());
 };
 
 class CurlIppStreamer : public CurlIppPosterBase
 {
 public:
-  CurlIppStreamer(const std::string& addr, bool ignoreSslErrors = false);
+  CurlIppStreamer(const std::string& addr, const SslConfig& sslConfig=SslConfig());
 };
 
 class CurlHttpGetter : public CurlRequester
 {
 public:
-  CurlHttpGetter(const std::string& addr, bool ignoreSslErrors = false);
+  CurlHttpGetter(const std::string& addr, const SslConfig& sslConfig=SslConfig());
 };
 
 #endif // CURLREQUESTER_H

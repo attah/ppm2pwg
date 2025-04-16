@@ -6,7 +6,7 @@
 #include <cstring>
 #include <thread>
 
-CurlRequester::CurlRequester(const std::string& addr, bool ignoreSslErrors)
+CurlRequester::CurlRequester(const std::string& addr, const SslConfig& sslConfig)
   : _curl(curl_easy_init())
 {
   bool debugEnabled = LogController::instance().isEnabled(LogController::Debug);
@@ -15,11 +15,16 @@ CurlRequester::CurlRequester(const std::string& addr, bool ignoreSslErrors)
   curl_easy_setopt(_curl, CURLOPT_CONNECTTIMEOUT_MS, 2000);
   curl_easy_setopt(_curl, CURLOPT_FAILONERROR, 1);
 
-  if(ignoreSslErrors)
+  if(!sslConfig.verifySsl)
   {
     curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYSTATUS, 0L);
+  }
+
+  if(sslConfig.pinnedPublicKey != "")
+  {
+    curl_easy_setopt(_curl, CURLOPT_PINNEDPUBLICKEY, sslConfig.pinnedPublicKey.c_str());
   }
 
   _opts = nullptr;
@@ -179,8 +184,8 @@ std::string http_url(const std::string& str)
   return url.toStr();
 }
 
-CurlIppPosterBase::CurlIppPosterBase(const std::string& addr, bool ignoreSslErrors)
-  : CurlRequester(http_url(addr), ignoreSslErrors)
+CurlIppPosterBase::CurlIppPosterBase(const std::string& addr, const SslConfig& sslConfig)
+  : CurlRequester(http_url(addr), sslConfig)
 {
   _canWrite.unlock();
   _canRead.lock();
@@ -208,23 +213,23 @@ CURLcode CurlIppPosterBase::await(Bytestream* data)
   return CurlRequester::await(data);
 }
 
-CurlIppPoster::CurlIppPoster(const std::string& addr, Bytestream&& data, bool ignoreSslErrors)
-  : CurlIppPosterBase(addr, ignoreSslErrors)
+CurlIppPoster::CurlIppPoster(const std::string& addr, Bytestream&& data, const SslConfig& sslConfig)
+  : CurlIppPosterBase(addr, sslConfig)
 {
   curl_easy_setopt(_curl, CURLOPT_POSTFIELDSIZE, data.size());
   write(std::move(data));
   doRun();
 }
 
-CurlIppStreamer::CurlIppStreamer(const std::string& addr, bool ignoreSslErrors)
-  : CurlIppPosterBase(addr, ignoreSslErrors)
+CurlIppStreamer::CurlIppStreamer(const std::string& addr, const SslConfig& sslConfig)
+  : CurlIppPosterBase(addr, sslConfig)
 {
   _opts = curl_slist_append(_opts, "Transfer-Encoding: chunked");
   doRun();
 }
 
-CurlHttpGetter::CurlHttpGetter(const std::string& addr, bool ignoreSslErrors)
-  : CurlRequester(addr, ignoreSslErrors)
+CurlHttpGetter::CurlHttpGetter(const std::string& addr, const SslConfig& sslConfig)
+  : CurlRequester(addr, sslConfig)
 {
   doRun();
 }

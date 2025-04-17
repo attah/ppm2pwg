@@ -19,17 +19,17 @@ public:
     return *this;
   }
 
-  bool isValid()
+  bool isValid() const
   {
     return _valid;
   }
 
-  operator std::string()
+  operator std::string() const
   {
     return toStr();
   }
 
-  std::string toStr()
+  std::string toStr() const
   {
     if(!_valid)
     {

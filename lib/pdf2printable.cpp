@@ -3,8 +3,8 @@
 #include "array.h"
 #include "bytestream.h"
 #include "madness.h"
-#include "pointer.h"
 #include "ppm2pwg.h"
+#include "uniquepointer.h"
 
 #include <poppler.h>
 #include <poppler-document.h>
@@ -64,13 +64,13 @@ Error pdf_to_printable(const std::string& inFile, const PrintParameters& params,
   #include "libfuncs"
   #endif
 
-  Pointer<cairo_surface_t> surface(nullptr, cairo_surface_destroy);
-  Pointer<cairo_t> cairo(nullptr, cairo_destroy);
+  UniquePointer<cairo_surface_t> surface(nullptr, cairo_surface_destroy);
+  UniquePointer<cairo_t> cairo(nullptr, cairo_destroy);
   cairo_status_t status;
   Bytestream bmpBts;
   Bytestream outBts;
 
-  Pointer<PopplerDocument> doc(nullptr, g_object_unref);
+  UniquePointer<PopplerDocument> doc(nullptr, g_object_unref);
   GError* error = nullptr;
 
   if(inFile == "-")
@@ -84,7 +84,7 @@ Error pdf_to_printable(const std::string& inFile, const PrintParameters& params,
     doc = poppler_document_new_from_file(url.c_str(), nullptr, &error);
   }
 
-  Pointer<GError> error_p(error, g_error_free);
+  UniquePointer<GError> error_p(error, g_error_free);
 
   if(doc == nullptr)
   {
@@ -150,8 +150,8 @@ Error pdf_to_printable(const std::string& inFile, const PrintParameters& params,
       if(!params.antiAlias)
       {
         cairo_set_antialias(cairo, CAIRO_ANTIALIAS_NONE);
-        Pointer<cairo_font_options_t> fontOptions(cairo_font_options_create(),
-                                                  cairo_font_options_destroy);
+        UniquePointer<cairo_font_options_t> fontOptions(cairo_font_options_create(),
+                                                        cairo_font_options_destroy);
         cairo_get_font_options(cairo, fontOptions);
         cairo_font_options_set_antialias(fontOptions, CAIRO_ANTIALIAS_NONE);
         cairo_set_font_options(cairo, fontOptions);
@@ -164,7 +164,7 @@ Error pdf_to_printable(const std::string& inFile, const PrintParameters& params,
 
     if(pageNo != INVALID_PAGE)
     { // We are actually rendering a page and not just a blank...
-      Pointer<PopplerPage> page(poppler_document_get_page(doc, pageNo-1), g_object_unref);
+      UniquePointer<PopplerPage> page(poppler_document_get_page(doc, pageNo-1), g_object_unref);
       double pageWidth;
       double pageHeight;
       double xScale;

@@ -10,7 +10,7 @@
 #include "ippprinter.h"
 #include "log.h"
 #include "minimime.h"
-#include "pointer.h"
+#include "uniquepointer.h"
 
 #define HELPTEXT ""
 
@@ -517,7 +517,8 @@ int main(int argc, char** argv)
       inFile = std::filesystem::absolute(inFile);
       std::string url("file://");
       url.append(inFile);
-      Pointer<PopplerDocument> doc(poppler_document_new_from_file(url.c_str(), nullptr, &error), g_object_unref);
+      UniquePointer<PopplerDocument> doc(poppler_document_new_from_file(url.c_str(), nullptr, &error),
+                                         g_object_unref);
       if(doc == nullptr)
       {
           std::cerr << "Failed to open PDF: " << error->message << " (" << inFile << ")" << std::endl;

@@ -1,17 +1,17 @@
-#ifndef POINTER_H
-#define POINTER_H
+#ifndef UNIQUEPOINTER_H
+#define UNIQUEPOINTER_H
 
 #include <functional>
 #include <memory>
 
 template<typename T, typename D = std::function<void(T*)>>
-class Pointer : public std::unique_ptr<T, D>
+class UniquePointer : public std::unique_ptr<T, D>
 {
 public:
-  Pointer(T* ptr, const D& deleter)
+  UniquePointer(T* ptr, const D& deleter)
   : std::unique_ptr<T, D>(ptr, [deleter](T* p){if(p) {deleter(p);}})
   {}
-  Pointer<T, D>& operator=(T* Ptr)
+  UniquePointer<T, D>& operator=(T* Ptr)
   {
     std::unique_ptr<T, D>::reset(Ptr);
     return *this;
@@ -22,4 +22,4 @@ public:
   }
 };
 
-#endif //POINTER_H
+#endif // UNIQUEPOINTER_H

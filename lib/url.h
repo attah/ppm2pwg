@@ -7,7 +7,7 @@
 class Url
 {
 public:
-  Url() = delete;
+  Url() = default;
   Url(const std::string& str)
   {
     match(str);
@@ -83,7 +83,7 @@ private:
 
   void match(const std::string& str)
   {
-    static const std::regex regex("(([a-z]+)://)([a-z0-9-.]+)(:([0-9]+))?(/.*)?$");
+    static const std::regex regex("(([a-z]+)://)((\\[[:a-z-A-Z0-9]+\\])|([a-z0-9-.]*))(:([0-9]+))?(/.*)?$");
     std::smatch match;
 
     _valid = false;
@@ -97,15 +97,15 @@ private:
       _valid = true;
       _scheme = match[2];
       _host = match[3];
-      _port = match[5] == "" ? 0 : stoul(match[5]);
-      _path = match[6];
+      _port = match[7] == "" ? 0 : stoul(match[7]);
+      _path = match[8];
     }
   }
 
-  bool _valid;
+  bool _valid = false;
   std::string _scheme;
   std::string _host;
-  uint16_t _port;
+  uint16_t _port = 0;
   std::string _path;
 };
 

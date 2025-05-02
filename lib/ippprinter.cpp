@@ -6,7 +6,7 @@
 
 #include <filesystem>
 
-IppPrinter::IppPrinter(std::string addr, CurlRequester::SslConfig sslConfig)
+IppPrinter::IppPrinter(Url addr, CurlRequester::SslConfig sslConfig)
 : _addr(std::move(addr)), _sslConfig(std::move(sslConfig))
 {
   _error = refresh();
@@ -15,9 +15,13 @@ IppPrinter::IppPrinter(std::string addr, CurlRequester::SslConfig sslConfig)
 Error IppPrinter::refresh()
 {
   Error error;
-  if(string_starts_with(_addr, "file://"))
+  if(!_addr.isValid())
   {
-    std::ifstream ifs(_addr.substr(7), std::ios::in | std::ios::binary);
+    return Error("Invalid printer address.");
+  }
+  else if(_addr.getScheme() == "file")
+  {
+    std::ifstream ifs(_addr.getPath(), std::ios::in | std::ios::binary);
     if(!ifs)
     {
       return Error("Failed to open fake-printer file.");
@@ -78,7 +82,7 @@ Error IppPrinter::runJob(IppPrintJob& job, const std::string& inFile, const std:
     {
       return Error("No conversion method found for " + inFormat + " to " + job.targetFormat);
     }
-    else if(string_starts_with(_addr, "file://"))
+    else if(_addr.getScheme() == "file")
     {
       doPrintToFile(job, inFile, convertFun.value(), progressFun);
     }

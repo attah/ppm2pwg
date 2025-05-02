@@ -33,7 +33,7 @@ public:
 
 protected:
 
-  CurlRequester(const std::string& addr, const SslConfig& sslConfig);
+  CurlRequester(const Url& addr, const SslConfig& sslConfig);
 
   void doRun();
 
@@ -99,7 +99,7 @@ public:
   }
 
 protected:
-  CurlIppPosterBase(const std::string& addr, const SslConfig& sslConfig=SslConfig());
+  CurlIppPosterBase(Url addr, const SslConfig& sslConfig=SslConfig());
 
 private:
   std::mutex _canWrite;
@@ -115,19 +115,19 @@ private:
 class CurlIppPoster : public CurlIppPosterBase
 {
 public:
-  CurlIppPoster(const std::string& addr, Bytestream&& data, const SslConfig& sslConfig=SslConfig());
+  CurlIppPoster(const Url& addr, Bytestream&& data, const SslConfig& sslConfig=SslConfig());
 };
 
 class CurlIppStreamer : public CurlIppPosterBase
 {
 public:
-  CurlIppStreamer(const std::string& addr, const SslConfig& sslConfig=SslConfig());
+  CurlIppStreamer(const Url& addr, const SslConfig& sslConfig=SslConfig());
 };
 
 class CurlHttpGetter : public CurlRequester
 {
 public:
-  CurlHttpGetter(const std::string& addr, const SslConfig& sslConfig=SslConfig());
+  CurlHttpGetter(const Url& addr, const SslConfig& sslConfig=SslConfig());
 };
 
 #endif // CURLREQUESTER_H

@@ -196,7 +196,7 @@ int main(int argc, char** argv)
 
   int id;
 
-  std::string addr;
+  std::string addrString;
   std::string attrs;
   std::string inFile;
 
@@ -249,7 +249,7 @@ int main(int argc, char** argv)
 
   SwitchArg<int> idOpt(id, {"--id"}, "Id of print job.");
 
-  PosArg addrArg(addr, "printer address");
+  PosArg addrArg(addrString, "printer address");
   PosArg attrsArg(attrs, "name=value[,name=value]");
   PosArg pdfArg(inFile, "input file");
 
@@ -293,13 +293,15 @@ int main(int argc, char** argv)
     LogController::instance().enable(LogController::Debug);
   }
 
-  if(verifySslOpt.isSet() && !string_starts_with(addr, "ipps://"))
+  Url addr(addrString);
+
+  if(verifySslOpt.isSet() && addr.getScheme() != "ipps")
   {
     std::cerr << "--verify-ssl given, but address is not ipps." << std::endl;
     return 1;
   }
 
-  if(pinnedPublicKeyOpt.isSet() && !string_starts_with(addr, "ipps://"))
+  if(pinnedPublicKeyOpt.isSet() && addr.getScheme() != "ipps")
   {
     std::cerr << "--ssl-pubkey given, but address is not ipps." << std::endl;
     return 1;

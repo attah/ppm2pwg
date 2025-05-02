@@ -2468,6 +2468,7 @@ TEST(malicious_dns)
 TEST(url)
 {
   Url url("ipp://myprinter:631/ipp/print");
+  ASSERT(url.isValid());
   ASSERT(url.getScheme() == "ipp");
   ASSERT(url.getHost() == "myprinter");
   ASSERT(url.getPort() == 631);
@@ -2475,6 +2476,7 @@ TEST(url)
   ASSERT(url.toStr() == "ipp://myprinter:631/ipp/print");
 
   url = "ipp://myprinter/ipp/print";
+  ASSERT(url.isValid());
   ASSERT(url.getScheme() == "ipp");
   ASSERT(url.getHost() == "myprinter");
   ASSERT(url.getPort() == 0);
@@ -2486,6 +2488,7 @@ TEST(url)
   ASSERT(url.toStr() == "ipp://myprinter:631/ipp/print");
 
   url = "ipp://myprinter";
+  ASSERT(url.isValid());
   ASSERT(url.getScheme() == "ipp");
   ASSERT(url.getHost() == "myprinter");
   ASSERT(url.getPort() == 0);
@@ -2499,9 +2502,34 @@ TEST(url)
   ASSERT(url.toStr() == "ipps://yourprinter:666/foo/bar");
 
   url = "foo/bar/baz";
+  ASSERT_FALSE(url.isValid());
   ASSERT(url.getScheme() == "");
   ASSERT(url.getHost() == "");
   ASSERT(url.getPort() == 0);
   ASSERT(url.getPath() == "");
   ASSERT(url.toStr() == "");
+
+  url = "file:///foo/bar/baz";
+  ASSERT(url.isValid());
+  ASSERT(url.getScheme() == "file");
+  ASSERT(url.getHost() == "");
+  ASSERT(url.getPort() == 0);
+  ASSERT(url.getPath() == "/foo/bar/baz");
+  ASSERT(url.toStr() == "file:///foo/bar/baz");
+
+  url = "ipp://127.0.0.1/ipp/print";
+  ASSERT(url.isValid());
+  ASSERT(url.getScheme() == "ipp");
+  ASSERT(url.getHost() == "127.0.0.1");
+  ASSERT(url.getPort() == 0);
+  ASSERT(url.getPath() == "/ipp/print");
+  ASSERT(url.toStr() == "ipp://127.0.0.1/ipp/print");
+
+  url = "ipp://[::1]:631/ipp/print";
+  ASSERT(url.isValid());
+  ASSERT(url.getScheme() == "ipp");
+  ASSERT(url.getHost() == "[::1]");
+  ASSERT(url.getPort() == 631);
+  ASSERT(url.getPath() == "/ipp/print");
+  ASSERT(url.toStr() == "ipp://[::1]:631/ipp/print");
 }

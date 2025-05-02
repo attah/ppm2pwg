@@ -39,7 +39,7 @@ public:
     std::string stateMessage;
   };
 
-  IppPrinter(std::string addr, SslConfig sslConfig);
+  IppPrinter(std::string addr, CurlRequester::SslConfig sslConfig);
   IppPrinter(IppAttrs printerAttrs) : _printerAttrs(std::move(printerAttrs))
   {}
   Error refresh();
@@ -107,7 +107,7 @@ private:
   void _applyOverrides();
 
   std::string _addr;
-  SslConfig _sslConfig;
+  CurlRequester::SslConfig _sslConfig;
   bool _printJobId = false;
 
   Error _error;

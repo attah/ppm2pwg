@@ -6,7 +6,7 @@
 
 #include <filesystem>
 
-IppPrinter::IppPrinter(std::string addr, SslConfig sslConfig)
+IppPrinter::IppPrinter(std::string addr, CurlRequester::SslConfig sslConfig)
 : _addr(std::move(addr)), _sslConfig(std::move(sslConfig))
 {
   _error = refresh();
@@ -145,11 +145,11 @@ Error IppPrinter::doPrint(IppPrintJob& job, const std::string& inFile, Bytestrea
 
   if(job.compression.get() == "gzip")
   {
-    cr.setCompression(Compression::Gzip);
+    cr.setCompression(CurlIppStreamer::Gzip);
   }
   else if(job.compression.get() == "deflate")
   {
-    cr.setCompression(Compression::Deflate);
+    cr.setCompression(CurlIppStreamer::Deflate);
   }
 
   WriteFun writeFun([&cr](Bytestream&& data) -> bool

@@ -14,32 +14,26 @@
 #define USER_AGENT ""
 #endif
 
-enum class Compression
-{
-  None = 0,
-  Deflate,
-  Gzip
-};
-
-struct SslConfig
-{
-  bool verifySsl = true;
-  std::string pinnedPublicKey;
-};
-
 class CurlRequester
 {
 public:
-  ~CurlRequester();
+
+  struct SslConfig
+  {
+    bool verifySsl = true;
+    std::string pinnedPublicKey;
+  };
 
   CurlRequester(const CurlRequester&) = delete;
   CurlRequester& operator=(const CurlRequester&) = delete;
+
+  ~CurlRequester();
 
   virtual CURLcode await(Bytestream* = nullptr);
 
 protected:
 
-  CurlRequester(const std::string& addr, const SslConfig& sslConfig=SslConfig());
+  CurlRequester(const std::string& addr, const SslConfig& sslConfig);
 
   void doRun();
 
@@ -76,15 +70,20 @@ protected:
   CURL* _curl;
   struct curl_slist* _opts = nullptr;
 
-  z_stream _zstrm;
-  Compression _nextCompression = Compression::None;
-  Compression _compression = Compression::None;
   LThread _worker;
 };
 
 class CurlIppPosterBase : public CurlRequester
 {
 public:
+
+  enum Compression
+  {
+    NoCompression = 0,
+    Deflate,
+    Gzip
+  };
+
   ~CurlIppPosterBase();
   CURLcode await(Bytestream* = nullptr) override;
 
@@ -107,6 +106,10 @@ private:
   std::mutex _canRead;
   bool _reading = false;
   bool _done = false;
+
+  z_stream _zstrm;
+  Compression _nextCompression = NoCompression;
+  Compression _compression = NoCompression;
 };
 
 class CurlIppPoster : public CurlIppPosterBase

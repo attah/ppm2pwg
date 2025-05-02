@@ -100,7 +100,7 @@ size_t CurlIppPosterBase::requestWrite(char* dest, size_t size)
   size_t remaining = _data.remaining();
   size_t bytesWritten = 0;
 
-  if(_compression != Compression::None)
+  if(_compression != NoCompression)
   {
     _zstrm.next_out = (Bytef*)dest;
     _zstrm.avail_out = size;
@@ -139,7 +139,7 @@ size_t CurlIppPosterBase::requestWrite(char* dest, size_t size)
 
 void CurlIppPosterBase::setCompression(Compression compression)
 {
-  if(_nextCompression != Compression::None)
+  if(_nextCompression != NoCompression)
   {
     throw std::logic_error("unsetting/changing compression");
   }

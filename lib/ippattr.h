@@ -3,7 +3,7 @@
 
 #include "json11.hpp"
 #include "list.h"
-#include "polymorph.h"
+#include "variant.h"
 
 #include <cstdint>
 #include <iostream>
@@ -97,9 +97,9 @@ struct IppDateTime
   Json toJSON() const;
 };
 
-using IppValue = Polymorph<std::string, int, bool,
-                           IppIntRange, IppResolution, IppDateTime,
-                           IppOneSetOf, IppCollection>;
+using IppValue = Variant<std::string, int, bool,
+                         IppIntRange, IppResolution, IppDateTime,
+                         IppOneSetOf, IppCollection>;
 
 struct IppOneSetOf: public List<IppValue>
 {

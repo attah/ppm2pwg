@@ -1,10 +1,10 @@
-#ifndef POLYMORPH_H
-#define POLYMORPH_H
+#ifndef VARIANT_H
+#define VARIANT_H
 
 #include <variant>
 
 template <typename... Ts>
-class Polymorph : public std::variant<Ts...>
+class Variant : public std::variant<Ts...>
 {
 public:
   using std::variant<Ts...>::variant;
@@ -25,4 +25,4 @@ private:
 
 };
 
-#endif // POLYMORPH_H
+#endif // VARIANT_H

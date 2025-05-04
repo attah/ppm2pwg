@@ -1,12 +1,9 @@
 #ifndef IPPDISCOVERY_H
 #define IPPDISCOVERY_H
-
-#include "bytestream.h"
 #include "list.h"
 #include "map.h"
 #include "udpsocket.h"
 
-#include <chrono>
 #include <ctime>
 #include <functional>
 #include <string>

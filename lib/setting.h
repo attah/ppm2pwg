@@ -1,6 +1,8 @@
 #ifndef SETTING_H
 #define SETTING_H
 
+#include "ippattr.h"
+
 #include <sstream>
 
 template <typename T>

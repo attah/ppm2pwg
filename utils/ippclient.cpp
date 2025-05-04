@@ -6,8 +6,8 @@
 #include <poppler-document.h>
 
 #include "argget.h"
-#include "bytestream.h"
 #include "ippprinter.h"
+#include "list.h"
 #include "log.h"
 #include "minimime.h"
 #include "uniquepointer.h"

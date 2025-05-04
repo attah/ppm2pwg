@@ -2,7 +2,6 @@
 
 #include "configdir.h"
 #include "converter.h"
-#include "curlrequester.h"
 #include "mediaposition.h"
 #include "stringutils.h"
 

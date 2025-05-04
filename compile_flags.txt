@@ -1,0 +1,17 @@
+-xc++
+-std=c++17
+-pedantic
+-Wall
+-Wextra
+-Werror
+-Ilib
+-Ibytestream
+-Ibytestream/minitest
+-Ijson11
+-I/usr/include/poppler/glib
+-I/usr/include/glib-2.0
+-I/usr/include/cairo
+-I/usr/include/libpng16
+-I/usr/include/freetype2
+-I/usr/include/pixman-1
+-I/usr/include/poppler

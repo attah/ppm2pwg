@@ -1,7 +1,6 @@
 #ifndef CURLREQUESTER_H
 #define CURLREQUESTER_H
 
-#include "array.h"
 #include "bytestream.h"
 #include "lthread.h"
 #include "url.h"

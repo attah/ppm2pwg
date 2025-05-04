@@ -2,7 +2,6 @@
 
 #include "stringutils.h"
 
-#include <charconv>
 #include <regex>
 
 #define MM_PER_IN 25.4

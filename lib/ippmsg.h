@@ -5,7 +5,6 @@
 #include "ippattr.h"
 
 #include <list>
-#include <map>
 #include <string>
 
 class IppMsg

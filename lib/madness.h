@@ -2,6 +2,8 @@
 #define MADNESS_H
 
 #include <dlfcn.h>
+#include <stdexcept>
+#include <string>
 
 class LibLoader
 {

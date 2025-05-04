@@ -1,7 +1,6 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include <iostream>
 #include <map>
 
 #define LOG(category, ...) if(LogController::instance().isEnabled(category))\

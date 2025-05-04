@@ -1,6 +1,7 @@
 #ifndef URL_H
 #define URL_H
 
+#include <cstdint>
 #include <string>
 #include <regex>
 

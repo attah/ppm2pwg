@@ -2,7 +2,7 @@
 #define IPPPARAMETERS_H
 
 #include "error.h"
-#include "ippmsg.h"
+#include "ippattr.h"
 #include "printparameters.h"
 #include "setting.h"
 

@@ -2,6 +2,7 @@
 
 #include "stringutils.h"
 
+#include <charconv>
 #include <regex>
 
 #define MM_PER_IN 25.4
@@ -248,28 +249,31 @@ bool PrintParameters::setPageSelection(const std::string& pageSelectionStr)
   return !pageSelection.empty();
 }
 
-double from_string(const std::string& str)
+#if __cpp_lib_to_chars < 201611L
+double double_from_chars(const char* begin, const char* end)
 {
-  size_t dotAt = str.find('.');
-  double res = std::stoul(str.substr(0, dotAt));
-  if(dotAt != std::string::npos)
-  {
-    std::string decimalString = str.substr(dotAt+1);
-    res += (std::stoul(decimalString) / (pow(10, decimalString.length())));
-  }
-  return res;
+  static locale_t c_locale = newlocale(LC_ALL_MASK, "C", nullptr);
+  return strtod_l(begin, (char**)&end, c_locale);
 }
+#else
+double double_from_chars(const char* begin, const char* end)
+{
+  double tmp = 0;
+  std::from_chars(begin, end, tmp);
+  return tmp;
+}
+#endif
 
 bool PrintParameters::setPaperSize(const std::string& sizeStr)
 {
   const std::regex nameRegex("^[0-9a-z_-]+_([0-9]+([.][0-9]+)?)x([0-9]+([.][0-9]+)?)(mm|in)$");
-  std::smatch match;
+  std::cmatch match;
 
-  if(std::regex_match(sizeStr, match, nameRegex))
+  if(std::regex_match(sizeStr.c_str(), match, nameRegex))
   {
     paperSizeName = sizeStr;
-    paperSizeW = from_string(match[1]);
-    paperSizeH = from_string(match[3]);
+    paperSizeW = double_from_chars(match[1].first, match[1].second);
+    paperSizeH = double_from_chars(match[3].first, match[3].second);
     if(match[5] == "in")
     {
       paperSizeUnits = Inches;

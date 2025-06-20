@@ -249,21 +249,6 @@ bool PrintParameters::setPageSelection(const std::string& pageSelectionStr)
   return !pageSelection.empty();
 }
 
-#if __cpp_lib_to_chars < 201611L
-double double_from_chars(const char* begin, const char* end)
-{
-  static locale_t c_locale = newlocale(LC_ALL_MASK, "C", nullptr);
-  return strtod_l(begin, (char**)&end, c_locale);
-}
-#else
-double double_from_chars(const char* begin, const char* end)
-{
-  double tmp = 0;
-  std::from_chars(begin, end, tmp);
-  return tmp;
-}
-#endif
-
 bool PrintParameters::setPaperSize(const std::string& sizeStr)
 {
   const std::regex nameRegex("^[0-9a-z_-]+_([0-9]+([.][0-9]+)?)x([0-9]+([.][0-9]+)?)(mm|in)$");
@@ -272,8 +257,14 @@ bool PrintParameters::setPaperSize(const std::string& sizeStr)
   if(std::regex_match(sizeStr.c_str(), match, nameRegex))
   {
     paperSizeName = sizeStr;
-    paperSizeW = double_from_chars(match[1].first, match[1].second);
-    paperSizeH = double_from_chars(match[3].first, match[3].second);
+#if __cpp_lib_to_chars < 201611L
+    static locale_t c_locale = newlocale(LC_ALL_MASK, "C", nullptr);
+    paperSizeW = strtod_l(match[1].first, nullptr, c_locale);
+    paperSizeH = strtod_l(match[3].first, nullptr, c_locale);
+#else
+    std::from_chars(match[1].first, match[1].second, paperSizeW);
+    std::from_chars(match[3].first, match[3].second, paperSizeH);
+#endif
     if(match[5] == "in")
     {
       paperSizeUnits = Inches;

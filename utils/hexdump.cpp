@@ -1,30 +1,48 @@
 #include <fstream>
 #include <iostream>
 
+#include "argget.h"
+#include "binfile.h"
 #include "bytestream.h"
+
+#define HELPTEXT "Use \"-\" as filename for stdin."
+
+inline void print_error(const std::string& hint, const std::string& argHelp)
+{
+  std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
+}
 
 int main(int argc, char** argv)
 {
-  if(argc > 2)
+  bool help = false;
+
+  std::string inFileName;
+
+  SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
+
+  PosArg inArg(inFileName, "in-file");
+
+  ArgGet args({&helpOpt}, {&inArg});
+
+  bool correctArgs = args.get_args(argc, argv);
+  if(help)
   {
-    std::cerr << "Usage: hexdump [file]" << std::endl;
+    std::cout << args.argHelp() << std::endl << HELPTEXT << std::endl;
+    return 0;
+  }
+  else if(!correctArgs)
+  {
+    print_error(args.errmsg(), args.argHelp());
     return 1;
   }
 
-  std::ifstream ifs;
-  std::istream* in;
-
-  if(argc == 2)
+  InBinFile inFile(argv[1]);
+  if(!inFile)
   {
-    ifs = std::ifstream(argv[1], std::ios::in | std::ios::binary);
-    in = &ifs;
-  }
-  else
-  {
-    in = &std::cin;
-    std::ios_base::sync_with_stdio(false);
+    std::cerr << "Failed to open input" << std::endl;
+    return 1;
   }
 
-  Bytestream file(*in);
+  Bytestream file(inFile);
   std::cout << file.hexdump(file.size());
 }

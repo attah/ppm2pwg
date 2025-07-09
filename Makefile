@@ -12,7 +12,7 @@ SILLY_CLANG_FLAGS = -Wno-unqualified-std-cast-call
 VPATH = bytestream lib utils json11
 
 OFFICIAL = ppm2pwg pwg2ppm pdf2printable baselinify ippclient ippdiscover
-EXTRAS = hexdump ippdecode bsplit
+EXTRAS = hexdump ippdecode bsplit minimime
 
 all: $(OFFICIAL) $(EXTRAS)
 

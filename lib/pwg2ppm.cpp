@@ -59,7 +59,7 @@ void write_ppm(Bytestream& outBts, size_t width, size_t height,
                size_t colors, size_t bits, bool black,
                const std::string& outfilePrefix, int page)
 {
-  if(bits == 1 && !black)
+  if((bits == 1 && !black) || (bits == 8 && black))
   {
     invert(outBts);
   }
@@ -88,24 +88,17 @@ void invert(Bytestream& bts)
 
 void cmyk2rgb(Bytestream& cmyk)
 {
-  Bytestream rgb;
-  uint8_t c;
-  uint8_t m;
-  uint8_t y;
-  uint8_t k;
-  uint8_t r;
-  uint8_t g;
-  uint8_t b;
-  uint8_t w;
-  size_t size = cmyk.size()/4;
-  for(size_t i=0; i < size; i++)
+  Bytestream rgb((cmyk.size() * 3) / 4);
+  uint8_t* _cmyk = cmyk.raw();
+  uint8_t* _rgb = rgb.raw();
+  size_t size = cmyk.size();
+
+  for(size_t i=0, j=0; i < size; i+=4, j+=3)
   {
-    cmyk >> c >> m >> y >> k;
-    w = 255 - k;
-    r = w - c;
-    g = w - m;
-    b = w - y;
-    rgb << r << g << b;
+    uint8_t kInv = 255 - _cmyk[i+3];
+    _rgb[j] = kInv - _cmyk[i];
+    _rgb[j+1] = kInv - _cmyk[i+1];
+    _rgb[j+2] = kInv - _cmyk[i+2];
   }
   cmyk = rgb;
 }

@@ -1,24 +1,62 @@
 #include <iostream>
 #include <fstream>
 
+#include "argget.h"
+#include "binfile.h"
+#include "log.h"
 #include "pwg2ppm.h"
 #include "pwgpghdr.h"
 #include "urfpghdr.h"
 
+#define HELPTEXT "Use \"-\" as filename for stdin."
+
+inline void print_error(const std::string& hint, const std::string& argHelp)
+{
+  std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
+}
+
 int main(int argc, char** argv)
 {
-  if(argc != 3)
+  bool help = false;
+  bool verbose = false;
+
+  std::string inFileName;
+  std::string outFilePrefix;
+
+  SwitchArg<bool> helpOpt(help, {"-h", "--help"}, "Print this help text");
+  SwitchArg<bool> verboseOpt(verbose, {"-v", "--verbose"}, "Be verbose, print headers");
+
+  PosArg inArg(inFileName, "in-file");
+  PosArg outArg(outFilePrefix, "out-file prefix");
+
+  ArgGet args({&helpOpt, &verboseOpt},
+              {&inArg, &outArg});
+
+  bool correctArgs = args.get_args(argc, argv);
+  if(help)
   {
-    std::cerr << "Usage: pwg2ppm <infile> <outfile prefix>" << std::endl;
+    std::cout << args.argHelp() << std::endl << HELPTEXT << std::endl;
+    return 0;
+  }
+  else if(!correctArgs)
+  {
+    print_error(args.errmsg(), args.argHelp());
     return 1;
   }
 
-  std::string fileName(argv[1]);
-  std::string outfilePrefix(argv[2]);
+  if(verbose)
+  {
+    LogController::instance().enable(LogController::Debug);
+  }
 
-  std::ifstream ifs(fileName, std::ios::in | std::ios::binary);
-  Bytestream file(ifs);
-  std::cerr << "File is " << file.size() << " long" << std::endl;
+  InBinFile inFile(inFileName);
+  if(!inFile)
+  {
+    std::cerr << "Failed to open input" << std::endl;
+    return 1;
+  }
+  Bytestream file(inFile);
+  DBG(<< "File is " << file.size() << " long");
 
   size_t pages = 0;
   Bytestream outBts;
@@ -26,17 +64,17 @@ int main(int argc, char** argv)
   if(file >>= "RaS2")
   {
 
-    std::cerr << "Smells like PWG Raster" << std::endl;
+    DBG(<< "Smells like PWG Raster");
 
     while(file.remaining())
     {
-      std::cerr << "Page " << ++pages << std::endl;
+      DBG(<< "Page " << ++pages);
       PwgPgHdr pwgHdr;
       pwgHdr.decodeFrom(file);
-      std::cerr << pwgHdr.describe() << std::endl;
+      DBG(<< pwgHdr.describe());
       raster_to_bmp(outBts, file, pwgHdr.BytesPerLine, pwgHdr.Height, pwgHdr.NumColors, false);
       write_ppm(outBts, pwgHdr.Width, pwgHdr.Height, pwgHdr.NumColors, pwgHdr.BitsPerColor,
-                pwgHdr.ColorSpace == PwgPgHdr::Black, outfilePrefix, pages);
+                pwgHdr.ColorSpace == PwgPgHdr::Black, outFilePrefix, pages);
       outBts.reset();
     }
   }
@@ -44,19 +82,18 @@ int main(int argc, char** argv)
   {
     uint32_t pageCount;
     file >> (uint8_t)0 >> pageCount;
-    std::cerr << "Smells like URF Raster, with "
-              << pageCount << " pages" << std::endl;
+    DBG(<< "Smells like URF Raster, with " << pageCount << " pages");
 
     while(file.remaining())
     {
-      std::cerr << "Page " << ++pages << std::endl;
+      DBG(<< "Page " << ++pages);
       UrfPgHdr urfHdr;
       urfHdr.decodeFrom(file);
-      std::cerr << urfHdr.describe() << std::endl;
+      DBG(<< urfHdr.describe());
       uint32_t byteWidth = urfHdr.Width * (urfHdr.BitsPerPixel/8);
       raster_to_bmp(outBts, file, byteWidth, urfHdr.Height, urfHdr.BitsPerPixel/8, true);
       write_ppm(outBts, urfHdr.Width, urfHdr.Height, urfHdr.BitsPerPixel/8, 8,
-                false, outfilePrefix, pages);
+                false, outFilePrefix, pages);
       outBts.reset();
     }
   }
@@ -65,6 +102,6 @@ int main(int argc, char** argv)
     std::cerr << "Unknown file format" << std::endl;
     return 1;
   }
-  std::cerr << "Total pages: " << pages << std::endl;
+  DBG(<< "Total pages: " << pages);
   return 0;
 }

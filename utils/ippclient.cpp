@@ -115,11 +115,17 @@ std::ostream& operator<<(std::ostream& os, const List<IppPrinter::JobInfo>& jobI
 }
 
 template <typename T>
+void do_print(const std::string& title, const T& value)
+{
+    std::cout << title << ":" << std::endl << value << std::endl << std::endl;
+}
+
+template <typename T>
 void print_if_set(const std::string& title, const T& value)
 {
   if(value != T())
   {
-    std::cout << title << std::endl << value << std::endl << std::endl;
+    do_print(title, value);
   }
 }
 
@@ -254,18 +260,13 @@ int main(int argc, char** argv)
   PosArg pdfArg(inFile, "input file");
 
   SubArgGet args({&helpOpt, &verboseOpt, &verifySslOpt, &pinnedPublicKeyOpt},
-                 {{"info", {{},
-                            {&addrArg}}},
-                  {"identify", {{},
-                                {&addrArg}}},
-                  {"get-attrs", {{},
-                                 {&addrArg}}},
-                  {"set-attrs", {{},
-                                 {&addrArg, &attrsArg}}},
-                  {"get-jobs", {{},
-                                {&addrArg}}},
-                  {"cancel-job", {{&idOpt},
-                                  {&addrArg}}},
+                 {{"info", {{}, {&addrArg}}},
+                  {"options", {{}, {&addrArg}}},
+                  {"identify", {{}, {&addrArg}}},
+                  {"get-attrs", {{}, {&addrArg}}},
+                  {"set-attrs", {{}, {&addrArg, &attrsArg}}},
+                  {"get-jobs", {{}, {&addrArg}}},
+                  {"cancel-job", {{&idOpt}, {&addrArg}}},
                   {"print", {{&forceOpt, &oneStageOpt,
                               &pagesOpt, &copiesOpt, &collatedCopiesOpt, &numberUpOpt, &paperSizeOpt,
                               &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
@@ -317,25 +318,43 @@ int main(int argc, char** argv)
 
   if(args.subCommand() == "info")
   {
-    print_if_set("Name:", printer.name());
-    print_if_set("Make and model:", printer.makeAndModel());
-    print_if_set("Location:", printer.location());
-    print_if_set("UUID:", printer.uuid());
-    print_if_set("Printer state message:", printer.stateMessage());
-    print_if_set("Printer state reasons:", join_string(printer.stateReasons(), "\n"));
-    print_if_set("IPP versions:", join_string(printer.ippVersionsSupported(), ", "));
-    print_if_set("IPP features:", join_string(printer.ippFeaturesSupported(), "\n"));
-    print_if_set("Pages per minute:", printer.pagesPerMinute());
-    print_if_set("Pages per minute (color):", printer.pagesPerMinuteColor());
-    print_if_set("Supplies:", printer.supplies());
-    print_if_set("Firmware:", printer.firmware());
-    print_if_set("Settable attributes:", join_string(printer.settableAttributes(), "\n"));
-    print_if_set("Icons:", join_string(printer.icons(), "\n"));
-    print_if_set("Printer URIs supported:", join_string(printer.urisSupported(), "\n"));
-    print_if_set("Strings:", printer.strings());
-    print_if_set("Document formats (native):", join_string(printer.documentFormats(), "\n"));
-    print_if_set("Document formats (guessed):", join_string(printer.additionalDocumentFormats(), "\n"));
-    print_if_set("Document formats (with conversion):", join_string(printer.possibleInputFormats(), "\n"));
+    print_if_set("Name", printer.name());
+    print_if_set("Make and model", printer.makeAndModel());
+    print_if_set("Location", printer.location());
+    print_if_set("UUID", printer.uuid());
+    print_if_set("Printer state message", printer.stateMessage());
+    print_if_set("Printer state reasons", join_string(printer.stateReasons(), "\n"));
+    print_if_set("IPP versions", join_string(printer.ippVersionsSupported(), ", "));
+    print_if_set("IPP features", join_string(printer.ippFeaturesSupported(), "\n"));
+    print_if_set("Pages per minute", printer.pagesPerMinute());
+    print_if_set("Pages per minute (color)", printer.pagesPerMinuteColor());
+    print_if_set("Supplies", printer.supplies());
+    print_if_set("Firmware", printer.firmware());
+    print_if_set("Settable attributes", join_string(printer.settableAttributes(), "\n"));
+    print_if_set("Icons", join_string(printer.icons(), "\n"));
+    print_if_set("Printer URIs supported", join_string(printer.urisSupported(), "\n"));
+    print_if_set("Strings", printer.strings());
+    print_if_set("Document formats (native)", join_string(printer.documentFormats(), "\n"));
+    print_if_set("Document formats (guessed)", join_string(printer.additionalDocumentFormats(), "\n"));
+    print_if_set("Document formats (with conversion)", join_string(printer.possibleInputFormats(), "\n"));
+  }
+  else if(args.subCommand() == "options")
+  {
+    IppPrintJob job = printer.createJob();
+    do_print("Pages per page (" + numberUpOpt.docName() + ")", job.numberUp.supportedStr());
+    do_print("Paper size (" + paperSizeOpt.docName() + ")", job.media.supportedStr());
+    do_print("Resolution", job.resolution.supportedStr());
+    do_print("Sides (" + sidesOpt.docName() + ")", job.sides.supportedStr());
+    do_print("Color mode (" + colorModeOpt.docName() + ")", job.colorMode.supportedStr());
+    do_print("Scaling (" + scalingOpt.docName() + ")", job.scaling.supportedStr());
+    do_print("Media type (" + mediaTypeOpt.docName() + ")", job.mediaType.supportedStr());
+    do_print("Media source (" + mediaSourceOpt.docName() + ")", job.mediaSource.supportedStr());
+    do_print("Output bin (" + outputBinOpt.docName() + ")", job.outputBin.supportedStr());
+    do_print("Finishings (" + finishingsOpt.docName() + ")", job.finishings.supportedStr());
+    do_print("Top margin (" + topMarginOpt.docName() + ")", job.topMargin.supportedStr());
+    do_print("Bottom margin (" + bottomMarginOpt.docName() + ")", job.bottomMargin.supportedStr());
+    do_print("Left margin (" + leftMarginOpt.docName() + ")", job.leftMargin.supportedStr());
+    do_print("Right margin (" + rightMarginOpt.docName() + ")", job.rightMargin.supportedStr());
   }
   else if(args.subCommand() == "identify")
   {

@@ -12,11 +12,9 @@
 #include "minimime.h"
 #include "uniquepointer.h"
 
-#define HELPTEXT ""
-
 inline void print_error(const std::string& hint, const std::string& argHelp)
 {
-  std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
+  std::cerr << hint << std::endl << std::endl << argHelp << std::endl;
 }
 
 std::string print_colors(const List<std::string>& colors)
@@ -275,12 +273,14 @@ int main(int argc, char** argv)
                               &mediaTypeOpt, &mediaSourceOpt, &outputBinOpt, &finishingsOpt,
                               &marginOpt, &topMarginOpt, &bottomMarginOpt, &leftMarginOpt, &rightMarginOpt,
                               &antiAliasOpt, &printJobIdOpt, &saveOpt},
-                             {&addrArg, &pdfArg}}}});
+                             {&addrArg, &pdfArg},
+                             "Use \"-\" as filename for stdin.\n"
+                             "Use the 'options' sub-command to get valid options for your particular printer."}}});
 
   bool correctArgs = args.get_args(argc, argv);
   if(help)
   {
-    std::cout << args.argHelp(args.subCommand()) << std::endl << HELPTEXT << std::endl;
+    std::cout << args.argHelp(args.subCommand()) << std::endl;
     return 0;
   }
   else if(!correctArgs)

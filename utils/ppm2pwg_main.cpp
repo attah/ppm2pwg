@@ -11,11 +11,9 @@
 #include "ppm2pwg.h"
 #include "stringutils.h"
 
-#define HELPTEXT "Use \"-\" as filename for stdin/stdout."
-
 inline void print_error(const std::string& hint, const std::string& argHelp)
 {
-  std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
+  std::cerr << hint << std::endl << std::endl << argHelp << std::endl;
 }
 
 inline void ignore_comments(std::istream& in)
@@ -81,12 +79,13 @@ int main(int argc, char** argv)
                &resolutionOpt, &resolutionXOpt, &resolutionYOpt,
                &duplexOpt, &tumbleOpt, &backXformOpt, &qualityOpt,
                &mediaPositionOpt, &mediaTypeOpt},
-              {&inArg, &outArg});
+              {&inArg, &outArg},
+              "Use \"-\" as filename for stdin/stdout.");
 
   bool correctArgs = args.get_args(argc, argv);
   if(help)
   {
-    std::cout << args.argHelp() << std::endl << HELPTEXT << std::endl;
+    std::cout << args.argHelp() << std::endl;
     return 0;
   }
   else if(!correctArgs)

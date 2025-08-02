@@ -253,8 +253,8 @@ public:
   ArgGet(const ArgGet&) = default;
   ArgGet& operator=(const ArgGet&) = default;
 
-  ArgGet(std::list<SwitchArgBase*> argDefs, std::list<PosArg*> posArgDefs = {})
-  : _argDefs(std::move(argDefs)), _posArgDefs(std::move(posArgDefs))
+  ArgGet(std::list<SwitchArgBase*> argDefs, std::list<PosArg*> posArgDefs = {}, std::string help = "")
+  : _argDefs(std::move(argDefs)), _posArgDefs(std::move(posArgDefs)), _help(std::move(help))
   {}
 
   bool get_args(int argc, char** argv)
@@ -365,6 +365,10 @@ protected:
     }
     help << std::endl;
     help << _argDefHelp(_argDefs);
+    if(!_help.empty())
+    {
+      help << std::endl << _help << std::endl;
+    }
     return help.str();
   }
 
@@ -389,6 +393,7 @@ private:
   std::string _name;
   std::list<SwitchArgBase*> _argDefs;
   std::list<PosArg*> _posArgDefs;
+  std::string _help;
   std::string _errMsg;
 
 };
@@ -400,17 +405,17 @@ public:
   SubArgGet(const SubArgGet&) = delete;
   SubArgGet& operator=(const SubArgGet&) = delete;
 
-  using SubArgs = std::list<std::pair<std::string,std::pair<std::list<SwitchArgBase*>,std::list<PosArg*>>>>;
+  using SubArgs = std::list<std::pair<std::string,const ArgGet &>>;
 
   SubArgGet(const SubArgs& subArgs) : SubArgGet({}, subArgs)
   {}
   SubArgGet(std::list<SwitchArgBase*> commonArgDefs, const SubArgs& subArgs)
   : _commonArgDefs(std::move(commonArgDefs))
   {
-    for(const auto& [subCommand, args] : subArgs)
+    for(const auto& [subCommand, argGet] : subArgs)
     {
       _order.emplace_back(subCommand);
-      _subCommands[subCommand] = ArgGet(args.first, args.second);
+      _subCommands[subCommand] = argGet;
     }
   }
 

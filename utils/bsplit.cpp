@@ -4,11 +4,9 @@
 #include "binfile.h"
 #include "bytestream.h"
 
-#define HELPTEXT "Negative numbers means \"all but\" number of bytes from the beginning/end."
-
 inline void print_error(const std::string& hint, const std::string& argHelp)
 {
-  std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
+  std::cerr << hint << std::endl << std::endl << argHelp << std::endl;
 }
 
 int main(int argc, char** argv)
@@ -27,12 +25,13 @@ int main(int argc, char** argv)
   PosArg outFileArg(outFileName, "output file");
 
   ArgGet args({&helpOpt, &headOpt, &tailOpt},
-              {&inFileArg, &outFileArg});
+              {&inFileArg, &outFileArg},
+              "Negative numbers means \"all but\" number of bytes from the beginning/end.");
 
   bool correctArgs = args.get_args(argc, argv);
   if(help)
   {
-    std::cout << args.argHelp() << std::endl << HELPTEXT << std::endl;
+    std::cout << args.argHelp() << std::endl;
     return 0;
   }
   else if(!correctArgs)

@@ -4,11 +4,9 @@
 #include "baselinify.h"
 #include "binfile.h"
 
-#define HELPTEXT "Use \"-\" as filename for stdin/stdout."
-
 inline void print_error(const std::string& hint, const std::string& argHelp)
 {
-  std::cerr << hint << std::endl << std::endl << argHelp << std::endl << HELPTEXT << std::endl;
+  std::cerr << hint << std::endl << std::endl << argHelp << std::endl;
 }
 
 int main(int argc, char** argv)
@@ -23,12 +21,13 @@ int main(int argc, char** argv)
   PosArg inArg(inFileName, "in-file");
   PosArg outArg(outFileName, "out-file prefix");
 
-  ArgGet args({&helpOpt}, {&inArg, &outArg});
+  ArgGet args({&helpOpt}, {&inArg, &outArg},
+              "Use \"-\" as filename for stdin/stdout.");
 
   bool correctArgs = args.get_args(argc, argv);
   if(help)
   {
-    std::cout << args.argHelp() << std::endl << HELPTEXT << std::endl;
+    std::cout << args.argHelp() << std::endl;
     return 0;
   }
   else if(!correctArgs)

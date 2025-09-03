@@ -2,6 +2,10 @@
 
 #include <fstream>
 
+void invert(Bytestream& bts);
+
+void cmyk2rgb(Bytestream& cmyk);
+
 void raster_to_bmp(Bytestream& outBts, Bytestream& file,
                    size_t byteWidth, size_t height, size_t colors, bool urf)
 {

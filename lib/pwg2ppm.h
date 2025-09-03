@@ -10,8 +10,4 @@ void write_ppm(Bytestream& outBts,size_t width, size_t height,
                size_t colors, size_t bits, bool black,
                const std::string& outFilePrefix, int page);
 
-void invert(Bytestream& bts);
-
-void cmyk2rgb(Bytestream& cmyk);
-
 #endif //PWG2PPM_H

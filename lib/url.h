@@ -84,7 +84,7 @@ private:
 
   void match(const std::string& str)
   {
-    static const std::regex regex("(([a-z]+)://)((\\[[:a-z-A-Z0-9]+\\])|([a-z0-9-.]*))(:([0-9]+))?(/.*)?$");
+    static const std::regex regex("(([a-z]+)://)((\\[[:a-zA-Z0-9]+\\])|([a-zA-Z0-9-.]*))(:([0-9]+))?(/.*)?$");
     std::smatch match;
 
     _valid = false;

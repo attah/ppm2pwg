@@ -2487,6 +2487,14 @@ TEST(url)
   url.setPort(631);
   ASSERT(url.toStr() == "ipp://myprinter:631/ipp/print");
 
+  url = "ipp://MyPrinter/ipp/FOO";
+  ASSERT(url.isValid());
+  ASSERT(url.getScheme() == "ipp");
+  ASSERT(url.getHost() == "MyPrinter");
+  ASSERT(url.getPort() == 0);
+  ASSERT(url.getPath() == "/ipp/FOO");
+  ASSERT(url.toStr() == "ipp://MyPrinter/ipp/FOO");
+
   url = "ipp://myprinter";
   ASSERT(url.isValid());
   ASSERT(url.getScheme() == "ipp");
@@ -2532,4 +2540,21 @@ TEST(url)
   ASSERT(url.getPort() == 631);
   ASSERT(url.getPath() == "/ipp/print");
   ASSERT(url.toStr() == "ipp://[::1]:631/ipp/print");
+
+  url = "ipp://[2001:db8:3c4d:15::1a2f:1a2b]:631/ipp/print";
+  ASSERT(url.isValid());
+  ASSERT(url.getScheme() == "ipp");
+  ASSERT(url.getHost() == "[2001:db8:3c4d:15::1a2f:1a2b]");
+  ASSERT(url.getPort() == 631);
+  ASSERT(url.getPath() == "/ipp/print");
+  ASSERT(url.toStr() == "ipp://[2001:db8:3c4d:15::1a2f:1a2b]:631/ipp/print");
+
+  url = "ipp://[:BEEF]:631/ipp/print";
+  ASSERT(url.isValid());
+  ASSERT(url.getScheme() == "ipp");
+  ASSERT(url.getHost() == "[:BEEF]");
+  ASSERT(url.getPort() == 631);
+  ASSERT(url.getPath() == "/ipp/print");
+  ASSERT(url.toStr() == "ipp://[:BEEF]:631/ipp/print");
+
 }

@@ -2271,7 +2271,7 @@ TEST(attribute_getters)
      {"printer-state-message", IppAttr(IppTag::TextWithoutLanguage, "State.")},
      {"printer-state-reasons", IppAttr(IppTag::Keyword, "none")},
      {"ipp-versions-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"1.1", "2.0"})},
-     {"ipp-features-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"ipp-everywhere"})},
+     {"ipp-features-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"ipp-everywhere", "airprint-1.8"})},
      {"pages-per-minute", IppAttr(IppTag::Integer, 42)},
      {"pages-per-minute-color", IppAttr(IppTag::Integer, 17)},
      {"identify-actions-supported", IppAttr(IppTag::Keyword, IppOneSetOf {"display", "sound"})},
@@ -2294,6 +2294,19 @@ TEST(attribute_getters)
                                                                          "application/pdf"})},
     };
 
+  IppMsg getAttrsMsg(0, IppAttrs(), IppAttrs(), printerAttrs);
+  IppMsg::setReqId(1); // Revert automatic global incrementation of ReqId.
+  Bytestream encoded = getAttrsMsg.encode();
+  IppMsg msg2(encoded);
+
+  ASSERT(printerAttrs == msg2.getPrinterAttrs());
+
+  encoded -= encoded.size();
+  IppMsg::setReqId(1); // Revert automatic global incrementation of ReqId.
+  Bytestream encoded2 = msg2.encode();
+
+  ASSERT(encoded2 == encoded);
+
   ip = IppPrinter(printerAttrs);
 
   ASSERT(ip.name() == "Printer Name");
@@ -2305,7 +2318,7 @@ TEST(attribute_getters)
   ASSERT(ip.stateReasons() == List<std::string> {"none"});
   ASSERT_FALSE(ip.isWarningState());
   ASSERT(ip.ippVersionsSupported() == (List<std::string> {"1.1", "2.0"}));
-  ASSERT(ip.ippFeaturesSupported() == List<std::string> {"ipp-everywhere"});
+  ASSERT(ip.ippFeaturesSupported() == (List<std::string> {"ipp-everywhere", "airprint-1.8"}));
   ASSERT(ip.pagesPerMinute() == 42);
   ASSERT(ip.pagesPerMinuteColor() == 17);
   ASSERT(ip.identifySupported());
@@ -2557,4 +2570,25 @@ TEST(url)
   ASSERT(url.getPath() == "/ipp/print");
   ASSERT(url.toStr() == "ipp://[:BEEF]:631/ipp/print");
 
+}
+
+TEST(with_language)
+{
+  //  0x36                    nameWithLanguage        value-tag
+  //  0x0008                                          name-length
+  //  job-name                job-name                name
+  //  0x000c                                          value-length
+  //  0x0005                                          sub-value-length
+  //  fr-ca                   fr-CA                   value
+  //  0x0003                                          sub-value-length
+  //  fou                     fou                     name
+  Bytestream msg({(uint8_t)1, (uint8_t)1, (uint16_t)0, (uint32_t)0,
+                  (uint8_t)IppTag::JobAttrs,
+                  (uint8_t)IppTag::NameWithLanguage,
+                  (uint16_t)8, "job-name",
+                  (uint16_t)12, (uint16_t)5, "fr-ca", (uint16_t)3, "fou",
+                  (uint8_t)IppTag::EndAttrs});
+  IppMsg ippMsg(msg);
+  // Language is ignored and the actual value appears as-is.
+  ASSERT(ippMsg.getJobAttrs().front().at("job-name").get<std::string>() == "fou");
 }

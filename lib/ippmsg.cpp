@@ -189,9 +189,18 @@ IppValue IppMsg::decodeValue(IppTag tag, Bytestream& data) const
       }
       return IppValue(tmpIntegerRange);
     }
-    case IppTag::OctetStringUnknown:
     case IppTag::TextWithLanguage:
     case IppTag::NameWithLanguage:
+    {
+      std::string tmpString;
+      if(data.get<uint16_t>() != 0) // Check and consume over-all length
+      {
+        data.getString(data.get<uint16_t>()); // ignore language
+        tmpString = data.getString(data.get<uint16_t>());
+      }
+      return IppValue(tmpString);
+    }
+    case IppTag::OctetStringUnknown:
     case IppTag::TextWithoutLanguage:
     case IppTag::NameWithoutLanguage:
     case IppTag::Keyword:
@@ -419,9 +428,19 @@ void IppMsg::encodeValue(Bytestream& msg, IppTag tag, const IppValue& val) const
       msg << (uint8_t)IppTag::EndCollection << (uint16_t)0 << (uint16_t)0;
       break;
     }
-    case IppTag::OctetStringUnknown:
     case IppTag::TextWithLanguage:
     case IppTag::NameWithLanguage:
+    {
+      std::string language = "en-us";
+      std::string value = val.get<std::string>();
+      msg << uint16_t(value.length() + language.length() + 4);
+      msg << uint16_t(language.length());
+      msg.putBytes(language.data(), language.length());
+      msg << uint16_t(value.length());
+      msg.putBytes(value.data(), value.length());
+      break;
+    }
+    case IppTag::OctetStringUnknown:
     case IppTag::TextWithoutLanguage:
     case IppTag::NameWithoutLanguage:
     case IppTag::Keyword:

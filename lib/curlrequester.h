@@ -9,10 +9,6 @@
 #include <zlib.h>
 #include <mutex>
 
-#ifndef USER_AGENT
-#define USER_AGENT ""
-#endif
-
 class CurlRequester
 {
 public:
@@ -29,6 +25,8 @@ public:
   ~CurlRequester();
 
   virtual CURLcode await(Bytestream* = nullptr);
+
+  static void setUserAgent(std::string userAgent);
 
 protected:
 
@@ -70,6 +68,8 @@ protected:
   struct curl_slist* _opts = nullptr;
 
   LThread _worker;
+
+  static std::string _userAgent;
 };
 
 class CurlIppPosterBase : public CurlRequester

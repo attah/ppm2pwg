@@ -27,10 +27,11 @@ CurlRequester::CurlRequester(const Url& addr, const SslConfig& sslConfig)
     curl_easy_setopt(_curl, CURLOPT_PINNEDPUBLICKEY, sslConfig.pinnedPublicKey.c_str());
   }
 
-  _opts = nullptr;
-#ifdef USER_AGENT
-  _opts = curl_slist_append(_opts, "User-Agent: " USER_AGENT);
-#endif
+  if(!_userAgent.empty())
+  {
+    std::string userAgentOpt = "User-Agent: " + _userAgent;
+    _opts = curl_slist_append(_opts, userAgentOpt.c_str());
+  }
 
 }
 
@@ -66,6 +67,13 @@ CURLcode CurlRequester::await(Bytestream* data)
   }
   return _result;
 }
+
+void CurlRequester::setUserAgent(std::string userAgent)
+{
+  _userAgent = std::move(userAgent);
+}
+
+std::string CurlRequester::_userAgent;
 
 CurlIppPosterBase::~CurlIppPosterBase()
 {

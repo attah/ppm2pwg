@@ -1,6 +1,5 @@
 #include "ippmsg.h"
-
-#include <iostream>
+#include "log.h"
 
 uint32_t IppMsg::_reqId=1;
 
@@ -31,10 +30,8 @@ IppMsg::IppMsg(Bytestream& msg)
       }
       else if(currentAttrType == IppTag::UnsupportedAttrs)
       {
-#ifndef FUZZ // Too much spam for fuzzing
-        std::cerr << "WARNING: unsupported attrs reported: " << std::endl
-                  << attrs.toJSON().dump();
-#endif
+        WARN(<< "WARNING: unsupported attrs reported: " << std::endl
+             << attrs.toJSON().dump());
       }
 
       if(msg >>= (uint8_t)IppTag::EndAttrs)
@@ -456,7 +453,7 @@ void IppMsg::encodeValue(Bytestream& msg, IppTag tag, const IppValue& val) const
       break;
     }
     default:
-      std::cerr << "uncaught tag " << +(uint8_t)tag;
+      ERROR(<< "uncaught tag " << +(uint8_t)tag);
       throw std::logic_error("Uncaught tag");
   }
 }

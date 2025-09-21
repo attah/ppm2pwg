@@ -1,11 +1,14 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include <map>
+#include <iostream>
+#include <set>
 
 #define LOG(category, ...) if(LogController::instance().isEnabled(category))\
                            {std::cerr __VA_ARGS__ << std::endl;}
 #define DBG(...) LOG(LogController::Debug, __VA_ARGS__)
+#define WARN(...) LOG(LogController::Warning, __VA_ARGS__)
+#define ERROR(...) LOG(LogController::Error, __VA_ARGS__)
 
 class LogController
 {
@@ -25,26 +28,28 @@ public:
 
   enum Category
   {
-    Debug
+    Debug,
+    Warning,
+    Error
   };
 
   void enable(Category category)
   {
-    _enabled[category] = true;
+    _enabled.insert(category);
   }
 
   void disable(Category category)
   {
-    _enabled[category] = false;
+    _enabled.erase(category);
   }
 
   bool isEnabled(Category category)
   {
-    return _enabled[category];
+    return _enabled.find(category) != _enabled.cend();
   }
 
 private:
-  std::map<Category, bool> _enabled;
+  std::set<Category> _enabled {Warning, Error};
 
 };
 

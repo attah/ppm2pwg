@@ -7,7 +7,6 @@
 #include "urfpghdr.h"
 
 #include <cstring>
-#include <iostream>
 #include <map>
 
 void make_pwg_hdr(Bytestream& outBts, const PrintParameters& params, bool backside);

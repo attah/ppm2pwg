@@ -588,7 +588,7 @@ void IppPrinter::_applyOverrides()
       Json overridesJson = Json::parse(bts.getString(bts.size()), errStr);
       if(!errStr.empty())
       {
-        std::cerr << "Bad overrides file: " << errStr << std::endl;
+        WARN(<< "Bad overrides file: " << errStr);
       }
       for(const auto& [matchAttrName, matchAttr] : overridesJson.object_items())
       {
@@ -609,6 +609,6 @@ void IppPrinter::_applyOverrides()
   }
   catch(const std::exception& e)
   {
-      std::cerr << "Exception applying overrides: " << e.what() << std::endl;
+      WARN(<< "Exception applying overrides: " << e.what());
   }
 }

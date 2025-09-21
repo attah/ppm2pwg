@@ -5,7 +5,6 @@
 
 #include <chrono>
 #include <cstring>
-#include <iostream>
 #include <set>
 #include <sstream>
 #include <stdexcept>
@@ -359,7 +358,7 @@ void IppDiscovery::discover()
     }
     catch(const std::exception& e)
     {
-      std::cerr << e.what();
+      DBG(<< e.what());
     }
 
     DBG(<< "------------");

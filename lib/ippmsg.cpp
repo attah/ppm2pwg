@@ -462,6 +462,7 @@ void IppMsg::encodeValue(Bytestream& msg, IppTag tag, const IppValue& val) const
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size)
 {
   Bytestream bts(Data, Size);
+  LogController::instance().disableAll();
   try
   {
     IppMsg msg(bts);

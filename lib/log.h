@@ -43,6 +43,11 @@ public:
     _enabled.erase(category);
   }
 
+  void disableAll()
+  {
+    _enabled = {};
+  }
+
   bool isEnabled(Category category)
   {
     return _enabled.find(category) != _enabled.cend();

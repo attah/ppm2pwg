@@ -171,7 +171,7 @@ void compress_line(uint8_t* raw, size_t len, Bytestream& outBts, size_t oneChunk
       }
       else
       { // 2 or more non-repeating sequnces
-        pos = currentStart + verbatim * oneChunk;
+        pos = currentStart + (verbatim * oneChunk);
         outBts << (uint8_t)(257 - verbatim);
         outBts.putBytes(currentStart, verbatim * oneChunk);
       }

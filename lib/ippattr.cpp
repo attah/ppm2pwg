@@ -83,7 +83,7 @@ std::string IppDateTime::toStr() const
      << std::setw(2) << +month << "-" << std::setw(2) << +day
      << "T" << std::setw(2) << +hour << ":"
      << std::setw(2) << +minutes << ":" << std::setw(2) << +seconds
-     << "." << std::setw(3) << deciSeconds*100 << " GMT" << plusMinus
+     << "." << std::setw(3) << deciSeconds*100 << " GMT" << (char)plusMinus
      << std::setw(2) << +utcHOffset << std::setw(2) << +utcMOffset;
   return ss.str();
 }

@@ -4,7 +4,8 @@
 #include "bytestream.h"
 
 void raster_to_bmp(Bytestream& outBts, Bytestream& file,
-                   size_t width, size_t height, size_t colors, bool urf);
+                   size_t width, size_t height, size_t colors, size_t bits,
+                   bool urf);
 
 void write_ppm(Bytestream& outBts,size_t width, size_t height,
                size_t colors, size_t bits, bool black,

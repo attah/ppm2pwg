@@ -71,7 +71,8 @@ int main(int argc, char** argv)
       PwgPgHdr pwgHdr;
       pwgHdr.decodeFrom(file);
       DBG(<< pwgHdr.describe());
-      raster_to_bmp(outBts, file, pwgHdr.BytesPerLine, pwgHdr.Height, pwgHdr.NumColors, false);
+      raster_to_bmp(outBts, file, pwgHdr.Width, pwgHdr.Height,
+                    pwgHdr.NumColors, pwgHdr.BitsPerColor, false);
       write_ppm(outBts, pwgHdr.Width, pwgHdr.Height, pwgHdr.NumColors, pwgHdr.BitsPerColor,
                 pwgHdr.ColorSpace == PwgPgHdr::Black, outFilePrefix, pages);
       outBts.reset();
@@ -89,9 +90,28 @@ int main(int argc, char** argv)
       UrfPgHdr urfHdr;
       urfHdr.decodeFrom(file);
       DBG(<< urfHdr.describe());
-      uint32_t byteWidth = urfHdr.Width * (urfHdr.BitsPerPixel/8);
-      raster_to_bmp(outBts, file, byteWidth, urfHdr.Height, urfHdr.BitsPerPixel/8, true);
-      write_ppm(outBts, urfHdr.Width, urfHdr.Height, urfHdr.BitsPerPixel/8, 8,
+      size_t colors = 0;
+      switch(urfHdr.ColorSpace)
+      {
+        case UrfPgHdr::sGray:
+        case UrfPgHdr::Gray:
+          colors = 1;
+          break;
+        case UrfPgHdr::sRGB:
+        case UrfPgHdr::CieLab:
+        case UrfPgHdr::AdobeRGB:
+        case UrfPgHdr::RGB:
+          colors = 3;
+          break;
+        case UrfPgHdr::CMYK:
+          colors = 4;
+          break;
+        default:
+          throw std::logic_error("Unhandled color mode");
+      }
+      size_t bitsPerColor = urfHdr.BitsPerPixel/colors;
+      raster_to_bmp(outBts, file, urfHdr.Width, urfHdr.Height, colors, bitsPerColor, true);
+      write_ppm(outBts, urfHdr.Width, urfHdr.Height, colors, bitsPerColor,
                 false, outFilePrefix, pages);
       outBts.reset();
     }

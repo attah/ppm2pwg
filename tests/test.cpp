@@ -605,12 +605,13 @@ void do_test_centering(const char* test_name, std::string filename, bool asymmet
   size_t width = PwgHdr.Width;
   size_t height = PwgHdr.Height;
   size_t colors = PwgHdr.NumColors;
+  size_t bits = PwgHdr.BitsPerColor;
 
   ASSERT(close_enough(width, 2480, 1));
   ASSERT(close_enough(height, asymmetric ? 7015 : 3507, 1));
 
   Bytestream bmp;
-  raster_to_bmp(bmp, pwg, width*colors, height, colors, false);
+  raster_to_bmp(bmp, pwg, width, height, colors, bits, false);
 
   size_t left_margin, right_margin, top_margin, bottom_margin;
 

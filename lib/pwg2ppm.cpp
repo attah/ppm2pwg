@@ -7,12 +7,15 @@ void invert(Bytestream& bts);
 void cmyk2rgb(Bytestream& cmyk);
 
 void raster_to_bmp(Bytestream& outBts, Bytestream& file,
-                   size_t byteWidth, size_t height, size_t colors, bool urf)
+                   size_t width, size_t height, size_t colors, size_t bits,
+                   bool urf)
 {
   Bytestream grey8White {(uint8_t)0};
   Bytestream RGBWhite {(uint8_t)0xff, (uint8_t)0xff, (uint8_t)0xff};
   Bytestream CMYKWhite {(uint8_t)0x00, (uint8_t)0x00, (uint8_t)0x00, (uint8_t)0x00};
   Bytestream white = (colors == 1 ? grey8White : colors == 4 ? CMYKWhite : RGBWhite);
+  size_t oneChunk = bits == 1 ? colors : colors * bits / 8;
+  size_t byteWidth = bits == 1 ? width / 8 : width * oneChunk;
 
   while(height)
   {
@@ -35,7 +38,7 @@ void raster_to_bmp(Bytestream& outBts, Bytestream& file,
       else if(count < 128)
       { // repeats
         size_t repeats = count+1;
-        Bytestream tmp = file.getBytestream(colors);
+        Bytestream tmp = file.getBytestream(oneChunk);
         for(size_t i=0; i<repeats; i++)
         {
           line << tmp;
@@ -44,7 +47,7 @@ void raster_to_bmp(Bytestream& outBts, Bytestream& file,
       else
       { // verbatim
         size_t verbatim = (-1*((int)count-257));
-        Bytestream tmp = file.getBytestream(verbatim*colors);
+        Bytestream tmp = file.getBytestream(verbatim*oneChunk);
         line << tmp;
       }
     }
@@ -75,7 +78,15 @@ void write_ppm(Bytestream& outBts, size_t width, size_t height,
   std::string outFileName = outfilePrefix+std::to_string(page) + outFileSuffix;
   std::ofstream outFile(outFileName, std::ofstream::out);
   outFile << (colors > 2 ? "P6" : (bits == 8 ? "P5" : "P4"))
-          << '\n' << width << ' ' << height << '\n' << 255 << '\n';
+          << '\n' << width << ' ' << height << '\n';
+  if(bits == 8)
+  {
+    outFile << 255 << '\n';
+  }
+  else if(bits == 16)
+  {
+    outFile << 65535 << '\n';
+  }
 
   outFile << outBts;
 }

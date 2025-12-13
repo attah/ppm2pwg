@@ -9,6 +9,16 @@ make -Bj$(nproc)
 LD_LIBRARY_PATH=./cups/ time ./tools/ipptransform -m image/pwg-raster -r 600 -t srgb_8 ~/reference.pdf > out.pwg
 LD_LIBRARY_PATH=./cups/ time ./tools/ipptransform -m image/pwg-raster -r 600 -t sgray_8 ~/reference.pdf > out.pwg
 
+# ghostscript
+
+time gs -sDEVICE=pwgraster -dcupsBitsPerColor=8 -dcupsColorSpace=18 -sOutputFile=out.pwg -r600 -dNOPAUSE -dQUIET -dBATCH ~/reference.pdf
+time gs -sDEVICE=pwgraster -dcupsBitsPerColor=8 -dcupsColorSpace=19 -sOutputFile=out.pwg -r600 -dNOPAUSE -dQUIET -dBATCH ~/reference.pdf
+
+# mutool
+make -Bj$(nproc)
+time ./build/release/mutool convert -O resolution=600 -A 0 -o out.pwg ~/reference.pdf
+time ./build/release/mutool convert -O resolution=600,colorspace=gray -A 0 -o out.pwg  ~/reference.pdf
+
 # jrender
 
 diff --git a/sample/jrender/src/main/java/sample/jrender/Main.java b/sample/jrender/src/main/java/sample/jrender/Main.java
@@ -27,8 +37,3 @@ index 0fc678d..2dcf810 100644
 
 ./gradlew build -Dorg.gradle.java.home=/usr/lib/jvm/java-1.8.0-openjdk-amd64/ && unzip -o ./sample/jrender/build/distributions/jrender-*.zip
 time jrender-*/bin/jrender ~/reference.pdf out.pwg
-
-# mutool
-make -Bj$(nproc)
-time ./build/release/mutool convert -O resolution=600 -A 0 -o out.pwg ~/reference.pdf
-time ./build/release/mutool convert -O resolution=600,colorspace=gray -A 0 -o out.pwg  ~/reference.pdf

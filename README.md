@@ -52,7 +52,7 @@ Build:
 
 ## pdf2printable vs the competition
 
-(As of 2025-01-04)
+(As of 2025-12-13)
 
 A bit of friendly comparison helps make sure the featureset is well-rounded and performance is on par.
 
@@ -61,19 +61,23 @@ A bit of friendly comparison helps make sure the featureset is well-rounded and 
 | ------------------------------------------------------- | --------------------- | ----------- | ------------------ |
 | pdf2printable                                           | Poppler&sup1;         | C++         | GPL3               |
 | [ipptransform](https://github.com/OpenPrinting/libcups) | XPDF or Poppler&sup1; | C           | Apache 2.0         |
+| [ghostscript](https://ghostscript.com/)&sup2;           | Ghostscript           | C           | AGPL or commercial |
 | [mutool](https://mupdf.com/)                            | MuPDF                 | C           | AGPL or commercial |
 | [jrender](https://github.com/HPInc/jipp)                | Apache PDFBox         | Java/Kotlin | MIT                |
 
-Not in the running: cups-filters (can't get them to run outside CUPS), Android/Apple built-ins and Google Cloud Print (not available standalone).
+Not in the running: Android/Apple built-ins and Google Cloud Print (not available standalone).
+Ghostscript is standing in for cups-filters, since that's what is used under the hood.
 
 1. pdf2printable uses the Cairo backend in Poppler and ipptransform uses the Splash backend inhertited from XPDF. Cairo generally produces higher quality rasterization, but is slightly more prone to misrendering with unusual PDFs.
+2. Not freshly built from source.
 
 ### Format support
 
 |               | PDF | Postscript | PWG | URF | PCLm&sup1; | PCL&sup2; |
 | ------------- | --- | ---------- | --- | --- | ---------- | --------- |
 | pdf2printable | ✔   | ✔          | ✔   | ✔   | ✘          | ✘         |
-| ipptransform  | ✔   | ✔          | ✔   | ✔   | ✘          | ✔&sup3;   |
+| ipptransform  | ✔   | ✔          | ✔   | ✔   | ✔          | ✔&sup3;   |
+| ghostscript   | ✔   | ✔          | ✔   | ✔   | ✔          | ✔         |
 | mutool        | ✔   | ✘          | ✔   | ✘   | ✔          | ✔         |
 | jrender       | ✘   | ✘          | ✔   | ✘   | ✔          | ✘         |
 
@@ -89,7 +93,8 @@ Good printers should support PDF or PWG. After that, URF is the biggest enabler.
 | ------------- | ---------------- | ----------------- | ------------- | -------------- | --------- |
 | pdf2printable | ✔                | ✔(6)              | ✔             | ✔              | ✔(+stdin) |
 | ipptransform  | ✔                | ✔(5)              | ✔             | ✔              | ✔         |
-| mutool        | ✘                | ✔(3?)             | ✘             | ✔              | ✘         |
+| ghostscript   | ?                | ✔(6+)             | ✘             | ✔              | ✔(+stdin) |
+| mutool        | ✘                | ✔(4)              | ✘             | ✔              | ✘         |
 | jrender       | ✘                | ✘(1)&sup3;        | ✘             | ✘              | ✘         |
 
 1. PWG, URF and PCLm printers may require the client to help transform backside pages for duplex printing, or they will come out incorrectly.
@@ -102,8 +107,11 @@ Measured with a representative 90-page document for PWG-raster at 600 DPI on a A
 |                        | Speed (RGB) | Speed (Gray) | Size (RGB)   | Size (Gray) |
 | ---------------------- | ----------- | -------------| ------------ | ----------- |
 | pdf2printable          | 500 PPM     | 529 PPM      | 152 MB       | 76 MB       |
-| ipptransform           | 204 PPM     | 194 PPM      | 159 MB       | 76 MB       |
-| mutool (AA off)        | 260 PPM     | 184 PPM      | 152 MB       | 76 MB       |
-| jrender (600dpi patch) | 171 PPM     | N/A          | 334 MB&sup1; | N/A         |
+| ipptransform           | 198 PPM     | 186 PPM      | 159 MB       | 76 MB       |
+| ghostscript            | 575 PPM     | 643 PPM      | 152 MB       | 76 MB       |
+| mutool (AA off)        | 264 PPM     | 188 PPM      | 153 MB       | 76 MB       |
+| jrender (600dpi patch) | 167 PPM     | N/A          | 334 MB&sup1; | N/A         |
 
-1. Antialiasing seems to be enabled and would account for the size difference. However, at these resolutions that doesn't really provide much benefit. For pdf2printable and mutool it can be optionally enabled/disabled.
+1. Antialiasing seems to be enabled and would account for the size difference. However, at these resolutions that doesn't really provide much benefit. For pdf2printable, ghostscript and mutool it can be optionally enabled/disabled.
+
+pdf2printable will match or beat ghostscript if compield with `-mtune=native`, but that would be cheating, as ghostscript surely would retake the lead if allowed architecture-dependent optimizations too.

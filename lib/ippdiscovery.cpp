@@ -99,16 +99,21 @@ void IppDiscovery::sendQuery(QType qtype, List<std::string> addrs)
   std::time_t now = std::chrono::system_clock::to_time_t(nowClock);
   std::time_t aWhileAgo = std::chrono::system_clock::to_time_t(nowClock - 2s);
 
-  for(const auto& [k, v] : _outstandingQueries)
+  for(Map<std::pair<QType, std::string>, std::time_t>::const_iterator it = _outstandingQueries.cbegin();
+      it != _outstandingQueries.cend(); )
   {
-    if(_outstandingQueries[k] < aWhileAgo)
+    if(it->second < aWhileAgo)
     { // Housekeeping for _outstandingQueries
-      DBG(<< "skipping " << k.second);
-      _outstandingQueries.erase(k);
+      it = _outstandingQueries.erase(it);
     }
-    else if(k.first == qtype && addrs.contains(k.second))
-    { // we recently asked about this, remove it
-      addrs.remove(k.second);
+    else
+    {
+      if(it->first.first == qtype && addrs.contains(it->first.second))
+      { // we recently asked about this, remove it
+        DBG(<< "skipping " << it->first.second);
+        addrs.remove(it->first.second);
+      }
+      it++;
     }
   }
 

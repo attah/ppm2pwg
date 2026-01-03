@@ -9,16 +9,21 @@
 #include <zlib.h>
 #include <mutex>
 
+class SslConfig
+{
+friend class CurlRequester;
+public:
+  SslConfig(bool verifySsl=true, std::string pinnedPublicKey="")
+  : _verifySsl(verifySsl), _pinnedPublicKey(std::move(pinnedPublicKey))
+  {}
+private:
+  bool _verifySsl = true;
+  std::string _pinnedPublicKey;
+};
+
 class CurlRequester
 {
 public:
-
-  struct SslConfig
-  {
-    bool verifySsl = true;
-    std::string pinnedPublicKey;
-  };
-
   CurlRequester(const CurlRequester&) = delete;
   CurlRequester& operator=(const CurlRequester&) = delete;
 

@@ -6,7 +6,7 @@
 
 #include <filesystem>
 
-IppPrinter::IppPrinter(Url addr, CurlRequester::SslConfig sslConfig)
+IppPrinter::IppPrinter(Url addr, SslConfig sslConfig)
 : _addr(std::move(addr)), _sslConfig(std::move(sslConfig))
 {
   _error = refresh();

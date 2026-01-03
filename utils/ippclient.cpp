@@ -310,7 +310,7 @@ int main(int argc, char** argv)
 
   CurlRequester::setUserAgent("ppm2pwg-ippclient");
 
-  IppPrinter printer(addr, {verifySsl, pinnedPublicKey});
+  IppPrinter printer(addr, SslConfig(verifySsl, pinnedPublicKey));
   Error error = printer.error();
   if(error)
   {

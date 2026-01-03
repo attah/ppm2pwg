@@ -15,16 +15,16 @@ CurlRequester::CurlRequester(const Url& addr, const SslConfig& sslConfig)
   curl_easy_setopt(_curl, CURLOPT_CONNECTTIMEOUT_MS, 2000);
   curl_easy_setopt(_curl, CURLOPT_FAILONERROR, 1);
 
-  if(!sslConfig.verifySsl)
+  if(!sslConfig._verifySsl)
   {
     curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(_curl, CURLOPT_SSL_VERIFYSTATUS, 0L);
   }
 
-  if(sslConfig.pinnedPublicKey != "")
+  if(sslConfig._pinnedPublicKey != "")
   {
-    curl_easy_setopt(_curl, CURLOPT_PINNEDPUBLICKEY, sslConfig.pinnedPublicKey.c_str());
+    curl_easy_setopt(_curl, CURLOPT_PINNEDPUBLICKEY, sslConfig._pinnedPublicKey.c_str());
   }
 
   if(!_userAgent.empty())

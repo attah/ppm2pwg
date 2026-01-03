@@ -42,7 +42,7 @@ std::string ip4str(uint32_t ip)
 Url make_addr(const std::string& proto, uint16_t defaultPort, uint16_t port,
                       const std::string& ip, const std::string& rp)
 {
-  Url addr(proto, ip, port != defaultPort ? port : 0, rp);
+  Url addr(proto, ip, port != defaultPort ? port : 0, "/"+rp);
   return addr;
 }
 

@@ -43,6 +43,10 @@ public:
   IppPrinter(IppAttrs printerAttrs) : _printerAttrs(std::move(printerAttrs))
   {}
   Error refresh();
+  void setSslconfig(CurlRequester::SslConfig sslConfig)
+  {
+    _sslConfig = std::move(sslConfig);
+  }
 
   IppAttrs attributes() const
   {

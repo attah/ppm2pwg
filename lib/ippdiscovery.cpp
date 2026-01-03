@@ -39,22 +39,11 @@ std::string ip4str(uint32_t ip)
        + std::to_string(ip & 0xff);
 }
 
-std::string make_addr(const std::string& proto, uint16_t defaultPort, uint16_t port,
+Url make_addr(const std::string& proto, uint16_t defaultPort, uint16_t port,
                       const std::string& ip, const std::string& rp)
 {
-  std::string maybePort = port != defaultPort ? ":"+std::to_string(port) : "";
-  std::string addr = proto+"://"+ip+maybePort+"/"+rp;
+  Url addr(proto, ip, port != defaultPort ? port : 0, rp);
   return addr;
-}
-
-std::string make_ipp_addr(uint16_t port, const std::string& ip, const std::string& rp)
-{
-  return make_addr("ipp", 631, port, ip, rp);
-}
-
-std::string make_ipps_addr(uint16_t port, const std::string& ip, const std::string& rp)
-{
-  return make_addr("ipps", 443, port, ip, rp);
 }
 
 List<std::string> get_addr(Bytestream& bts, std::set<uint16_t> seenReferences={})
@@ -169,13 +158,12 @@ void IppDiscovery::sendQuery(QType qtype, List<std::string> addrs)
 
 }
 
-void IppDiscovery::update()
+void IppDiscovery::maybeAddAndNotify(const List<std::string>& ptrs, const std::string& proto, uint16_t defaultPort)
 {
-  List<std::pair<std::string,std::string>> ippsIpRps;
   std::string target;
   std::string rp;
 
-  for(const std::string& ptr : _ippsPtrs)
+  for(const std::string& ptr : ptrs)
   {
     if(!_targets.contains(ptr) || !_ports.contains(ptr) || !hasTxtEntry(ptr, "rp"))
     {
@@ -190,36 +178,10 @@ void IppDiscovery::update()
     {
       for(const std::string& ip : _As.at(target))
       {
-        std::string addr = make_ipps_addr(port, ip, rp);
-        if(!_found.contains(addr))
+        Url addr = make_addr(proto, defaultPort, port, ip, rp);
+        if(!_found.contains({ip, rp}))
         { // Don't add duplicates
-          ippsIpRps.push_back({ip, rp});
-          _found.push_back(addr);
-          _callback(addr);
-        }
-      }
-    }
-  }
-
-  for(const std::string& ptr : _ippPtrs)
-  {
-    if(!_targets.contains(ptr) || !_ports.contains(ptr) || !hasTxtEntry(ptr, "rp"))
-    {
-      continue;
-    }
-
-    uint16_t port = _ports.at(ptr);
-    target = _targets.at(ptr);
-    rp = _TXTs.at(ptr).at("rp");
-
-    if(_As.contains(target))
-    {
-      for(const std::string& ip : _As.at(target))
-      {
-        std::string addr = make_ipp_addr(port, ip, rp);
-        if(!_found.contains(addr) && !ippsIpRps.contains({ip, rp}))
-        { // Don't add duplicates, don't add if already added as IPPS
-          _found.push_back(addr);
+          _found.insert({{ip, rp}, addr});
           _callback(addr);
         }
       }
@@ -398,7 +360,8 @@ void IppDiscovery::discover()
       sendQuery(A, unresolvedAddrs);
     }
 
-    update();
+    maybeAddAndNotify(_ippsPtrs, "ipps", 443);
+    maybeAddAndNotify(_ippPtrs, "ipp", 631);
 
   }
 }

@@ -3,6 +3,7 @@
 #include "list.h"
 #include "map.h"
 #include "udpsocket.h"
+#include "url.h"
 
 #include <ctime>
 #include <functional>
@@ -31,7 +32,7 @@ public:
 
 private:
   void sendQuery(QType qtype, List<std::string> addrs);
-  void update();
+  void maybeAddAndNotify(const List<std::string>& ptrs, const std::string& proto, uint16_t defaultPort);
   void updateAndQueryPtrs(List<std::string>& ptrs, const List<std::string>& newPtrs);
 
   bool hasTxtEntry(const std::string& ptr, const std::string& key);
@@ -50,7 +51,7 @@ private:
   Map<std::string, List<std::string>> _As;
 
   Map<std::pair<QType, std::string>, std::time_t> _outstandingQueries;
-  List<std::string> _found;
+  Map<std::pair<std::string,std::string>, Url> _found;
 
   std::function<void(std::string)> _callback;
 

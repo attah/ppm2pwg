@@ -14,6 +14,14 @@ public:
     match(str);
   }
 
+  Url(std::string scheme, std::string host, uint16_t port=0, std::string path="")
+  : _scheme(std::move(scheme)), _host(std::move(host)), _port(port), _path(std::move(path)), _valid(true)
+  {}
+
+  Url(std::string scheme, std::string host, std::string path)
+  : Url(std::move(scheme), std::move(host), 0, std::move(path))
+  {}
+
   Url& operator=(const std::string& str)
   {
     match(str);
@@ -103,11 +111,11 @@ private:
     }
   }
 
-  bool _valid = false;
   std::string _scheme;
   std::string _host;
   uint16_t _port = 0;
   std::string _path;
+  bool _valid = false;
 };
 
 #endif // URL_H

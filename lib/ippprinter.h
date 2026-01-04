@@ -85,7 +85,9 @@ public:
   std::string strings() const;
   List<std::string> documentFormats() const;
   List<std::string> additionalDocumentFormats() const;
+  List<std::string> allDocumentFormats() const;
   List<std::string> possibleInputFormats() const;
+  List<std::string> possibleTransferFormats(const std::string& inputFormat) const;
   bool supportsPrinterRaster() const;
 
   bool isWarningState() const;

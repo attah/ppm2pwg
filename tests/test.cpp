@@ -2374,6 +2374,8 @@ TEST(converter)
 {
   List<std::string> supportedFormats;
   ASSERT(Converter::instance().possibleInputFormats(supportedFormats) == List<std::string> {});
+  ASSERT(Converter::instance().possibleOutputFormats(supportedFormats, "application/pdf")
+         == List<std::string> {});
 
   // PDF to PDF
   supportedFormats = {"application/pdf"};
@@ -2388,6 +2390,8 @@ TEST(converter)
          == (List<std::string> {"application/pdf", "image/pwg-raster"}));
   ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
          == "image/pwg-raster");
+  ASSERT(Converter::instance().possibleOutputFormats(supportedFormats, "application/pdf")
+         == (List<std::string> {"image/pwg-raster"}));
 
   // ...and URF
   supportedFormats = {"image/urf"};
@@ -2395,6 +2399,8 @@ TEST(converter)
          == (List<std::string> {"application/pdf", "image/urf"}));
   ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
          == "image/urf");
+  ASSERT(Converter::instance().possibleOutputFormats(supportedFormats, "application/pdf")
+         == (List<std::string> {"image/urf"}));
 
   // PDF has higher prio than raster
   supportedFormats = {"image/pwg-raster", "application/pdf"};
@@ -2402,6 +2408,8 @@ TEST(converter)
          == (List<std::string> {"application/pdf", "image/pwg-raster"}));
   ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
          == "application/pdf");
+  ASSERT(Converter::instance().possibleOutputFormats(supportedFormats, "application/pdf")
+         == (List<std::string> {"application/pdf", "image/pwg-raster"}));
 
   // Octet Stream, because why not
   supportedFormats = {"application/octet-stream", "image/pwg-raster", "application/pdf"};
@@ -2409,6 +2417,8 @@ TEST(converter)
          == (List<std::string> {"application/pdf", "application/octet-stream", "image/pwg-raster"}));
   ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
          == "application/pdf");
+  ASSERT(Converter::instance().possibleOutputFormats(supportedFormats, "application/pdf")
+         == (List<std::string> {"application/pdf", "image/pwg-raster"}));
 
   // PDF has higher prio than Postscript too
   supportedFormats = {"application/postscript", "application/pdf"};
@@ -2416,6 +2426,8 @@ TEST(converter)
          == (List<std::string> {"application/pdf", "application/postscript"}));
   ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
          == "application/pdf");
+  ASSERT(Converter::instance().possibleOutputFormats(supportedFormats, "application/pdf")
+         == (List<std::string> {"application/pdf", "application/postscript"}));
 
   // Postscript has higher prio than raster
   supportedFormats = {"image/pwg-raster", "application/postscript"};
@@ -2423,11 +2435,17 @@ TEST(converter)
          == (List<std::string> {"application/pdf", "image/pwg-raster", "application/postscript"}));
   ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
          == "application/postscript");
+  ASSERT(Converter::instance().possibleOutputFormats(supportedFormats, "application/pdf")
+         == (List<std::string> {"application/postscript", "image/pwg-raster"}));
 
   // JPEG needs JPEG support
   ASSERT_FALSE(Converter::instance().getTargetFormat("image/jpeg", supportedFormats));
+  ASSERT(Converter::instance().possibleOutputFormats(supportedFormats, "image/jpeg")
+         == List<std::string> {});
   supportedFormats = {"application/octet-stream", "image/pwg-raster", "application/pdf", "image/jpeg"};
   ASSERT(Converter::instance().getTargetFormat("image/jpeg", supportedFormats) == "image/jpeg");
+  ASSERT(Converter::instance().possibleOutputFormats(supportedFormats, "image/jpeg")
+         == (List<std::string> {"image/jpeg"}));
 
   // Functions exist. TODO: Check that they are the correct ones.
   ASSERT(Converter::instance().getConvertFun("application/pdf", "application/pdf"));

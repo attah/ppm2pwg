@@ -388,10 +388,20 @@ List<std::string> IppPrinter::additionalDocumentFormats() const
   return additionalFormats;
 }
 
+List<std::string> IppPrinter::allDocumentFormats() const
+{
+  return documentFormats() += additionalDocumentFormats();
+}
+
+
 List<std::string> IppPrinter::possibleInputFormats() const
 {
-  return Converter::instance().possibleInputFormats(documentFormats()
-         += additionalDocumentFormats());
+  return Converter::instance().possibleInputFormats(allDocumentFormats());
+}
+
+List<std::string> IppPrinter::possibleTransferFormats(const std::string& inputFormat) const
+{
+  return Converter::instance().possibleOutputFormats(allDocumentFormats(), inputFormat);
 }
 
 bool IppPrinter::supportsPrinterRaster() const

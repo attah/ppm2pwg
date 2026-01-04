@@ -2383,6 +2383,8 @@ TEST(converter)
          == List<std::string> {"application/pdf"});
   ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
          == "application/pdf");
+  ASSERT(Converter::instance().possibleOutputFormats(supportedFormats, "application/pdf")
+         == List<std::string> {"application/pdf"});
 
   // PDF maps to PWG-raster
   supportedFormats = {"image/pwg-raster"};
@@ -2455,12 +2457,16 @@ TEST(converter)
   ASSERT(Converter::instance().getConvertFun("text/plain", "text/plain"));
   ASSERT(Converter::instance().getConvertFun("foo", "foo"));
 
+  ASSERT(Converter::instance().possibleOutputFormats("application/pdf")
+         == (List<std::string> {"application/pdf", "application/postscript", "image/pwg-raster", "image/urf"}));
+
   // Custom function
   ASSERT_FALSE(Converter::instance().getConvertFun("foo", "bar"));
   Converter::ConvertFun FooBar = [](std::string, const IppPrintJob&, WriteFun, ProgressFun){return Error();};
   Converter::instance().Pipelines.push_back({{"foo", "bar"}, FooBar});
   ASSERT(Converter::instance().getConvertFun("foo", "bar"));
-
+  ASSERT(Converter::instance().possibleOutputFormats("foo")
+         == (List<std::string> {"bar", "foo"}));
 
   // PDF has higher prio than custom format
   Converter::instance().Pipelines.push_back({{"application/pdf", "application/aaa"}, FooBar});
@@ -2469,6 +2475,9 @@ TEST(converter)
          == (List<std::string> {"application/pdf", "image/pwg-raster", "application/aaa"}));
   ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
          == "application/pdf");
+  ASSERT(Converter::instance().possibleOutputFormats("application/pdf")
+         == (List<std::string> {"application/pdf", "application/postscript",
+                                "image/pwg-raster", "image/urf", "application/aaa"}));
 
   // ...but will do in a pinch
   supportedFormats = {"application/aaa"};
@@ -2480,6 +2489,10 @@ TEST(converter)
   supportedFormats = {"application/aaa", "application/bbb", "application/pdf"};
   ASSERT(Converter::instance().getTargetFormat("application/pdf", supportedFormats)
          == "application/bbb");
+  ASSERT(Converter::instance().possibleOutputFormats("application/pdf")
+         == (List<std::string> {"application/bbb", "application/pdf", "application/postscript",
+                                "image/pwg-raster", "image/urf", "application/aaa"}));
+
 
 }
 

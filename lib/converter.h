@@ -165,6 +165,23 @@ public:
     return inputFormats;
   }
 
+  List<std::string> possibleOutputFormats(const std::string& inputFormat)
+  {
+    List<std::string> possibleTransferFormats;
+    for(const auto& [convertKey, convertFun] : Pipelines)
+    {
+      if(convertKey.first == inputFormat)
+      {
+        possibleTransferFormats.push_back(convertKey.second);
+      }
+    }
+    if(!possibleTransferFormats.contains(inputFormat))
+    {
+        possibleTransferFormats.push_back(inputFormat);
+    }
+    return possibleTransferFormats;
+  }
+
   List<std::string> possibleOutputFormats(const List<std::string>& supportedFormats, const std::string& inputFormat)
   {
     List<std::string> possibleTransferFormats;

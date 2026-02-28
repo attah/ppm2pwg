@@ -186,6 +186,11 @@ std::string IppPrintJob::determineTargetFormat(const std::string& inputFormat)
   return targetFormat;
 }
 
+uint32_t absdiff(uint32_t a, uint32_t b)
+{
+  return a > b ? a - b : b - a;
+}
+
 void IppPrintJob::adjustRasterSettings(int pages)
 {
   if(!printParams.isRasterFormat())
@@ -207,8 +212,7 @@ void IppPrintJob::adjustRasterSettings(int pages)
       {
         continue;
       }
-      uint32_t tmpDiff = std::abs(int(printParams.hwResW-res.x))
-                       + std::abs(int(printParams.hwResH-res.y));
+      uint32_t tmpDiff = absdiff(printParams.hwResW, res.x) + absdiff(printParams.hwResH, res.y);
       if(tmpDiff < diff)
       {
         diff = tmpDiff;
@@ -235,7 +239,7 @@ void IppPrintJob::adjustRasterSettings(int pages)
         for(const std::string& r : rs)
         {
           int intRes = std::stoi(r);
-          uint32_t tmpDiff = std::abs(int(printParams.hwResW - intRes));
+          uint32_t tmpDiff = absdiff(printParams.hwResW, intRes);
           if(tmpDiff < diff)
           {
             diff = tmpDiff;

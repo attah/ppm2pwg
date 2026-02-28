@@ -7,17 +7,17 @@
 #include <map>
 #include <set>
 
-const std::string MiniMime::OctetStream = "application/octet-stream";
+const char* MiniMime::OctetStream = "application/octet-stream";
 
-const std::string MiniMime::PDF = "application/pdf";
-const std::string MiniMime::Postscript = "application/postscript";
-const std::string MiniMime::PWG = "image/pwg-raster";
-const std::string MiniMime::URF = "image/urf";
+const char* MiniMime::PDF = "application/pdf";
+const char* MiniMime::Postscript = "application/postscript";
+const char* MiniMime::PWG = "image/pwg-raster";
+const char* MiniMime::URF = "image/urf";
 
-const std::string MiniMime::PNG = "image/png";
-const std::string MiniMime::GIF = "image/gif";
-const std::string MiniMime::JPEG = "image/jpeg";
-const std::string MiniMime::TIFF = "image/tiff";
+const char* MiniMime::PNG = "image/png";
+const char* MiniMime::GIF = "image/gif";
+const char* MiniMime::JPEG = "image/jpeg";
+const char* MiniMime::TIFF = "image/tiff";
 
 std::string MiniMime::getMimeType(const std::string& fileName)
 {

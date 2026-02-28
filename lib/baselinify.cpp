@@ -21,7 +21,7 @@ struct bts_source_mgr: jpeg_source_mgr
     jpeg_source_mgr::resync_to_restart = jpeg_resync_to_restart;
     jpeg_source_mgr::term_source = term_source;
     jpeg_source_mgr::bytes_in_buffer = bts.size();
-    jpeg_source_mgr::next_input_byte = (const JOCTET *)bts.raw();
+    jpeg_source_mgr::next_input_byte = bts.raw();
   }
 
   static void init_source(j_decompress_ptr) {}
@@ -33,9 +33,9 @@ struct bts_source_mgr: jpeg_source_mgr
 
   static void skip_input_data(j_decompress_ptr cinfo, long numBytes)
   {
-    bts_source_mgr* src = (bts_source_mgr*)cinfo->src;
-    src->next_input_byte += (size_t)numBytes;
-    src->bytes_in_buffer -= (size_t)numBytes;
+    bts_source_mgr* src = static_cast<bts_source_mgr*>(cinfo->src);
+    src->next_input_byte += static_cast<size_t>(numBytes);
+    src->bytes_in_buffer -= static_cast<size_t>(numBytes);
   }
 
   static void term_source(j_decompress_ptr) {}
@@ -58,7 +58,7 @@ struct bts_destination_mgr: jpeg_destination_mgr
 
   static boolean empty_output_buffer(j_compress_ptr cinfo)
   {
-    bts_destination_mgr* dest = (bts_destination_mgr*)cinfo->dest;
+    bts_destination_mgr* dest = static_cast<bts_destination_mgr*>(cinfo->dest);
     dest->bts.putBytes(dest->buffer, BS_REASONABLE_FILE_SIZE);
 
     dest->next_output_byte = dest->buffer;
@@ -68,7 +68,7 @@ struct bts_destination_mgr: jpeg_destination_mgr
 
   static void term_destination(j_compress_ptr cinfo)
   {
-    bts_destination_mgr* dest = (bts_destination_mgr*)cinfo->dest;
+    bts_destination_mgr* dest = static_cast<bts_destination_mgr*>(cinfo->dest);
     size_t size = (BS_REASONABLE_FILE_SIZE - dest->free_in_buffer);
     dest->bts.putBytes(dest->buffer, size);
   }

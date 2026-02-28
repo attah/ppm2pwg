@@ -10,9 +10,9 @@ void raster_to_bmp(Bytestream& outBts, Bytestream& file,
                    size_t width, size_t height, size_t colors, size_t bits,
                    bool urf)
 {
-  Bytestream grey8White {(uint8_t)0};
-  Bytestream RGBWhite {(uint8_t)0xff, (uint8_t)0xff, (uint8_t)0xff};
-  Bytestream CMYKWhite {(uint8_t)0x00, (uint8_t)0x00, (uint8_t)0x00, (uint8_t)0x00};
+  Bytestream grey8White {uint8_t{0}};
+  Bytestream RGBWhite {uint8_t{0xff}, uint8_t{0xff}, uint8_t{0xff}};
+  Bytestream CMYKWhite {uint8_t{0x00}, uint8_t{0x00}, uint8_t{0x00}, uint8_t{0x00}};
   Bytestream white = (colors == 1 ? grey8White : colors == 4 ? CMYKWhite : RGBWhite);
   size_t oneChunk = bits == 1 ? colors : colors * bits / 8;
   size_t byteWidth = bits == 1 ? width / 8 : width * oneChunk;
@@ -46,7 +46,7 @@ void raster_to_bmp(Bytestream& outBts, Bytestream& file,
       }
       else
       { // verbatim
-        size_t verbatim = (-1*((int)count-257));
+        size_t verbatim = (-1*(static_cast<int>(count)-257));
         Bytestream tmp = file.getBytestream(verbatim*oneChunk);
         line << tmp;
       }

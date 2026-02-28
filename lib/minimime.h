@@ -9,17 +9,17 @@ public:
 
   MiniMime() = delete;
 
-  static const std::string OctetStream;
+  static const char* OctetStream;
 
-  static const std::string PDF;
-  static const std::string Postscript;
-  static const std::string PWG;
-  static const std::string URF;
+  static const char* PDF;
+  static const char* Postscript;
+  static const char* PWG;
+  static const char* URF;
 
-  static const std::string PNG;
-  static const std::string GIF;
-  static const std::string JPEG;
-  static const std::string TIFF;
+  static const char* PNG;
+  static const char* GIF;
+  static const char* JPEG;
+  static const char* TIFF;
 
   static std::string getMimeType(const std::string& fileName);
 

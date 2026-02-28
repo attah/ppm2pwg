@@ -43,7 +43,7 @@ void fixup_scale(double& xScale, double& yScale, double& xOffset, double& yOffse
 
 inline cairo_status_t bytestream_writer(void* bts, const unsigned char* data, unsigned int length)
 {
-  ((Bytestream*)bts)->putBytes(data, length);
+  (static_cast<Bytestream*>(bts))->putBytes(data, length);
   return CAIRO_STATUS_SUCCESS;
 }
 
@@ -199,7 +199,7 @@ Error pdf_to_printable(const std::string& inFile, const PrintParameters& params,
     if(params.isRasterFormat())
     {
       cairo_surface_flush(surface);
-      uint32_t* data = (uint32_t*)cairo_image_surface_get_data(surface);
+      uint32_t* data = reinterpret_cast<uint32_t*>(cairo_image_surface_get_data(surface));
       copy_raster_buffer(bmpBts, data, params);
       bmp_to_pwg(bmpBts, outBts, outPageNo, params);
     }

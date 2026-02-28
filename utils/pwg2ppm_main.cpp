@@ -81,7 +81,7 @@ int main(int argc, char** argv)
   else if(file >>= "UNIRAST")
   {
     uint32_t pageCount;
-    file >> (uint8_t)0 >> pageCount;
+    file >> uint8_t{0} >> pageCount;
     DBG(<< "Smells like URF Raster, with " << pageCount << " pages");
 
     while(file.remaining())

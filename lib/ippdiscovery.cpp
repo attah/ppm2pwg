@@ -119,7 +119,7 @@ void IppDiscovery::sendQuery(QType qtype, List<std::string> addrs)
   uint16_t flags = 0;
   uint16_t questions = addrs.size();
 
-  query << _transactionId++ << flags << questions << (uint16_t)0 << (uint16_t)0 << (uint16_t)0;
+  query << _transactionId++ << flags << questions << uint16_t{0} << uint16_t{0} << uint16_t{0};
 
   for(const std::string& addr : addrs)
   {
@@ -133,7 +133,7 @@ void IppDiscovery::sendQuery(QType qtype, List<std::string> addrs)
       restAddr = join_string(addrParts, ".");
       if(suffixPositions.contains(restAddr))
       {
-        query << (uint16_t)(0xc000 | (0x0fff & suffixPositions[restAddr]));
+        query << static_cast<uint16_t>((0xc000 | (0x0fff & suffixPositions[restAddr])));
         break;
       }
       else
@@ -141,16 +141,16 @@ void IppDiscovery::sendQuery(QType qtype, List<std::string> addrs)
         // We are putting in at least one part of the address, remember where that was
         suffixPositions.insert({restAddr, query.size()});
         addrPart = addrParts.takeFront();
-        query << (uint8_t)addrPart.size() << addrPart;
+        query << static_cast<uint8_t>(addrPart.size()) << addrPart;
       }
     }
     if(addrParts.empty())
     {
       // Whole addr was put in without c-pointers, 0-terminate it
-      query << (uint8_t)0;
+      query << uint8_t{0};
     }
 
-    query << (uint16_t)qtype << (uint16_t)0x0001;
+    query << static_cast<uint16_t>(qtype) << uint16_t{0x0001};
 
   }
 

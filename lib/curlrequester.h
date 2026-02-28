@@ -44,7 +44,7 @@ protected:
   static size_t write_callback(char *ptr, size_t size, size_t nmemb, void* userdata)
   {
     size_t bytes_to_write = size*nmemb;
-    ((Bytestream*)userdata)->putBytes(ptr, bytes_to_write);
+    (static_cast<Bytestream*>(userdata))->putBytes(ptr, bytes_to_write);
     return bytes_to_write;
   }
 
@@ -98,8 +98,7 @@ public:
 
   static size_t trampoline(char* dest, size_t size, size_t nmemb, void* userp)
   {
-    CurlIppPosterBase* cid = (CurlIppPosterBase*)userp;
-    return cid->requestWrite(dest, size*nmemb);
+    return static_cast<CurlIppPosterBase*>(userp)->requestWrite(dest, size*nmemb);
   }
 
 protected:

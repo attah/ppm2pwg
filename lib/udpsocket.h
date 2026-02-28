@@ -42,8 +42,8 @@ public:
 
   ssize_t send(const Bytestream& msg)
   {
-    return sendto(_sock, (const char*)msg.raw(), msg.size(), 0,
-                  (const sockaddr*)&_servaddr, sizeof(_servaddr));
+    return sendto(_sock, reinterpret_cast<const char*>(msg.raw()), msg.size(), 0,
+                  reinterpret_cast<const sockaddr*>(&_servaddr), sizeof(_servaddr));
   }
 
   Bytestream receive(time_t tmo_sec=0, time_t tmo_usec=0) const
@@ -63,7 +63,8 @@ public:
     memset(&servaddr, 0, sizeof(servaddr));
     socklen_t len = sizeof(servaddr);
 
-    ssize_t n = recvfrom(_sock, buffer.data(), sizeof(buffer), 0, (sockaddr*)&servaddr, &len);
+    ssize_t n = recvfrom(_sock, buffer.data(), sizeof(buffer), 0,
+                         reinterpret_cast<sockaddr*>(&servaddr), &len);
     if(n > 0)
     {
       msg = Bytestream(buffer.data(), n);

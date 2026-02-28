@@ -125,7 +125,7 @@ public:
 
   bool canConvert(const std::string& inputFormat, const std::string& targetFormat)
   {
-    return (bool)getConvertFun(inputFormat, targetFormat);
+    return getConvertFun(inputFormat, targetFormat).has_value();
   }
 
   std::optional<std::string> getTargetFormat(const std::string& inputFormat,

@@ -24,7 +24,7 @@ Bytestream make_pwg_file_hdr()
 Bytestream make_urf_file_hdr(uint32_t pages)
 {
   Bytestream urfFileHdr;
-  urfFileHdr << "UNIRAST" << (uint8_t)0 << pages;
+  urfFileHdr << "UNIRAST" << uint8_t{0} << pages;
   return urfFileHdr;
 }
 
@@ -166,13 +166,13 @@ void compress_line(uint8_t* raw, size_t len, Bytestream& outBts, size_t oneChunk
       if(verbatim == 1)
       { // We ended up with one sequence, encode it as such
         pos = currentStart + oneChunk;
-        outBts << (uint8_t)0;
+        outBts << uint8_t{0};
         outBts.putBytes(currentStart, oneChunk);
       }
       else
       { // 2 or more non-repeating sequnces
         pos = currentStart + (verbatim * oneChunk);
-        outBts << (uint8_t)(257 - verbatim);
+        outBts << static_cast<uint8_t>(257 - verbatim);
         outBts.putBytes(currentStart, verbatim * oneChunk);
       }
     }

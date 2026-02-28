@@ -210,7 +210,7 @@ Error IppPrinter::doPrintToFile(IppPrintJob& job, const std::string& inFile,
   WriteFun writeFun([&ofs](Bytestream&& data) -> bool
            {
              ofs << data;
-             return (bool)ofs;
+             return !ofs.fail();
            });
 
   Error error = convertFun(inFile, job, writeFun, progressFun);

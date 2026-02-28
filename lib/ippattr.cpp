@@ -51,14 +51,14 @@ std::string IppResolution::toStr() const
 
 IppResolution IppResolution::fromJSON(const Json::object& json)
 {
-  return IppResolution {(uint32_t)json.at("x").int_value(),
-                        (uint32_t)json.at("y").int_value(),
-                        (uint8_t)json.at("units").int_value()};
+  return IppResolution {static_cast<uint32_t>(json.at("x").int_value()),
+                        static_cast<uint32_t>(json.at("y").int_value()),
+                        static_cast<uint8_t>(json.at("units").int_value())};
 }
 
 Json::object IppResolution::toJSON() const
 {
-  return Json::object {{"x", (int)x}, {"y", (int)y}, {"units", units}};
+  return Json::object {{"x", static_cast<int>(x)}, {"y", static_cast<int>(y)}, {"units", units}};
 }
 
 bool IppDateTime::operator==(const IppDateTime& other) const
@@ -83,7 +83,7 @@ std::string IppDateTime::toStr() const
      << std::setw(2) << +month << "-" << std::setw(2) << +day
      << "T" << std::setw(2) << +hour << ":"
      << std::setw(2) << +minutes << ":" << std::setw(2) << +seconds
-     << "." << std::setw(3) << deciSeconds*100 << " GMT" << (char)plusMinus
+     << "." << std::setw(3) << deciSeconds*100 << " GMT" << static_cast<char>(plusMinus)
      << std::setw(2) << +utcHOffset << std::setw(2) << +utcMOffset;
   return ss.str();
 }
@@ -167,13 +167,13 @@ IppAttr IppAttr::fromString(const std::string& string, IppTag tag)
 
 IppAttr IppAttr::fromJSON(const Json::object& json)
 {
-  IppTag tag = (IppTag)json.at("tag").int_value();
+  IppTag tag = static_cast<IppTag>(json.at("tag").int_value());
   return IppAttr(tag, valuefromJSON(tag, json.at("value")));
 }
 
 Json IppAttr::toJSON() const
 {
-  return Json::object {{"tag", (int)tag()}, {"value", valueToJSON(value())}};
+  return Json::object {{"tag", static_cast<int>(tag())}, {"value", valueToJSON(value())}};
 }
 
 IppValue IppAttr::valuefromJSON(IppTag tag, const Json& json)

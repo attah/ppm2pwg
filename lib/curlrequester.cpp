@@ -110,7 +110,7 @@ size_t CurlIppPosterBase::requestWrite(char* dest, size_t size)
 
   if(_compression != NoCompression)
   {
-    _zstrm.next_out = (Bytef*)dest;
+    _zstrm.next_out = reinterpret_cast<Bytef*>(dest);
     _zstrm.avail_out = size;
     _zstrm.next_in = (_data.raw() + _data.pos());
     _zstrm.avail_in = remaining;

@@ -140,6 +140,17 @@ public:
   double paperSizeW = 210; // A4
   double paperSizeH = 297; // A4
 
+  enum Scaling
+  {
+    Fit = 0,
+    Fill,
+    AutoFit,
+    AutoFill,
+    None
+  };
+
+  Scaling scaling = Fit;
+
   enum DuplexMode
   {
     OneSided = 0,

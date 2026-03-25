@@ -30,6 +30,8 @@
 
 #define SIXTEENTHS(parts, value) (parts*(value/16))
 
+#define PTS_PER_IN 72.0
+
 #ifndef PDF_CREATOR
 #define PDF_CREATOR "pdf2printable"
 #endif
@@ -314,24 +316,39 @@ void copy_raster_buffer(Bytestream& bmpBts, const uint32_t* data, const PrintPar
 void fixup_scale(double& xScale, double& yScale, double& xOffset, double& yOffset, bool& rotate,
                  double& wIn, double& hIn, const PrintParameters& params)
 {
-  // If the page is landscape, contunue as if it is not, but remember to rotate
-  if(wIn > hIn)
+  // Match page and paper orientation
+  // TODO: rotation setting - or don't rotate if we are not scaling and it fits?
+  if((wIn > hIn) != (params.paperSizeW > params.paperSizeH))
   {
     std::swap(wIn, hIn);
     rotate = true;
   }
 
-  // Scale to fit as if we had a symmetric resolution
-  // ...this makes determining fitment easier
+  // Scale as if we had a symmetric resolution to make fitment easier
   PrintParameters tmp = params;
-  tmp.hwResW = std::min(params.hwResW, params.hwResH);
-  tmp.hwResH = std::min(params.hwResW, params.hwResH);
+  uint32_t baseDPI = std::min(params.hwResW, params.hwResH);
+  tmp.hwResW = baseDPI;
+  tmp.hwResH = baseDPI;
 
-  size_t hOut = params.isRasterFormat() ? tmp.getPaperSizeHInPixels()
-                                        : tmp.getPaperSizeHInPoints();
   size_t wOut = params.isRasterFormat() ? tmp.getPaperSizeWInPixels()
                                         : tmp.getPaperSizeWInPoints();
-  double scale = round2(std::min(wOut/wIn, hOut/hIn));
+  size_t hOut = params.isRasterFormat() ? tmp.getPaperSizeHInPixels()
+                                        : tmp.getPaperSizeHInPoints();
+
+  bool inputIsLarger = (wIn > tmp.getPaperSizeWInPoints()) || (hIn > tmp.getPaperSizeHInPoints());
+  double scale = params.isRasterFormat() ? baseDPI/PTS_PER_IN : 1;
+
+  if((params.scaling == PrintParameters::Fit) ||
+     (inputIsLarger && (params.scaling == PrintParameters::AutoFit)))
+  {
+    scale = round2(std::min(wOut/wIn, hOut/hIn));
+  }
+  else if((params.scaling == PrintParameters::Fill) ||
+          (inputIsLarger && (params.scaling == PrintParameters::AutoFill)))
+  {
+    scale = round2(std::max(wOut/wIn, hOut/hIn));
+  }
+
   xOffset = roundf((wOut-(wIn*scale))/2);
   yOffset = roundf((hOut-(hIn*scale))/2);
 
@@ -345,15 +362,15 @@ void fixup_scale(double& xScale, double& yScale, double& xOffset, double& yOffse
   { // URF will/should not end up here, but still...
     if(params.hwResW > params.hwResH)
     {
-      size_t scale = params.hwResW / params.hwResH;
-      xScale *= scale;
-      xOffset *= scale;
+      size_t hwResScale = params.hwResW / params.hwResH;
+      xScale *= hwResScale;
+      xOffset *= hwResScale;
     }
     else if(params.hwResH > params.hwResW)
     {
-      size_t scale = params.hwResH / params.hwResW;
-      yScale *= scale;
-      yOffset *= scale;
+      size_t hwResScale = params.hwResH / params.hwResW;
+      yScale *= hwResScale;
+      yOffset *= hwResScale;
     }
   }
 }

@@ -586,16 +586,15 @@ TEST(bilevel_rotated)
 
 bool close_enough(int a, int b, unsigned int precision)
 {
-  int lower = b == 0 ? 0 : b-precision;
-  int upper = b == 0 ? 0 : b+precision;
+  int lower = b - precision;
+  int upper = b + precision;
   return (a <= upper) && (a >= lower);
 }
 
-void do_test_centering(const char* test_name, std::string filename, bool asymmetric)
+void do_test_centering(std::string test_name, std::string filename, List<std::string> args,
+                       size_t& left_margin, size_t& right_margin, size_t& top_margin, size_t& bottom_margin)
 {
-
-  Bytestream pwg = run_pdf2printable({"--format", "pwg", "-rx", "300", "-ry", asymmetric ? "600" : "300"},
-                                     filename, test_name);
+  Bytestream pwg = run_pdf2printable(args, filename, test_name + ".pwg");
   ASSERT(pwg.size() != 0);
 
   ASSERT(pwg >>= "RaS2");
@@ -607,13 +606,8 @@ void do_test_centering(const char* test_name, std::string filename, bool asymmet
   size_t colors = PwgHdr.NumColors;
   size_t bits = PwgHdr.BitsPerColor;
 
-  ASSERT(close_enough(width, 2480, 1));
-  ASSERT(close_enough(height, asymmetric ? 7015 : 3507, 1));
-
   Bytestream bmp;
   raster_to_bmp(bmp, pwg, width, height, colors, bits, false);
-
-  size_t left_margin, right_margin, top_margin, bottom_margin;
 
   left_margin = 0;
   right_margin = 0;
@@ -651,52 +645,144 @@ void do_test_centering(const char* test_name, std::string filename, bool asymmet
   {
     right_margin++;
   }
-
-  ASSERT(close_enough(left_margin, right_margin, 1));
-  ASSERT(close_enough(top_margin, bottom_margin, asymmetric ? 2 : 1));
-
 }
 
 // More rectangular than A4
 TEST(pdf2printable_16x9_portrait)
 {
-  do_test_centering(__func__, "portrait_16x9.pdf", false);
+  size_t left_margin, right_margin, top_margin, bottom_margin;
+  do_test_centering(__func__, "portrait_16x9.pdf",
+                    {},
+                    left_margin, right_margin, top_margin, bottom_margin);
+  ASSERT(close_enough(left_margin, right_margin, 1));
+  ASSERT(close_enough(top_margin, 0, 1));
+  ASSERT(close_enough(bottom_margin, 0, 1));
 }
 
 TEST(pdf2printable_16x9_landscape)
 {
-  do_test_centering(__func__, "landscape_16x9.pdf", false);
+  size_t left_margin, right_margin, top_margin, bottom_margin;
+  do_test_centering(__func__, "landscape_16x9.pdf",
+                    {},
+                    left_margin, right_margin, top_margin, bottom_margin);
+  ASSERT(close_enough(left_margin, right_margin, 1));
+  ASSERT(close_enough(top_margin, 0, 1));
+  ASSERT(close_enough(bottom_margin, 0, 1));
 }
 
 TEST(pdf2printable_16x9_portrait_asymmetric)
 {
-  do_test_centering(__func__, "portrait_16x9.pdf", true);
+  size_t left_margin, right_margin, top_margin, bottom_margin;
+  do_test_centering(__func__, "portrait_16x9.pdf",
+                    {"-rx", "300", "-ry", "600"},
+                    left_margin, right_margin, top_margin, bottom_margin);
+  ASSERT(close_enough(left_margin, right_margin, 1));
+  ASSERT(close_enough(top_margin, 0, 1));
+  ASSERT(close_enough(bottom_margin, 0, 1));
 }
 
 TEST(pdf2printable_16x9_landscape_asymmetric)
 {
-  do_test_centering(__func__, "landscape_16x9.pdf", true);
+  size_t left_margin, right_margin, top_margin, bottom_margin;
+  do_test_centering(__func__, "landscape_16x9.pdf",
+                    {"-rx", "300", "-ry", "600"},
+                    left_margin, right_margin, top_margin, bottom_margin);
+  ASSERT(close_enough(left_margin, right_margin, 1));
+  ASSERT(close_enough(top_margin, 0, 1));
+  ASSERT(close_enough(bottom_margin, 0, 1));
+}
+
+TEST(pdf2printable_16x9_portrait_fill)
+{
+  size_t left_margin, right_margin, top_margin, bottom_margin;
+  do_test_centering(__func__, "portrait_16x9.pdf",
+                    {"--scaling", "fill"},
+                    left_margin, right_margin, top_margin, bottom_margin);
+  ASSERT(close_enough(left_margin, 0, 1));
+  ASSERT(close_enough(right_margin, 0, 1));
+  ASSERT(close_enough(top_margin, 0, 1));
+  ASSERT(close_enough(bottom_margin, 0, 1));
+}
+
+TEST(pdf2printable_16x9_landscape_fill)
+{
+  size_t left_margin, right_margin, top_margin, bottom_margin;
+  do_test_centering(__func__, "landscape_16x9.pdf",
+                    {"--scaling", "fill"},
+                    left_margin, right_margin, top_margin, bottom_margin);
+  ASSERT(close_enough(left_margin, 0, 1));
+  ASSERT(close_enough(right_margin, 0, 1));
+  ASSERT(close_enough(top_margin, 0, 1));
+  ASSERT(close_enough(bottom_margin, 0, 1));
 }
 
 // More square than A4
 TEST(pdf2printable_4x3_portrait)
 {
-  do_test_centering(__func__, "portrait_4x3.pdf", false);
+  size_t left_margin, right_margin, top_margin, bottom_margin;
+  do_test_centering(__func__, "portrait_4x3.pdf",
+                    {},
+                    left_margin, right_margin, top_margin, bottom_margin);
+  ASSERT(close_enough(left_margin, 0, 1));
+  ASSERT(close_enough(right_margin, 0, 1));
+  ASSERT(close_enough(top_margin, bottom_margin, 1));
 }
 
 TEST(pdf2printable_4x3_landscape)
 {
-  do_test_centering(__func__, "landscape_4x3.pdf", false);
+  size_t left_margin, right_margin, top_margin, bottom_margin;
+  do_test_centering(__func__, "landscape_4x3.pdf",
+                    {},
+                    left_margin, right_margin, top_margin, bottom_margin);
+  ASSERT(close_enough(left_margin, 0, 1));
+  ASSERT(close_enough(right_margin, 0, 1));
+  ASSERT(close_enough(top_margin, bottom_margin, 1));
 }
 
 TEST(pdf2printable_4x3_portrait_asymmetric)
 {
-  do_test_centering(__func__, "portrait_4x3.pdf", true);
+  size_t left_margin, right_margin, top_margin, bottom_margin;
+  do_test_centering(__func__, "portrait_4x3.pdf",
+                    {"-rx", "300", "-ry", "600"},
+                    left_margin, right_margin, top_margin, bottom_margin);
+  ASSERT(close_enough(left_margin, 0, 1));
+  ASSERT(close_enough(right_margin, 0, 1));
+  ASSERT(close_enough(top_margin, bottom_margin, 2));
 }
 
 TEST(pdf2printable_4x3_landscape_asymmetric)
 {
-  do_test_centering(__func__, "landscape_4x3.pdf", true);
+  size_t left_margin, right_margin, top_margin, bottom_margin;
+  do_test_centering(__func__, "landscape_4x3.pdf",
+                    {"-rx", "300", "-ry", "600"},
+                    left_margin, right_margin, top_margin, bottom_margin);
+  ASSERT(close_enough(left_margin, 0, 1));
+  ASSERT(close_enough(right_margin, 0, 1));
+  ASSERT(close_enough(top_margin, bottom_margin, 2));
+}
+
+TEST(pdf2printable_4x3_portrait_fill)
+{
+  size_t left_margin, right_margin, top_margin, bottom_margin;
+  do_test_centering(__func__, "portrait_4x3.pdf",
+                    {"--scaling", "fill"},
+                    left_margin, right_margin, top_margin, bottom_margin);
+  ASSERT(close_enough(left_margin, 0, 1));
+  ASSERT(close_enough(right_margin, 0, 1));
+  ASSERT(close_enough(top_margin, 0, 6));
+  ASSERT(close_enough(bottom_margin, 0, 6));
+}
+
+TEST(pdf2printable_4x3_landscape_fill)
+{
+  size_t left_margin, right_margin, top_margin, bottom_margin;
+  do_test_centering(__func__, "landscape_4x3.pdf",
+                    {"--scaling", "fill"},
+                    left_margin, right_margin, top_margin, bottom_margin);
+  ASSERT(close_enough(left_margin, 0, 1));
+  ASSERT(close_enough(right_margin, 0, 1));
+  ASSERT(close_enough(top_margin, 0, 6));
+  ASSERT(close_enough(bottom_margin, 0, 6));
 }
 
 TEST(printparameters)

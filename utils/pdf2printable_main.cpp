@@ -47,6 +47,14 @@ int main(int argc, char** argv)
   //                                   {{"yes", true}, {"no", false}},
   //                                   {"--collated-copies"}, "Collate copies (yes/no)");
   SwitchArg<std::string> paperSizeOpt(paperSize, {"--paper-size"}, "Paper size to output, e.g.: iso_a4_210x297mm");
+  EnumSwitchArg<PrintParameters::Scaling> scalingOpt(params.scaling,
+                                                     {{"fit", PrintParameters::Fit},
+                                                      {"fill", PrintParameters::Fill},
+                                                      {"auto-fit", PrintParameters::AutoFit},
+                                                      {"auto-fill", PrintParameters::AutoFill},
+                                                      {"none", PrintParameters::None}},
+                                                     {"--scaling"},
+                                                     "How to scale (fit/fill/auto-fit/auto-fill/none)");
   SwitchArg<int> resolutionOpt(hwRes, {"-r", "--resolution"}, "Resolution (in DPI) for rasterization");
   SwitchArg<int> resolutionXOpt(hwResX, {"-rx", "--resolution-x"}, "Resolution (in DPI) for rasterization, x-axis");
   SwitchArg<int> resolutionYOpt(hwResY, {"-ry", "--resolution-y"}, "Resolution (in DPI) for rasterization, y-axis");
@@ -84,7 +92,7 @@ int main(int argc, char** argv)
   PosArg outArg(outFileName, "out-file");
 
   ArgGet args({&helpOpt, &verboseOpt, &formatOpt, &pagesOpt,
-               &copiesOpt, /*&pageCopiesOpt,*/ &paperSizeOpt, &resolutionOpt,
+               &copiesOpt, /*&pageCopiesOpt,*/ &paperSizeOpt, &scalingOpt, &resolutionOpt,
                &resolutionXOpt, &resolutionYOpt, &duplexOpt, &tumbleOpt,
                &backXformOpt, &colorModeOpt, &qualityOpt, &antiAliasOpt,
                &mediaPositionOpt, &mediaTypeOpt},

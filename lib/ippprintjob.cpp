@@ -112,6 +112,39 @@ Error IppPrintJob::finalize(const std::string& inputFormat, int pages)
       printParams.pageSelection.push_back({range.low, range.high});
     }
     pageRanges.unset();
+
+    if(scaling.isSet())
+    {
+      if(scaling.get() == "auto")
+      {
+        if((leftMargin.get(1) == 0) && (rightMargin.get(1) == 0) &&
+          (topMargin.get(1) == 0) && (bottomMargin.get(1) == 0))
+        { // Borderless -> AutoFill
+          printParams.scaling = PrintParameters::AutoFill;
+        }
+        else
+        {
+          printParams.scaling = PrintParameters::AutoFit;
+        }
+      }
+      else if(scaling.get() == "auto-fit")
+      {
+        printParams.scaling = PrintParameters::AutoFit;
+      }
+      else if(scaling.get() == "fit")
+      {
+        printParams.scaling = PrintParameters::Fit;
+      }
+      else if(scaling.get() == "fill")
+      {
+        printParams.scaling = PrintParameters::Fill;
+      }
+      else if(scaling.get() == "none")
+      {
+        printParams.scaling = PrintParameters::None;
+      }
+      scaling.unset();
+    }
   }
 
   adjustRasterSettings(pages);

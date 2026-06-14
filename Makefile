@@ -1,4 +1,5 @@
 CXXFLAGS = -std=c++17 -O3 -pedantic -Wall -Wextra -Werror -Ilib -Ibytestream -Ijson11 \
+-Wno-c2y-extensions -Wno-unknown-warning-option \
 $(shell pkg-config --cflags poppler-glib) $(EXTRA_CXXFLAGS)
 
 LDFLAGS = $(EXTRA_LDFLAGS)

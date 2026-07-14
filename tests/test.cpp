@@ -15,18 +15,18 @@
 using namespace std;
 using namespace json11;
 
-#define REPEAT(N) (uint8_t)(N-1)
-#define VERBATIM(N) (uint8_t)(257-N)
+#define REPEAT(N) uint8_t{N-1}
+#define VERBATIM(N) uint8_t{257-N}
 
 template <typename T>
 Bytestream PacmanPpm()
 {
   T max = std::numeric_limits<T>::max();
-  Bytestream W {(T)max, (T)max, (T)max};
-  Bytestream R {(T)max, (T)0,   (T)0};
-  Bytestream G {(T)0,   (T)max, (T)0};
-  Bytestream B {(T)0,   (T)0,   (T)max};
-  Bytestream Y {(T)max, (T)max, (T)0};
+  Bytestream W {T{max}, T{max}, T{max}};
+  Bytestream R {T{max}, T{0},   T{0}};
+  Bytestream G {T{0},   T{max}, T{0}};
+  Bytestream B {T{0},   T{0},   T{max}};
+  Bytestream Y {T{max}, T{max}, T{0}};
   Bytestream ppm {"P6\n8 8\n", to_string(max), "\n"};
   ppm << W << Y << Y << Y << W << W << W << W
       << Y << B << Y << W << W << W << G << W
@@ -43,19 +43,19 @@ template <typename T>
 Bytestream RightSideUp()
 {
   T max = std::numeric_limits<T>::max();
-  Bytestream W {(T)max, (T)max, (T)max};
-  Bytestream R {(T)max, (T)0,   (T)0};
-  Bytestream G {(T)0,   (T)max, (T)0};
-  Bytestream B {(T)0,   (T)0,   (T)max};
-  Bytestream Y {(T)max, (T)max, (T)0};
+  Bytestream W {T{max}, T{max}, T{max}};
+  Bytestream R {T{max}, T{0},   T{0}};
+  Bytestream G {T{0},   T{max}, T{0}};
+  Bytestream B {T{0},   T{0},   T{max}};
+  Bytestream Y {T{max}, T{max}, T{0}};
   Bytestream enc;
-  enc << (uint8_t)0 << REPEAT(1) << W << REPEAT(3) << Y << REPEAT(4) << W
-      << (uint8_t)0 << VERBATIM(3) << Y << B << Y << REPEAT(3) << W << VERBATIM(2) << G << W
-      << (uint8_t)0 << REPEAT(2) << Y << REPEAT(3) << W << REPEAT(3) << G
-      << (uint8_t)0 << REPEAT(3) << Y << REPEAT(3) << W << VERBATIM(2) << G << W
-      << (uint8_t)0 << REPEAT(1) << W << REPEAT(3) << Y << REPEAT(4) << W
-      << (uint8_t)0 << REPEAT(8) << W
-      << (uint8_t)1 << REPEAT(8) << R;
+  enc << uint8_t{0} << REPEAT(1) << W << REPEAT(3) << Y << REPEAT(4) << W
+      << uint8_t{0} << VERBATIM(3) << Y << B << Y << REPEAT(3) << W << VERBATIM(2) << G << W
+      << uint8_t{0} << REPEAT(2) << Y << REPEAT(3) << W << REPEAT(3) << G
+      << uint8_t{0} << REPEAT(3) << Y << REPEAT(3) << W << VERBATIM(2) << G << W
+      << uint8_t{0} << REPEAT(1) << W << REPEAT(3) << Y << REPEAT(4) << W
+      << uint8_t{0} << REPEAT(8) << W
+      << uint8_t{1} << REPEAT(8) << R;
       return enc;
 }
 
@@ -63,19 +63,19 @@ template <typename T>
 Bytestream UpsideDown()
 {
   T max = std::numeric_limits<T>::max();
-  Bytestream W {(T)max, (T)max, (T)max};
-  Bytestream R {(T)max, (T)0,   (T)0};
-  Bytestream G {(T)0,   (T)max, (T)0};
-  Bytestream B {(T)0,   (T)0,   (T)max};
-  Bytestream Y {(T)max, (T)max, (T)0};
+  Bytestream W {T{max}, T{max}, T{max}};
+  Bytestream R {T{max}, T{0},   T{0}};
+  Bytestream G {T{0},   T{max}, T{0}};
+  Bytestream B {T{0},   T{0},   T{max}};
+  Bytestream Y {T{max}, T{max}, T{0}};
   Bytestream enc;
-  enc << (uint8_t)1 << REPEAT(8) << R
-      << (uint8_t)0 << REPEAT(8) << W
-      << (uint8_t)0 << REPEAT(1) << W << REPEAT(3) << Y << REPEAT(4) << W
-      << (uint8_t)0 << REPEAT(3) << Y << REPEAT(3) << W << VERBATIM(2) << G << W
-      << (uint8_t)0 << REPEAT(2) << Y << REPEAT(3) << W << REPEAT(3) << G
-      << (uint8_t)0 << VERBATIM(3) << Y << B << Y << REPEAT(3) << W << VERBATIM(2) << G << W
-      << (uint8_t)0 << REPEAT(1) << W << REPEAT(3) << Y << REPEAT(4) << W;
+  enc << uint8_t{1} << REPEAT(8) << R
+      << uint8_t{0} << REPEAT(8) << W
+      << uint8_t{0} << REPEAT(1) << W << REPEAT(3) << Y << REPEAT(4) << W
+      << uint8_t{0} << REPEAT(3) << Y << REPEAT(3) << W << VERBATIM(2) << G << W
+      << uint8_t{0} << REPEAT(2) << Y << REPEAT(3) << W << REPEAT(3) << G
+      << uint8_t{0} << VERBATIM(3) << Y << B << Y << REPEAT(3) << W << VERBATIM(2) << G << W
+      << uint8_t{0} << REPEAT(1) << W << REPEAT(3) << Y << REPEAT(4) << W;
       return enc;
 }
 
@@ -83,19 +83,19 @@ template <typename T>
 Bytestream Flipped()
 {
   T max = std::numeric_limits<T>::max();
-  Bytestream W {(T)max, (T)max, (T)max};
-  Bytestream R {(T)max, (T)0,   (T)0};
-  Bytestream G {(T)0,   (T)max, (T)0};
-  Bytestream B {(T)0,   (T)0,   (T)max};
-  Bytestream Y {(T)max, (T)max, (T)0};
+  Bytestream W {T{max}, T{max}, T{max}};
+  Bytestream R {T{max}, T{0},   T{0}};
+  Bytestream G {T{0},   T{max}, T{0}};
+  Bytestream B {T{0},   T{0},   T{max}};
+  Bytestream Y {T{max}, T{max}, T{0}};
   Bytestream enc;
-  enc << (uint8_t)0 << REPEAT(4) << W << REPEAT(3) << Y << REPEAT(1) << W
-      << (uint8_t)0 << VERBATIM(2) << W << G << REPEAT(3) << W << VERBATIM(3) << Y << B << Y
-      << (uint8_t)0 << REPEAT(3) << G << REPEAT(3) << W << REPEAT(2) << Y
-      << (uint8_t)0 << VERBATIM(2) << W << G << REPEAT(3) << W << REPEAT(3) << Y
-      << (uint8_t)0 << REPEAT(4) << W << REPEAT(3) << Y << REPEAT(1) << W
-      << (uint8_t)0 << REPEAT(8) << W
-      << (uint8_t)1 << REPEAT(8) << R;
+  enc << uint8_t{0} << REPEAT(4) << W << REPEAT(3) << Y << REPEAT(1) << W
+      << uint8_t{0} << VERBATIM(2) << W << G << REPEAT(3) << W << VERBATIM(3) << Y << B << Y
+      << uint8_t{0} << REPEAT(3) << G << REPEAT(3) << W << REPEAT(2) << Y
+      << uint8_t{0} << VERBATIM(2) << W << G << REPEAT(3) << W << REPEAT(3) << Y
+      << uint8_t{0} << REPEAT(4) << W << REPEAT(3) << Y << REPEAT(1) << W
+      << uint8_t{0} << REPEAT(8) << W
+      << uint8_t{1} << REPEAT(8) << R;
       return enc;
 }
 
@@ -103,77 +103,77 @@ template <typename T>
 Bytestream Rotated()
 {
   T max = std::numeric_limits<T>::max();
-  Bytestream W {(T)max, (T)max, (T)max};
-  Bytestream R {(T)max, (T)0,   (T)0};
-  Bytestream G {(T)0,   (T)max, (T)0};
-  Bytestream B {(T)0,   (T)0,   (T)max};
-  Bytestream Y {(T)max, (T)max, (T)0};
+  Bytestream W {T{max}, T{max}, T{max}};
+  Bytestream R {T{max}, T{0},   T{0}};
+  Bytestream G {T{0},   T{max}, T{0}};
+  Bytestream B {T{0},   T{0},   T{max}};
+  Bytestream Y {T{max}, T{max}, T{0}};
   Bytestream enc;
-  enc << (uint8_t)1 << REPEAT(8) << R
-      << (uint8_t)0 << REPEAT(8) << W
-      << (uint8_t)0 << REPEAT(4) << W << REPEAT(3) << Y << REPEAT(1) << W
-      << (uint8_t)0 << VERBATIM(2) << W << G << REPEAT(3) << W << REPEAT(3) << Y
-      << (uint8_t)0 << REPEAT(3) << G << REPEAT(3) << W << REPEAT(2) << Y
-      << (uint8_t)0 << VERBATIM(2) << W << G << REPEAT(3) << W << VERBATIM(3) << Y << B << Y
-      << (uint8_t)0 << REPEAT(4) << W << REPEAT(3) << Y << REPEAT(1) << W;
+  enc << uint8_t{1} << REPEAT(8) << R
+      << uint8_t{0} << REPEAT(8) << W
+      << uint8_t{0} << REPEAT(4) << W << REPEAT(3) << Y << REPEAT(1) << W
+      << uint8_t{0} << VERBATIM(2) << W << G << REPEAT(3) << W << REPEAT(3) << Y
+      << uint8_t{0} << REPEAT(3) << G << REPEAT(3) << W << REPEAT(2) << Y
+      << uint8_t{0} << VERBATIM(2) << W << G << REPEAT(3) << W << VERBATIM(3) << Y << B << Y
+      << uint8_t{0} << REPEAT(4) << W << REPEAT(3) << Y << REPEAT(1) << W;
   return enc;
 }
 
 Bytestream P4_0101()
 {
   Bytestream ppm {string("P4\n24 8\n")};
-  ppm << (uint8_t)0x8f << (uint8_t)0x78 << (uint8_t)0xf7
-      << (uint8_t)0x76 << (uint8_t)0x77 << (uint8_t)0x67
-      << (uint8_t)0x77 << (uint8_t)0x77 << (uint8_t)0x77
-      << (uint8_t)0x77 << (uint8_t)0x77 << (uint8_t)0x77
-      << (uint8_t)0x77 << (uint8_t)0x77 << (uint8_t)0x77
-      << (uint8_t)0x77 << (uint8_t)0x77 << (uint8_t)0x77
-      << (uint8_t)0x8e << (uint8_t)0x38 << (uint8_t)0xe3
-      << (uint8_t)0xff << (uint8_t)0xff << (uint8_t)0xff;
+  ppm << uint8_t{0x8f} << uint8_t{0x78} << uint8_t{0xf7}
+      << uint8_t{0x76} << uint8_t{0x77} << uint8_t{0x67}
+      << uint8_t{0x77} << uint8_t{0x77} << uint8_t{0x77}
+      << uint8_t{0x77} << uint8_t{0x77} << uint8_t{0x77}
+      << uint8_t{0x77} << uint8_t{0x77} << uint8_t{0x77}
+      << uint8_t{0x77} << uint8_t{0x77} << uint8_t{0x77}
+      << uint8_t{0x8e} << uint8_t{0x38} << uint8_t{0xe3}
+      << uint8_t{0xff} << uint8_t{0xff} << uint8_t{0xff};
   return ppm;
 }
 
 Bytestream BilevelPwg0101()
 {
   Bytestream enc;
-  enc << (uint8_t)0 << VERBATIM(3) << (uint8_t)0x8f << (uint8_t)0x78 << (uint8_t)0xf7
-      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0x76 << (uint8_t)0x77 << (uint8_t)0x67
-      << (uint8_t)3 << REPEAT(3) << (uint8_t)0x77
-      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0x8e << (uint8_t)0x38 << (uint8_t)0xe3
-      << (uint8_t)0 << REPEAT(3) << (uint8_t)0xff;
+  enc << uint8_t{0} << VERBATIM(3) << uint8_t{0x8f} << uint8_t{0x78} << uint8_t{0xf7}
+      << uint8_t{0} << VERBATIM(3) << uint8_t{0x76} << uint8_t{0x77} << uint8_t{0x67}
+      << uint8_t{3} << REPEAT(3) << uint8_t{0x77}
+      << uint8_t{0} << VERBATIM(3) << uint8_t{0x8e} << uint8_t{0x38} << uint8_t{0xe3}
+      << uint8_t{0} << REPEAT(3) << uint8_t{0xff};
   return enc;
 }
 
 Bytestream BilevelPwg0101_UpsideDown()
 {
   Bytestream enc;
-  enc << (uint8_t)0 << REPEAT(3) << (uint8_t)0xff
-      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0x8e << (uint8_t)0x38 << (uint8_t)0xe3
-      << (uint8_t)3 << REPEAT(3) << (uint8_t)0x77
-      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0x76 << (uint8_t)0x77 << (uint8_t)0x67
-      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0x8f << (uint8_t)0x78 << (uint8_t)0xf7;
+  enc << uint8_t{0} << REPEAT(3) << uint8_t{0xff}
+      << uint8_t{0} << VERBATIM(3) << uint8_t{0x8e} << uint8_t{0x38} << uint8_t{0xe3}
+      << uint8_t{3} << REPEAT(3) << uint8_t{0x77}
+      << uint8_t{0} << VERBATIM(3) << uint8_t{0x76} << uint8_t{0x77} << uint8_t{0x67}
+      << uint8_t{0} << VERBATIM(3) << uint8_t{0x8f} << uint8_t{0x78} << uint8_t{0xf7};
   return enc;
 }
 
 Bytestream BilevelPwg0101_Flipped()
 {
   Bytestream enc;
-  enc << (uint8_t)0 << VERBATIM(3) << (uint8_t)0xef << (uint8_t)0x1e << (uint8_t)0xf1
-      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0xe6 << (uint8_t)0xee << (uint8_t)0x6e
-      << (uint8_t)3 << REPEAT(3) << (uint8_t)0xee
-      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0xc7 << (uint8_t)0x1c << (uint8_t)0x71
-      << (uint8_t)0 << REPEAT(3) << (uint8_t)0xff;
+  enc << uint8_t{0} << VERBATIM(3) << uint8_t{0xef} << uint8_t{0x1e} << uint8_t{0xf1}
+      << uint8_t{0} << VERBATIM(3) << uint8_t{0xe6} << uint8_t{0xee} << uint8_t{0x6e}
+      << uint8_t{3} << REPEAT(3) << uint8_t{0xee}
+      << uint8_t{0} << VERBATIM(3) << uint8_t{0xc7} << uint8_t{0x1c} << uint8_t{0x71}
+      << uint8_t{0} << REPEAT(3) << uint8_t{0xff};
   return enc;
 }
 
 Bytestream BilevelPwg0101_Rotated()
 {
   Bytestream enc;
-  enc << (uint8_t)0 << REPEAT(3) << (uint8_t)0xff
-      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0xc7 << (uint8_t)0x1c << (uint8_t)0x71
-      << (uint8_t)3 << REPEAT(3) << (uint8_t)0xee
-      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0xe6 << (uint8_t)0xee << (uint8_t)0x6e
-      << (uint8_t)0 << VERBATIM(3) << (uint8_t)0xef << (uint8_t)0x1e << (uint8_t)0xf1;
+  enc << uint8_t{0} << REPEAT(3) << uint8_t{0xff}
+      << uint8_t{0} << VERBATIM(3) << uint8_t{0xc7} << uint8_t{0x1c} << uint8_t{0x71}
+      << uint8_t{3} << REPEAT(3) << uint8_t{0xee}
+      << uint8_t{0} << VERBATIM(3) << uint8_t{0xe6} << uint8_t{0xee} << uint8_t{0x6e}
+      << uint8_t{0} << VERBATIM(3) << uint8_t{0xef} << uint8_t{0x1e} << uint8_t{0xf1};
   return enc;
 }
 
@@ -2590,7 +2590,7 @@ TEST(malicious_dns)
   ASSERT_THROW(get_addr(bts), out_of_range);
 
   // Address with a c-reference loop tr.ol.ol.ol...
-  bts << (uint8_t)2 << "tr" << (uint8_t)2 << "ol" << (uint16_t)0xc003;
+  bts << uint8_t{2} << "tr" << uint8_t{2} << "ol" << uint16_t{0xc003};
 
   ASSERT_THROW(get_addr(bts), logic_error);
 
@@ -2700,12 +2700,12 @@ TEST(with_language)
   //  fr-ca                   fr-CA                   value
   //  0x0003                                          sub-value-length
   //  fou                     fou                     name
-  Bytestream msg({(uint8_t)1, (uint8_t)1, (uint16_t)0, (uint32_t)0,
-                  (uint8_t)IppTag::JobAttrs,
-                  (uint8_t)IppTag::NameWithLanguage,
-                  (uint16_t)8, "job-name",
-                  (uint16_t)12, (uint16_t)5, "fr-ca", (uint16_t)3, "fou",
-                  (uint8_t)IppTag::EndAttrs});
+  Bytestream msg({uint8_t{1}, uint8_t{1}, uint16_t{0}, uint32_t{0},
+                  static_cast<uint8_t>(IppTag::JobAttrs),
+                  static_cast<uint8_t>(IppTag::NameWithLanguage),
+                  uint16_t{8}, "job-name",
+                  uint16_t{12}, uint16_t{5}, "fr-ca", uint16_t{3}, "fou",
+                  static_cast<uint8_t>(IppTag::EndAttrs)});
   IppMsg ippMsg(msg);
   // Language is ignored and the actual value appears as-is.
   ASSERT(ippMsg.getJobAttrs().front().at("job-name").get<std::string>() == "fou");

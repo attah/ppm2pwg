@@ -111,7 +111,7 @@ void IppDiscovery::sendQuery(QType qtype, List<std::string> addrs)
     return;
   }
 
-  DBG(<< "querying " << (uint16_t)qtype << " " << addrs);
+  DBG(<< "querying " << qtype << " " << addrs);
 
   Bytestream query;
   Map<std::string, uint16_t> suffixPositions;

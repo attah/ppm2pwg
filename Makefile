@@ -1,14 +1,12 @@
 CXXFLAGS = -std=c++17 -O3 -pedantic -Wall -Wextra -Werror -Ilib -Ibytestream -Ijson11 \
--Wno-c2y-extensions -Wno-unknown-warning-option \
 $(shell pkg-config --cflags poppler-glib) $(EXTRA_CXXFLAGS)
 
 LDFLAGS = $(EXTRA_LDFLAGS)
 
+-include clang.mk
+
 CLANGXX ?= clang++
 CLANG_TIDY ?= clang-tidy
-
-# json11 has an explicit using declaration, yet clang throws this warning
-SILLY_CLANG_FLAGS = -Wno-unqualified-std-cast-call
 
 VPATH = bytestream lib utils json11
 
@@ -22,9 +20,6 @@ pdf2printable_mad.o: pdf2printable.cpp
 
 baselinify_mad.o: baselinify.cpp
 	$(CXX) -MMD -c -DMADNESS=1 $(CXXFLAGS) $^ -o $@
-
-json11.o: json11.cpp
-	$(CXX) -MMD -c $(CXXFLAGS) $(SILLY_CLANG_FLAGS) $<
 
 %.o: %.cpp
 	$(CXX) -MMD -c $(CXXFLAGS) $<
@@ -76,7 +71,7 @@ TIDY_SOURCES = $(wildcard lib/*.cpp) $(wildcard utils/*.cpp)
 tidy: $(subst .cpp,.tidy, $(TIDY_SOURCES))
 
 fuzz:
-	$(CLANGXX) -g -fsanitize=fuzzer $(CXXFLAGS) $(SILLY_CLANG_FLAGS) -O0 -DFUZZ lib/ippmsg.cpp lib/ippattr.cpp bytestream/bytestream.cpp json11/json11.cpp -o $@
+	$(CLANGXX) -g -fsanitize=fuzzer $(CXXFLAGS) -O0 -DFUZZ lib/ippmsg.cpp lib/ippattr.cpp bytestream/bytestream.cpp json11/json11.cpp -o $@
 
 install: $(OFFICIAL)
 	cp $^ /usr/bin/

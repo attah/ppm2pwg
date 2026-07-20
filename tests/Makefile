@@ -1,6 +1,9 @@
 LDFLAGS = -Wl,--export-dynamic -lcurl -ljpeg $(shell pkg-config --libs poppler-glib) -lz
 CXXFLAGS = -std=c++17 -g -pedantic -Wall -Werror -Wextra -I ../lib -I ../json11 -I ../bytestream \
 $(shell pkg-config --cflags poppler-glib)
+
+-include ../clang.mk
+
 TEST_INCLUDES = -I ../lib -I ../bytestream/minitest
 
 VPATH = ../bytestream ../lib ../json11
@@ -13,10 +16,6 @@ all: test
 
 test.o: test.cpp
 	$(CXX) -c $(TEST_INCLUDES) $(CXXFLAGS) $^
-
-# Silly clang
-json11.o: json11.cpp
-	$(CXX) -MMD -c $(CXXFLAGS) -Wno-unqualified-std-cast-call $<
 
 %.o: %.cpp
 	$(CXX) -MMD -c $(CXXFLAGS) $<

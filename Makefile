@@ -74,6 +74,7 @@ fuzz:
 	$(CLANGXX) -g -fsanitize=fuzzer $(CXXFLAGS) -O0 -DFUZZ lib/ippmsg.cpp lib/ippattr.cpp bytestream/bytestream.cpp json11/json11.cpp -o $@
 
 install: $(OFFICIAL)
-	cp $^ /usr/bin/
+	mkdir -p $(DESTDIR)/usr/bin
+	cp $^ $(DESTDIR)/usr/bin/
 
 -include *.d

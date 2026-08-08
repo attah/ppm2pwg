@@ -115,5 +115,5 @@ void cmyk2rgb(Bytestream& cmyk)
     _rgb[j+1] = kInv - _cmyk[i+1];
     _rgb[j+2] = kInv - _cmyk[i+2];
   }
-  cmyk = rgb;
+  cmyk = std::move(rgb);
 }

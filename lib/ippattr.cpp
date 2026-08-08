@@ -18,7 +18,7 @@ std::string IppIntRange::toStr() const
   std::string res = std::to_string(low);
   if(high != low)
   {
-    res += "-";
+    res += '-';
     if(high != std::numeric_limits<int32_t>::max())
     {
       res += std::to_string(high);

@@ -49,7 +49,7 @@ Url make_addr(const std::string& proto, uint16_t defaultPort, uint16_t port,
 List<std::string> get_addr(Bytestream& bts, std::set<uint16_t> seenReferences={})
 {
   List<std::string> addr;
-  while(!(bts.next<uint8_t>(0)))
+  while(!bts.next<uint8_t>(0))
   {
     if((bts.peek<uint8_t>()&0xc0)==0xc0)
     {

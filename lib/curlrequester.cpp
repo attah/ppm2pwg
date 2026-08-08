@@ -47,14 +47,12 @@ void CurlRequester::doRun()
   curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, _opts);
 
   _worker.run([this]()
-  {
-    Bytestream buf;
-    curl_easy_setopt(_curl, CURLOPT_WRITEDATA, &buf);
-    curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, write_callback);
+              {
+                curl_easy_setopt(_curl, CURLOPT_WRITEDATA, &_resultMsg);
+                curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, write_callback);
 
-    _result = curl_easy_perform(_curl);
-    _resultMsg = buf;
-  });
+                _result = curl_easy_perform(_curl);
+              });
 }
 
 CURLcode CurlRequester::await(Bytestream* data)

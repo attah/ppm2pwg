@@ -444,7 +444,7 @@ bool IppPrinter::isWarningState() const
   }
   for(const std::string& reason : stateReasons())
   {
-    if(reason != "none" && !(string_ends_with(reason, "-report")))
+    if(reason != "none" && !string_ends_with(reason, "-report"))
     {
       return true;
     }

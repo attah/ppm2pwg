@@ -197,7 +197,7 @@ PageSequence PrintParameters::getPageSequence(size_t pages) const
           }
         }
       }
-      seq = copy;
+      seq = std::move(copy);
     }
   }
   return seq;

@@ -192,7 +192,7 @@ IppValue IppMsg::decodeValue(IppTag tag, Bytestream& data) const
       std::string tmpString;
       if(data.get<uint16_t>() != 0) // Check and consume over-all length
       {
-        data.getString(data.get<uint16_t>()); // ignore language
+        (void)data.getString(data.get<uint16_t>()); // ignore language
         tmpString = data.getString(data.get<uint16_t>());
       }
       return IppValue(tmpString);
